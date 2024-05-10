@@ -61,7 +61,7 @@ st.dataframe(new_file_config)
 if st.button('File Configuration Confirm, Proceed'):
   file_config = new_file_config
   st.write('---')
-  ben_fp = '/content/benefit_indexing.xlsx'
+  ben_fp = 'benefit_indexing.xlsx'
   raw_ = RawClaimData(ben_fp)
   for n0 in range(len(file_config)):
     raw_.add_raw_data(file_config['File Name'].iloc[n0], 
