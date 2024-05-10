@@ -1,0 +1,12 @@
+streamlit
+io
+pandas
+numpy
+os
+msoffcrypto
+matplotlib.pyplot
+seaborn
+datetime
+datetime
+warnings
+streamlit-aggrid
