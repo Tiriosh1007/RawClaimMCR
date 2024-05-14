@@ -53,7 +53,6 @@ else:
   file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
   file_config['Password'] = None
   file_config['Policy start date'] = None
-  file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = 
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
 
