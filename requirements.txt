@@ -1,9 +1,7 @@
 streamlit
 pandas
 numpy
-msoffcrypto
+msoffcrypto-tool
 matplotlib
 seaborn
-datetime
-warnings
 streamlit-aggrid
