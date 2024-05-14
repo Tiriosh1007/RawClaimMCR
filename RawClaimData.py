@@ -691,8 +691,53 @@ class RawClaimData():
 
 
     return t_df
+  
 
+  def __consol_raw_claim(self, raw_claim_path):
+    dtype_con_raw = {
+      'policy_id': str,
+      'policy_number': str,
+      'insurer': str,
+      'client_name': str,
+      'policy_start_date': str,
+      'policy_end_date': str,
+      'claim_id': str,
+      'incur_date': str,
+      'discharge_date': str,
+      'submission_date': str,
+      'pay_date': str,
+      'claim_status': str,
+      'claim_remark': str,
+      'cert_true_copy': str,
+      'claimant': str,
+      'gender': str,
+      'age': str,
+      'dep_type': str,
+      'class': str,
+      'member_status': str,
+      'benefit_type': str,
+      'benefit': str,
+      'diagnosis': str,
+      'chornic': str,
+      'currency': str,
+      'incurred_amount': float,
+      'paid_amount': float,
+      'panel': str,
+      'suboffice': str,
+      'region': str,
+    }
+    date_cols = ['policy_start_date', 'policy_end_date', 'incur_date', 'discharge_date', 'submission_date', 'pay_date']
 
+    if raw_claim_path.split('.')[-1] == 'csv':
+      t_df = pd.read_csv(raw_claim_path, dtype= dtype_con_raw)
+    else:
+      t_df = pd.read_excel(raw_claim_path, dtype= dtype_con_raw)
+
+    for col in date_cols:
+      if len(t_df[col].unique()) > 1:
+        t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='ISO8601')
+
+    return t_df
 
 
   def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK'):
@@ -704,8 +749,8 @@ class RawClaimData():
     elif insurer == 'Bupa':
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     else:
-      print('Please make sure that the colums of the DataFrame is aligned with the standard format')
-      temp_df = pd.read_csv(raw_claim_path)
+      # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
+      temp_df = self.__consol_raw_claim(raw_claim_path)
     self.df = pd.concat([self.df, temp_df], axis=0, ignore_index=True)
 
     self.policy_id_list = self.df['policy_id'].unique().tolist()
