@@ -48,13 +48,30 @@ else:
 
   file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
   file_config['Insurer'] = 'AIA/AXA/Bupa'
+  file_config['Insurer'].loc[file_config['File Name'].str.contains('EB', case=True)] = 'AXA'
+  file_config['Insurer'].loc[file_config['File Name'].str.contains('HSD|GMD', case=True)] = 'AIA'
+  file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
   file_config['Password'] = None
-  file_config['Policy start date'] = 'Please input as yyyymmdd format'
+  file_config['Policy start date'] = None
+  file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = 
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
 
   st.write('---')
   st.header('Raw Claim File Configurations')
+  st.write("""
+  Please input the configurations:
+
+  1. Insurers: Bupa/ AIA/ AXA. If it is consolidated raw claim please leave blank.
+
+  2. Password: If no password please leave blank.
+
+  3. Policy start date: In yyyymmdd form. Ie 1 Jul 2023 => 20230701.
+
+  4. Client Name: Free to input but good to make sure it aligns with previous used name.
+
+  5. Region: HK/ MO.
+  """)
   gb = GridOptionsBuilder.from_dataframe(file_config)
   gb.configure_column('Insurer', editable=True)
   gb.configure_column('Password', editable=True)
