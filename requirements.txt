@@ -1,12 +1,9 @@
 streamlit
-io
 pandas
 numpy
-os
 msoffcrypto
 matplotlib
 seaborn
-datetime
 datetime
 warnings
 streamlit-aggrid
