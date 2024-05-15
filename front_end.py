@@ -63,11 +63,13 @@ if st.button('Raw Claim Data'):
 
   file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
   insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
+  password_df = pd.DataFrame(password_l, columns=['Password'])
+  policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
-  file_config = pd.concat([file_config, insurer], axis=1, ignore_index=True)
-  if len(upload_file_l > 1):
+  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=True)
+  #if len(upload_file_l > 1):
     # insurer_df
-    file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
+    #file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
   # file_config['Insurer'] = 'AIA/AXA/Bupa'
   # file_config['Insurer'].loc[file_config['File Name'].str.contains('EB', case=True)] = 'AXA'
   # file_config['Insurer'].loc[file_config['File Name'].str.contains('HSD|GMD', case=True)] = 'AIA'
@@ -80,8 +82,8 @@ if st.button('Raw Claim Data'):
   #                                                                          file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[2:4])
   # file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = file_config['File Name'].str.split('_')[3]
   # file_config['Policy start date'].loc[file_config['Insurer'] == 'Bupa'] = file_config['File Name'].str.split('-')[0].str.split(' ')[-1] + '01'
-    file_config['Client Name'] = 'Input Client Name'
-    file_config['Region'] = 'HK'
+  file_config['Client Name'] = 'Input Client Name'
+  file_config['Region'] = 'HK'
 
   st.write('---')
   st.header('Raw Claim File Configurations')
