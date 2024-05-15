@@ -47,11 +47,11 @@ if st.button('Raw Claim Data'):
       elif uploaded_file.name.str.contains('HSD|GMD', case=True):
         insurer_l.append('AIA')
         policy_sd_l.append(uploaded_file.name.str.split('_')[3])
-        password_l.append(None)
+        password_l.append("")
       elif uploaded_file.name.str.contains('Claims Raw', case=True):
         insurer_l.append('Bupa')
         policy_sd_l.append("".join([uploaded_file.name.str.split('-')[0].str.split(' ')[-1],'01']))
-        password_l.append(None)
+        password_l.append("")
 
       import tempfile
       import os
@@ -67,6 +67,7 @@ if st.button('Raw Claim Data'):
   policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
   file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=True)
+  file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
   #if len(upload_file_l > 1):
     # insurer_df
     #file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
