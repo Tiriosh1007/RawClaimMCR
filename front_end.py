@@ -55,7 +55,7 @@ if st.session_state.raw_claim == True:
       elif 'HSD' in uploaded_file.name or 'GMD' in uploaded_file.name:
         insurer_l.append('AIA')
         __d = uploaded_file.name.split('(')[-1].split("-")[0]
-        __d = "".join([__d[-4:], __d[0:2], __d[2:4])
+        __d = "".join([__d[-4:], __d[0:2], __d[2:4]])
         policy_sd_l.append(__d)
         password_l.append("")
       elif 'Claims Raw' in uploaded_file.name:
