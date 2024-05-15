@@ -45,15 +45,15 @@ if st.session_state.raw_claim == True:
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
       uploaded_file_list.append(uploaded_file)
-      if uploaded_file.name.contains('EB', case=True):
+      if 'EB' in uploaded_file.name:
         insurer_l.append('AXA')
         policy_sd_l.append(uploaded_file.name.split('(')[-1].split("-")[0])
         password_l.append("".join('axa', str(year(now()))))
-      elif uploaded_file.name.contains('HSD|GMD', case=True):
+      elif 'HSD|GMD' in uploaded_file.name:
         insurer_l.append('AIA')
         policy_sd_l.append(uploaded_file.name.split('_')[3])
         password_l.append("")
-      elif uploaded_file.name.contains('Claims Raw', case=True):
+      elif 'Claims Raw' in uploaded_file.name:
         insurer_l.append('Bupa')
         policy_sd_l.append("".join([uploaded_file.name.split('-')[0].split(' ')[-1],'01']))
         password_l.append("")
