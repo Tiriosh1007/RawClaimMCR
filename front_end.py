@@ -14,12 +14,17 @@ plt.rcParams["axes.formatter.limits"] = (-99, 99)
 from RawClaimData import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
+if 'raw_claim' not in st.session_state:
+  st.session_state.raw_claim = False
+  
+if st.button('Reset'):
+  st.session_state.raw_claim = False
 
-st.button('Reset')
 if st.button('Raw Claim Data'):
+  st.session_state.raw_claim = True
 
 
-
+if st.session_state.raw_claim == True:
   st.write("""
   # Gain Miles Assurance Consultancy Ltd
 
