@@ -45,17 +45,17 @@ if st.session_state.raw_claim == True:
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
       uploaded_file_list.append(uploaded_file)
-      if uploaded_file.name.str.contains('EB', case=True):
+      if uploaded_file.name.contains('EB', case=True):
         insurer_l.append('AXA')
-        policy_sd_l.append(uploaded_file.name.str.split('(')[-1].str.split("-")[0])
+        policy_sd_l.append(uploaded_file.name.split('(')[-1].split("-")[0])
         password_l.append("".join('axa', str(year(now()))))
-      elif uploaded_file.name.str.contains('HSD|GMD', case=True):
+      elif uploaded_file.name.contains('HSD|GMD', case=True):
         insurer_l.append('AIA')
-        policy_sd_l.append(uploaded_file.name.str.split('_')[3])
+        policy_sd_l.append(uploaded_file.name.split('_')[3])
         password_l.append("")
-      elif uploaded_file.name.str.contains('Claims Raw', case=True):
+      elif uploaded_file.name.contains('Claims Raw', case=True):
         insurer_l.append('Bupa')
-        policy_sd_l.append("".join([uploaded_file.name.str.split('-')[0].str.split(' ')[-1],'01']))
+        policy_sd_l.append("".join([uploaded_file.name.split('-')[0].split(' ')[-1],'01']))
         password_l.append("")
 
       import tempfile
