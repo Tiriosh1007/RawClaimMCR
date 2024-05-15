@@ -51,8 +51,8 @@ if st.session_state.raw_claim == True:
       if 'EB' in uploaded_file.name:
         insurer_l.append('AXA')
         policy_sd_l.append(uploaded_file.name.split('(')[-1].split("-")[0])
-        password_l.append("".join('axa', str(year(now()))))
-      elif 'HSD|GMD' in uploaded_file.name:
+        password_l.append("".join('axa', str(dt.datetime.year(dt.datetime.now()))))
+      elif 'HSD' in uploaded_file.name or 'GMD' in uploaded_file.name:
         insurer_l.append('AIA')
         policy_sd_l.append(uploaded_file.name.split('_')[3])
         password_l.append("")
