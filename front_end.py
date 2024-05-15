@@ -66,8 +66,8 @@ if st.button('Raw Claim Data'):
   password_df = pd.DataFrame(password_l, columns=['Password'])
   policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
-  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=True)
-  file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
+  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
+  # file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
   #if len(upload_file_l > 1):
     # insurer_df
     #file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
