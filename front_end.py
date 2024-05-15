@@ -30,7 +30,7 @@ if st.button('Raw Claim Data'):
   upload_file_l = []
   insurer_l = []
   password_l = []
-  polcy_sd_l = []
+  policy_sd_l = []
   
   uploaded_file_list = []
   full_file_list = []
