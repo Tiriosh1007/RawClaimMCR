@@ -15,10 +15,9 @@ from RawClaimData import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 
+st.button('Reset')
+if st.button('Raw Claim Data'):
 
-if st.button('Reset', False):
-  st.empty()
-else:
 
 
   st.write("""
@@ -53,6 +52,12 @@ else:
   file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
   file_config['Password'] = None
   file_config['Policy start date'] = None
+  file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = file_config['File Name'].str.split('(')[-1].str.split("-")[0]
+  file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = (file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[-4:] + 
+                                                                           file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[0:2] + 
+                                                                           file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[2:4])
+  file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = file_config['File Name'].str.split('_')[3]
+  file_config['Policy start date'].loc[file_config['Insurer'] == 'Bupa'] = file_config['File Name'].str.split('-')[0].str.split(' ')[-1] + '01'
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
 
