@@ -18,6 +18,8 @@ if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
   
 if st.button('Reset'):
+  if st.session_state.raw_claim = True:
+    del raw_
   st.session_state.raw_claim = False
 
 if st.button('Raw Claim Data'):
