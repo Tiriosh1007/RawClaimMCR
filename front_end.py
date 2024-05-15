@@ -28,6 +28,10 @@ if st.button('Raw Claim Data'):
   st.write("---")
 
   upload_file_l = []
+  insurer_l = []
+  password_l = []
+  polcy_sd_l = []
+  
   uploaded_file_list = []
   full_file_list = []
 
@@ -36,6 +40,18 @@ if st.button('Raw Claim Data'):
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
       uploaded_file_list.append(uploaded_file)
+      if uploaded_file.name.str.contains('EB', case=True):
+        insurer_l.append('AXA')
+        policy_sd_l.append(uploaded_file.name.str.split('(')[-1].str.split("-")[0])
+        password_l.append("".join('axa', str(year(now()))))
+      elif uploaded_file.name.str.contains('HSD|GMD', case=True):
+        insurer_l.append('AIA')
+        policy_sd_l.append(uploaded_file.name.str.split('_')[3])
+        password_l.append(None)
+      elif uploaded_file.name.str.contains('Claims Raw', case=True):
+        insurer_l.append('Bupa')
+        policy_sd_l.append("".join([uploaded_file.name.str.split('-')[0].str.split(' ')[-1],'01']))
+        password_l.append(None)
 
       import tempfile
       import os
@@ -46,18 +62,19 @@ if st.button('Raw Claim Data'):
             f.write(uploaded_file.getvalue())
 
   file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
-  file_config['Insurer'] = 'AIA/AXA/Bupa'
-  file_config['Insurer'].loc[file_config['File Name'].str.contains('EB', case=True)] = 'AXA'
-  file_config['Insurer'].loc[file_config['File Name'].str.contains('HSD|GMD', case=True)] = 'AIA'
-  file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
-  file_config['Password'] = None
-  file_config['Policy start date'] = None
-  file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = file_config['File Name'].str.split('(')[-1].str.split("-")[0]
-  file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = (file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[-4:] + 
-                                                                           file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[0:2] + 
-                                                                           file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[2:4])
-  file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = file_config['File Name'].str.split('_')[3]
-  file_config['Policy start date'].loc[file_config['Insurer'] == 'Bupa'] = file_config['File Name'].str.split('-')[0].str.split(' ')[-1] + '01'
+  file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
+  # file_config['Insurer'] = 'AIA/AXA/Bupa'
+  # file_config['Insurer'].loc[file_config['File Name'].str.contains('EB', case=True)] = 'AXA'
+  # file_config['Insurer'].loc[file_config['File Name'].str.contains('HSD|GMD', case=True)] = 'AIA'
+  # file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
+  # file_config['Password'] = None
+  # file_config['Policy start date'] = None
+  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = file_config['File Name'].str.split('(')[-1].str.split("-")[0]
+  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = (file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[-4:] + 
+  #                                                                          file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[0:2] + 
+  #                                                                          file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[2:4])
+  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = file_config['File Name'].str.split('_')[3]
+  # file_config['Policy start date'].loc[file_config['Insurer'] == 'Bupa'] = file_config['File Name'].str.split('-')[0].str.split(' ')[-1] + '01'
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
 
