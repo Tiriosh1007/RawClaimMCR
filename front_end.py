@@ -21,6 +21,7 @@ if st.button('Reset'):
   if st.session_state.raw_claim == True:
     st.cache_resource.clear()
   st.session_state.raw_claim = False
+  st.session_state.process = False
 
 if st.button('Raw Claim Data'):
   st.session_state.raw_claim = True
