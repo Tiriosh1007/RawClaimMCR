@@ -206,7 +206,7 @@ if st.session_state.shortfall == True:
             f.write(uploaded_file.getvalue())
 
   
-  shortfall_files = pd.DateFrame(upload_file_l, columns=['File Name'])
+  shortfall_files = pd.DataFrame(upload_file_l, columns=['File Name'])
 
   st.write('### Uploaded Files')
   st.dataframe(shortfall_files)
