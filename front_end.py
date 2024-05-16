@@ -191,7 +191,7 @@ if st.session_state.shortfall == True:
   uploaded_file_list = []
   full_file_list = []
 
-  uploaded_files = st.file_uploader("Upload raw claim excel .xlsx files", accept_multiple_files=True)
+  uploaded_files = st.file_uploader("Upload bupa shortfall excel files", accept_multiple_files=True)
   for uploaded_file in uploaded_files:
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
