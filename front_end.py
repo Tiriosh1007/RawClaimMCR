@@ -173,11 +173,11 @@ if st.session_state.raw_claim == True:
     
     st.download_button('Raw Claim Consolidated', 
                       data=raw_.export_database(),
-                      file_name="raw_claim_date.csv",
+                      file_name="raw_claim_data.csv",
                       mime="application/vnd.ms-excel")
     
     st.download_button('Frequent Claimant Analysis', 
-                      data=__freq.to_csv(index=False).encode('utf-8'),
+                      data=__freq.to_csv(index=True).encode('utf-8'),
                       file_name="freq_claimant.csv",
                       mime="application/vnd.ms-excel")
 
