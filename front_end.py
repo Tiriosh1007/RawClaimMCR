@@ -12,6 +12,7 @@ sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
 
 from RawClaimData import *
+from Shortfall import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 if 'raw_claim' not in st.session_state:
@@ -24,13 +25,18 @@ if st.button('Reset'):
   if st.session_state.raw_claim == True:
     st.cache_resource.clear()
   st.session_state.raw_claim = False
-  st.session_state.process = False
+  st.session_state.raw_process = False
   st.session_state.shortfall= False
+  st.session_state.shortfall_process = False
 
 if st.button('Raw Claim Data'):
   st.session_state.raw_claim = True
-# if st.button('Shortfall'):
-#   st.session_state.shortfall = True
+  st.session_state.shortfall = False
+  st.session_state.shortfall_process = False
+if st.button('Shortfall'):
+  st.session_state.shortfall = True
+  st.session_state.raw_claim = False
+  st.session_state.raw_process = False
 
 
 if st.session_state.raw_claim == True:
@@ -84,21 +90,7 @@ if st.session_state.raw_claim == True:
 
   file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
   file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
-  #if len(upload_file_l > 1):
-    # insurer_df
-    #file_config = pd.DataFrame([upload_file_l, insurer_l, password_l, policy_sd_l], columns=['File Name', 'Insurer', 'Password', 'Policy start date'])
-  # file_config['Insurer'] = 'AIA/AXA/Bupa'
-  # file_config['Insurer'].loc[file_config['File Name'].str.contains('EB', case=True)] = 'AXA'
-  # file_config['Insurer'].loc[file_config['File Name'].str.contains('HSD|GMD', case=True)] = 'AIA'
-  # file_config['Insurer'].loc[file_config['File Name'].str.contains('Claims Raw', case=True)] = 'Bupa'
-  # file_config['Password'] = None
-  # file_config['Policy start date'] = None
-  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = file_config['File Name'].str.split('(')[-1].str.split("-")[0]
-  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'] = (file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[-4:] + 
-  #                                                                          file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[0:2] + 
-  #                                                                          file_config['Policy start date'].loc[file_config['Insurer'] == 'AIA'].str[2:4])
-  # file_config['Policy start date'].loc[file_config['Insurer'] == 'AXA'] = file_config['File Name'].str.split('_')[3]
-  # file_config['Policy start date'].loc[file_config['Insurer'] == 'Bupa'] = file_config['File Name'].str.split('-')[0].str.split(' ')[-1] + '01'
+
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
 
@@ -133,16 +125,16 @@ if st.session_state.raw_claim == True:
               enable_enterprise_modules=False)
 
   new_file_config = ag['data']
-  st.write('#### updated data')
+  st.write('### updated data')
   st.dataframe(new_file_config)
 
-  if 'process' not in st.session_state:
-    st.session_state.process = False
+  if 'raw_process' not in st.session_state:
+    st.session_state.raw_process = False
 
   if st.button('File Configuration Confirm, Proceed!'):
-    st.session_state.process = True
+    st.session_state.raw_process = True
 
-  if st.session_state.process == True:
+  if st.session_state.raw_process == True:
     file_config = new_file_config
     st.write('---')
     ben_fp = 'benefit_indexing.xlsx'
@@ -183,5 +175,58 @@ if st.session_state.raw_claim == True:
 
 
 
+if st.session_state.shortfall == True:
+  st.write("""
+  # Gain Miles Assurance Consultancy Ltd
 
+  ### Bupa Shortfall MCR data calculation tool
+  """)
+  st.write("---")
 
+  upload_file_l = []
+  insurer_l = []
+  password_l = []
+  policy_sd_l = []
+  
+  uploaded_file_list = []
+  full_file_list = []
+
+  uploaded_files = st.file_uploader("Upload raw claim excel .xlsx files", accept_multiple_files=True)
+  for uploaded_file in uploaded_files:
+      # st.write("filename:", uploaded_file.name)
+      upload_file_l.append(uploaded_file.name)
+      uploaded_file_list.append(uploaded_file)
+
+      import tempfile
+      import os
+      temp_dir = tempfile.mkdtemp()
+      path = os.path.join(temp_dir, uploaded_file.name)
+      full_file_list.append(path)
+      with open(path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+
+  
+  shortfall_files = pd.DateFrame(upload_file_l, columns=['File Name'])
+
+  st.write('### Uploaded Files')
+  st.dataframe(shortfall_files)
+
+  if 'shortfall_process' not in st.session_state:
+    st.session_state.shortfall_process = False
+
+  if st.button('File Configuration Confirm, Proceed!'):
+    st.session_state.shortfall_process = True
+
+  if st.session_state.shortfall_process == True:
+    shortfall_files
+    st.write('---')
+    ben_fp = 'benefit_indexing.xlsx'
+    sf_ = Shortfall(ben_fp)
+    for n0 in range(len(shortfall_files)):
+      sf_.add_shortfall(full_file_list[n0])
+
+    st.download_button('MCR data', 
+                      data=sf_.mcr_pages(export=True),
+                      file_name="mcr.xlsx",
+                      mime="application/vnd.ms-excel")
+    
