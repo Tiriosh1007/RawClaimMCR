@@ -163,10 +163,12 @@ if st.session_state.raw_claim == True:
                       data=raw_.mcr_pages(export=True),
                       file_name="mcr.xlsx",
                       mime="application/vnd.ms-excel")
+    
     st.download_button('Raw Claim Consolidated', 
                       data=raw_.export_database(),
                       file_name="raw_claim_date.csv",
                       mime="application/vnd.ms-excel")
+    
     st.download_button('Frequent Claimant Analysis', 
                       data=raw_.frequent_claimant_analysis(),
                       file_name="freq_claimant.csv",

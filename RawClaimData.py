@@ -1061,7 +1061,7 @@ class RawClaimData():
     __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
     self.frequent_analysis = __freq_df
 
-    return self.frequent_analysis.to_csv(index=True).encode('utf-8')
+    return __freq_df.to_csv(index=True).encode('utf-8')
 
   def make_autopct(values):
     def my_autopct(pct):
