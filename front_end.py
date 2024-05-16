@@ -208,8 +208,8 @@ if st.session_state.shortfall == True:
   
   shortfall_files = pd.DataFrame(upload_file_l, columns=['File Name'])
 
-  st.write('### Uploaded Files')
-  st.dataframe(shortfall_files)
+  # st.write('### Uploaded Files')
+  # st.dataframe(shortfall_files)
 
   if 'shortfall_process' not in st.session_state:
     st.session_state.shortfall_process = False
@@ -220,8 +220,8 @@ if st.session_state.shortfall == True:
   if st.session_state.shortfall_process == True:
     shortfall_files
     st.write('---')
-    ben_fp = 'benefit_indexing.xlsx'
-    sf_ = Shortfall(ben_fp)
+    # ben_fp = 'benefit_indexing.xlsx'
+    sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
       sf_.add_shortfall(full_file_list[n0])
 
