@@ -214,11 +214,11 @@ if st.session_state.shortfall == True:
   if 'shortfall_process' not in st.session_state:
     st.session_state.shortfall_process = False
 
-  if st.button('File Configuration Confirm, Proceed!'):
+  if st.button('File Upload Confirm, Proceed!'):
     st.session_state.shortfall_process = True
 
   if st.session_state.shortfall_process == True:
-    shortfall_files
+    # shortfall_files
     st.write('---')
     # ben_fp = 'benefit_indexing.xlsx'
     sf_ = Shortfall()
