@@ -16,15 +16,21 @@ from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
+if 'shortfall' not in st.session_state:
+  st.session_state.shortfall = False
+  
   
 if st.button('Reset'):
   if st.session_state.raw_claim == True:
     st.cache_resource.clear()
   st.session_state.raw_claim = False
   st.session_state.process = False
+  st.session_state.shortfall= False
 
 if st.button('Raw Claim Data'):
   st.session_state.raw_claim = True
+# if st.button('Shortfall'):
+#   st.session_state.shortfall = True
 
 
 if st.session_state.raw_claim == True:
@@ -150,6 +156,7 @@ if st.session_state.raw_claim == True:
                         region=file_config['Region'].iloc[n0])
 
     raw_.preprocessing()
+    __freq = raw_.frequent_claimant_analysis()
 
 
 
@@ -170,7 +177,7 @@ if st.session_state.raw_claim == True:
                       mime="application/vnd.ms-excel")
     
     st.download_button('Frequent Claimant Analysis', 
-                      data=raw_.frequent_claimant_analysis(),
+                      data=__freq.to_csv(index=False).encode('utf-8'),
                       file_name="freq_claimant.csv",
                       mime="application/vnd.ms-excel")
 

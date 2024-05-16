@@ -1041,7 +1041,7 @@ class RawClaimData():
   def frequent_claimant_analysis(self, sub_policy=None):
     freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
     self.df['year'] = self.df.policy_start_date.dt.year
-    self.df.claimant = self.df.policy_id.str.cat(self.df.year.astype(str), sep='_').str.cat(self.df.claimant, sep='_')
+    self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
     __dep = self.df
     # __dep.claimant = __dep.policy_number.str.cat(__dep.year.astype(str), sep='_').str.cat(__dep.claimant, sep='_')
     __dep = __dep[['claimant', 'dep_type', 'class']]
@@ -1061,7 +1061,7 @@ class RawClaimData():
     __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
     self.frequent_analysis = __freq_df
 
-    return __freq_df.to_csv(index=True).encode('utf-8')
+    return __freq_df
 
   def make_autopct(values):
     def my_autopct(pct):
