@@ -1080,6 +1080,8 @@ class RawClaimData():
 
     __benefit_l = __benefit_df.index.get_level_values(level='benefit').unique().tolist()
 
+    self.aa = __benefit_df
+
     __tdf = pd.DataFrame()
     for b in benefit:
       __tdf = pd.concat([__tdf, __benefit_df.loc[b].rename(columns={'no_of_claims': b})], axis=1, ignore_index=False)
