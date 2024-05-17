@@ -1082,7 +1082,7 @@ class RawClaimData():
 
     __tdf = pd.DataFrame()
     for b in benefit:
-      __tdf = pd.concat([__tdf, __benefit_l.loc[b].rename(columns={'no_of_claims': b})], axis=1, ignore_index=False)
+      __tdf = pd.concat([__tdf, __benefit_df.loc[b].rename(columns={'no_of_claims': b})], axis=1, ignore_index=False)
 
     # self.benefit_trend = __benefit_fig
 
