@@ -1088,8 +1088,8 @@ class RawClaimData():
 
     import plotly.express as px
     df = __tdf
-    fig = px.line(df, x="date", y=df.columns,
-                hover_data={"date": "|%B %d, %Y"},
+    fig = px.line(df, x="incur_date", y=df.columns,
+                hover_data={"incur_date": "|%B %d, %Y"},
                 title='custom tick labels')
     fig.update_xaxes(
     dtick="M1",
