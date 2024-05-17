@@ -173,6 +173,13 @@ if st.session_state.raw_claim == True:
                       file_name="freq_claimant.csv",
                       mime="application/vnd.ms-excel")
 
+    st.write('---')
+    st.header('General Practitioner/ Chinese Medicine/ Specialist')
+    fig = raw_.benefit_OP_monthly()
+
+    st.plotly_chart(fig, use_container_width=True)
+    
+
 
 
 if st.session_state.shortfall == True:
