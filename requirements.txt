@@ -3,6 +3,7 @@ pandas
 numpy
 msoffcrypto-tool
 matplotlib
+plotly
 seaborn
 streamlit-aggrid
 openpyxl
