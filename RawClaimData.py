@@ -1074,16 +1074,14 @@ class RawClaimData():
   # this function should modify into incident rate
   ################################################################################################
 
-  def benefit_op_monthly(self, benefit=['General Consultation (GP)', 'Chinese Med (CMT)', 'Specialist Consultation (SP)']):
+  def benefit_op_monthly(self, benefit=['GP', 'CMT', 'SP']):
     self.df['year'] = self.df.policy_start_date.dt.year
     __benefit_df = self.df[['benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
 
     __benefit_l = __benefit_df.index.get_level_values(level='benefit').unique().tolist()
 
-    self.aa = __benefit_df
-
     __tdf = pd.DataFrame()
-    for b in benefit:
+    for b in __benefit_l:
       __tdf = pd.concat([__tdf, __benefit_df.loc[b].rename(columns={'no_of_claims': b})], axis=1, ignore_index=False)
 
     # self.benefit_trend = __benefit_fig
