@@ -175,7 +175,7 @@ if st.session_state.raw_claim == True:
 
     st.write('---')
     st.header('General Practitioner/ Chinese Medicine/ Specialist')
-    fig = raw_.benefit_OP_monthly()
+    fig = raw_.benefit_op_monthly()
 
     st.plotly_chart(fig, use_container_width=True)
     
