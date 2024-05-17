@@ -1076,35 +1076,26 @@ class RawClaimData():
 
   def benefit_op_monthly(self, benefit=['GP', 'CMT', 'SP']):
     self.df['year'] = self.df.policy_start_date.dt.year
-    if len(benefit) > 1:
-      __benefit_df = self.df[['year', 'benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['year', 'benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
-    else:
-      __benefit_df = self.df[['year', 'benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains(benefit, case=True)].groupby(['year', 'benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
+    __benefit_df = self.df[['benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
 
-
-    __year_l = self.df.year.unique().tolist()
     __benefit_l = __benefit_df.index.get_level_values(level='benefit').unique().tolist()
-    __benefit_fig, __benefit_ax = plt.subplots(nrows=len(__year_l), ncols=1, figsize=(15, len(__year_l)*4))
 
+    __tdf = pd.DataFrame()
+    for b in benefit:
+      __tdf = pd.concat(__tdf, __benefit_l.loc[b].rename(columns={'no_of_claims': b}, axis=1, ignore_index=False)
 
-    if len(__year_l) > 1:
-      for n0 in range(len(__year_l)):
-        for n1 in __benefit_l:
-          __tdf = __benefit_df.loc[__year_l[n0], n1]
-          __benefit_ax[n0].plot(__tdf.index, __tdf.no_of_claims, marker='o', label=n1, linewidth=2, markersize=6)
-        __benefit_ax[n0].set_title(__year_l[n0], fontsize=14)
-        __benefit_ax[n0].legend()
-      # __benefit_fig.suptitle(' '.join(['Monthly no. of claims of', ' '.join([benefit])]))
-    else:
-      for n1 in __benefit_l:
-        __tdf = __benefit_df.loc[__year_l[0], n1]
-        __benefit_ax.plot(__tdf.index, __tdf.no_of_claims, marker='o', label=n1, linewidth=2, markersize=6)
-      __benefit_ax.set_title(__year_l[0], fontsize=14)
-      __benefit_ax.legend()
-      # __benefit_fig.suptitle(' '.join(['Monthly no. of claims of', ' '.join([benefit])]))
+    # self.benefit_trend = __benefit_fig
 
-    self.benefit_trend = __benefit_fig
-    # return __benefit_fig
+    import plotly.express as px
+    df = __tdf
+    fig = px.line(df, x="date", y=df.columns,
+                hover_data={"date": "|%B %d, %Y"},
+                title='custom tick labels')
+    fig.update_xaxes(
+    dtick="M1",
+    tickformat="%b\n%Y")
+
+    return fig
 
 
   def gender_analysis_by_op(self):
