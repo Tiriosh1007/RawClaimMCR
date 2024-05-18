@@ -1096,7 +1096,7 @@ class RawClaimData():
     fig.update_layout(
       xaxis_title='Month',
       
-      yaxis_title='No. of visits'
+      yaxis_title='No. of visits',
       xaxis=dict(
         tickmode='linear',
         tick0=0,
