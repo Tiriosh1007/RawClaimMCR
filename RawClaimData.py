@@ -6,6 +6,7 @@ import io
 import msoffcrypto
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 import datetime as dt
 from datetime import timedelta
 import warnings
@@ -1086,10 +1087,10 @@ class RawClaimData():
 
     # self.benefit_trend = __benefit_fig
 
-    import plotly.express as px
+    
     df = __tdf
     fig = px.line(df, x=df.index, y=df.columns,
-                hover_data={df.index: "|%B %d, %Y"},
+                #hover_data={df.index: "|%B %d, %Y"},
                 title='Monthly Number of visit of GP, CMT, and SP')
     fig.update_xaxes(
     dtick="M1",
