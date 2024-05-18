@@ -1075,7 +1075,7 @@ class RawClaimData():
   # this function should modify into incident rate
   ################################################################################################
 
-  def benefit_op_monthly(self, benefit=['GP', 'CMT', 'SP', 'PM', 'Physio', 'Psy']):
+  def benefit_op_monthly(self, benefit=['GP', 'CMT', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
     self.df['year'] = self.df.policy_start_date.dt.year
     __benefit_df = self.df[['benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
 
