@@ -1092,8 +1092,12 @@ class RawClaimData():
     fig = px.line(df, x=df.index, y=df.columns,
                 #hover_data={df.index: "|%B %d, %Y"},
                 title='Monthly Number of visit of GP, CMT, and SP',
-                xaxis_title = 'Month',
-                yaxis_title='No. of visits')
+                )
+    fig.update_layout(
+      xaxis_title='Month',
+      
+      yaxis_title='No. of visits'
+    )
     
     # fig.update_xaxes(
     # dtick="M1",
