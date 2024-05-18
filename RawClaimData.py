@@ -1091,7 +1091,7 @@ class RawClaimData():
     df = __tdf
     fig = px.line(df, x=df.index, y=df.columns,
                 #hover_data={df.index: "|%B %d, %Y"},
-                marker=True,
+                markers=True,
                 width=1200,
                 height=600,
                 title='Monthly Number of visit of GP, CMT, and SP',
