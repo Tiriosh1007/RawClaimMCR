@@ -1104,6 +1104,11 @@ class RawClaimData():
         tickmode='linear',
         tick0=0,
         dtick=50
+      ),
+      legend=dict(
+        orientation='h',
+        yanchor='bottom',
+        y=1.02
       )
     )
     
