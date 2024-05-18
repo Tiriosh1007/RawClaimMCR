@@ -1100,7 +1100,7 @@ class RawClaimData():
       yaxis=dict(
         tickmode='linear',
         tick0=0,
-        dtick=__benefit_df.no_of_claims.max()/10
+        dtick=50
       )
     )
     
