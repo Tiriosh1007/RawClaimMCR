@@ -1107,8 +1107,8 @@ class RawClaimData():
       ),
       legend=dict(
         orientation='h',
-        yanchor='bottom',
-        y=1.02
+        #yanchor='bottom',
+        #y=1.02
       )
     )
     
