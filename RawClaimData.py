@@ -1097,6 +1097,11 @@ class RawClaimData():
       xaxis_title='Month',
       
       yaxis_title='No. of visits'
+      xaxis=dict(
+        tickmode='linear',
+        tick0=0,
+        dtick=__benefit_df.no_of_claims.max()/10
+      )
     )
     
     # fig.update_xaxes(
