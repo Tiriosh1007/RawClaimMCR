@@ -28,6 +28,8 @@ if st.button('Reset'):
   st.session_state.raw_process = False
   st.session_state.shortfall= False
   st.session_state.shortfall_process = False
+  st.session_state.op_time = False
+  st.session_state.op_policy = False
 
 if st.button('Raw Claim Data'):
   st.session_state.raw_claim = True
@@ -174,10 +176,29 @@ if st.session_state.raw_claim == True:
                       mime="application/vnd.ms-excel")
 
     st.write('---')
-    st.header('General Practitioner/ Chinese Medicine/ Specialist')
-    fig = raw_.benefit_op_monthly()
+    st.header('Outpatient Benefit Charts')
 
-    st.plotly_chart(fig, use_container_width=True)
+    chart_col1, chart_col2 = st.columns([1,1]) 
+    if 'op_time' not in st.session_state:
+      st.session_state.op_time = False
+    if 'op_policy' not in st.session_state:
+      st.session_state.op_policy = False
+
+    with chart_col1:
+      if st.button('Time Series'):
+        st.session_state.op_time = True
+        st.session_state.op_policy = False
+    with chart_col2:
+      if st.button('Policy Year Comparison'):
+        st.session_state.op_time = False
+        st.session_state.op_policy = True
+         
+    if st.session_state.op_time == True:
+      fig = raw_.benefit_op_monthly()
+      st.plotly_chart(fig, use_container_width=False)
+    elif st.session_state.op_policy == True:
+      fig = raw_.benefit_op_yearly_bar()
+      st.plotly_chart(fig, use_container_width=False)
     
 
 

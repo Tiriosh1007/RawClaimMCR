@@ -7,6 +7,7 @@ import msoffcrypto
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+import plotly.graph_objects as go
 import datetime as dt
 from datetime import timedelta
 import warnings
@@ -1094,7 +1095,7 @@ class RawClaimData():
                 markers=True,
                 width=1200,
                 height=600,
-                title='Monthly Number of visit of GP, CMT, and SP',
+                title='Monthly Number of visit of Outpatient Benefit',
                 )
     fig.update_layout(
       xaxis_title='Month',
@@ -1103,7 +1104,7 @@ class RawClaimData():
       yaxis=dict(
         tickmode='linear',
         tick0=0,
-        dtick=50
+        dtick=25
       ),
       legend=dict(
         orientation='h',
@@ -1118,6 +1119,39 @@ class RawClaimData():
 
     return fig
 
+  def benefit_op_yearly_bar(self, benefit=['GP', 'CMT', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
+    self.df['year'] = self.df.policy_start_date.dt.year
+    __benefit_df = self.df[['benefit', 'policy_id', 'year']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', 'policy_id']).count().rename(columns={'year': 'no_of_claims'})
+
+    __benefit_l = __benefit_df.index.get_level_values(level='benefit').unique().tolist() #v
+    __policy_id_l = __benefit_df.index.get_level_values(level='policy_id').unique().tolist() #x
+
+    fig = go.Figure()
+    for b in __benefit_l:
+      fig.add_trace(go.Bar(
+        x=__policy_id_l,
+        y=__benefit_df.loc[b],
+        name=b,
+        title='Number of visit of Outpatient Benefit'
+      ))
+
+    fig.update_layout(
+      barmode='group',
+      xaxis_title='Policy',
+      yaxis_title='No. of Visit',
+      yaxis=dict(
+        tickmode='linear',
+        tick0=0,
+        dtick=25
+      ),
+      legend=dict(
+        orientation='h',
+        #yanchor='bottom',
+        #y=1.02
+      ),
+      xaxis_tickangle=-45)
+    
+    return fig
 
   def gender_analysis_by_op(self):
     self.df['year'] = self.df.policy_start_date.dt.year
