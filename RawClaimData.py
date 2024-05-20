@@ -1161,6 +1161,46 @@ class RawClaimData():
     
     return fig
 
+
+  def class_age_scatter(self):
+    self.df['year'] = self.df.policy_start_date.dt.year
+    __class_age_df = self.df[['class', 'age', 'incurred_amount']].loc[self.df['benefit_type'].str.contains('hosp|top|smm', case=True)]
+    __class_age_df['age']  = __class_age_df.astype(int)
+    __class_l = __class_age_df['class'].unique()
+
+    fig = go.Figure()
+    for cls in __class_l:
+      fig.add_trace(go.Scatter(
+        x=__class_age_df['age'].loc[__class_age_df['class'] == cls],
+        y=__class_age_df['incurred_amount'].loc[__class_age_df['class'] == cls],
+        #y=[1,2,3],
+        name=cls,
+        
+      ))
+      #print(__benefit_df.loc[b].values.tolist())
+
+
+    fig.update_layout(
+      title='Relationship of age and incurred amount of inpatient',
+      xaxis_title='Age',
+      yaxis_title='Incurred Amount',
+      yaxis=dict(
+        tickmode='linear',
+        tick0=0,
+        dtick=1_000
+      ),
+      legend=dict(
+        orientation='h',
+        #yanchor='bottom',
+        #y=1.02
+      ),
+      width=900,
+      height=600,
+    )
+    
+    return fig
+  
+
   def gender_analysis_by_op(self):
     self.df['year'] = self.df.policy_start_date.dt.year
     sex_panel = self.df[['year', 'gender', 'panel', 'incur_date']].loc[(self.df.benefit == 'General Consultation (GP)') | (self.df.benefit == 'Chinese Med (CMT)') | (self.df.benefit == 'Specialist Consultation (SP)')]

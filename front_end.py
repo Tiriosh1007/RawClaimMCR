@@ -188,20 +188,29 @@ if st.session_state.raw_claim == True:
     st.write('---')
     st.header('Outpatient Benefit Charts')
 
-    chart_col1, chart_col2 = st.columns([1,1]) 
+    chart_col1, chart_col2, chart_col3 = st.columns([1,1, 1]) 
     if 'op_time' not in st.session_state:
       st.session_state.op_time = False
     if 'op_policy' not in st.session_state:
       st.session_state.op_policy = False
+    if 'age_class_scatter' not in st.session_state:
+      st.session_state.age_class_scatter = False
 
     with chart_col1:
-      if st.button('Time Series'):
+      if st.button('Outpatient Benefit Time Series'):
         st.session_state.op_time = True
         st.session_state.op_policy = False
+        st.session_state.age_class_scatter = False
     with chart_col2:
       if st.button('Policy Year Comparison'):
         st.session_state.op_time = False
         st.session_state.op_policy = True
+        st.session_state.age_class_scatter = False
+    with chart_col3:
+      if st.button('Class Age Scatterplot'):
+        st.session_state.op_time = False
+        st.session_state.op_policy = False 
+        st.session_state.age_class_scatter = True
          
     if st.session_state.op_time == True:
       fig = raw_.benefit_op_monthly()
@@ -209,7 +218,10 @@ if st.session_state.raw_claim == True:
     elif st.session_state.op_policy == True:
       fig = raw_.benefit_op_yearly_bar()
       st.plotly_chart(fig, use_container_width=False)
-    
+    elif st.session_state.age_class_scatter == True:
+      fig = raw_.class_age_scatter()
+      st.plotly_chart(fig, use_container_width=False)
+
 
 
 
