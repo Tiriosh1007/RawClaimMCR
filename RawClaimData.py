@@ -1165,7 +1165,7 @@ class RawClaimData():
   def class_age_scatter(self):
     self.df['year'] = self.df.policy_start_date.dt.year
     __class_age_df = self.df[['class', 'age', 'incurred_amount']].loc[self.df['benefit_type'].str.contains('hosp|top|smm', case=True)]
-    __class_age_df['age']  = __class_age_df.astype(int)
+    __class_age_df['age']  = __class_age_df['age'].astype(int)
     __class_l = __class_age_df['class'].unique()
 
     fig = go.Figure()
