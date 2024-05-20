@@ -1148,7 +1148,7 @@ class RawClaimData():
       yaxis=dict(
         tickmode='linear',
         tick0=0,
-        dtick=25
+        dtick=100
       ),
       legend=dict(
         orientation='h',
