@@ -1130,11 +1130,13 @@ class RawClaimData():
     for b in __benefit_l:
       fig.add_trace(go.Bar(
         x=__policy_id_l,
-        y=__benefit_df.loc[b].values.tolist(),
+        #y=__benefit_df.loc[b].values.tolist(),
+        y=[1,2,3],
         name=b,
         
       ))
-      print(__benefit_df.loc[b].values.tolist())
+      #print(__benefit_df.loc[b].values.tolist())
+
 
     fig.update_layout(
       barmode='group',
