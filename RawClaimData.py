@@ -1093,7 +1093,7 @@ class RawClaimData():
     fig = px.line(df, x=df.index, y=df.columns,
                 #hover_data={df.index: "|%B %d, %Y"},
                 markers=True,
-                width=1200,
+                width=900,
                 height=600,
                 title='Monthly Number of visit of Outpatient Benefit',
                 )
@@ -1132,11 +1132,12 @@ class RawClaimData():
         x=__policy_id_l,
         y=__benefit_df.loc[b],
         name=b,
-        title='Number of visit of Outpatient Benefit'
+        
       ))
 
     fig.update_layout(
       barmode='group',
+      title='Number of visit of Outpatient Benefit',
       xaxis_title='Policy',
       yaxis_title='No. of Visit',
       yaxis=dict(
