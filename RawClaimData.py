@@ -1122,6 +1122,7 @@ class RawClaimData():
   def benefit_op_yearly_bar(self, benefit=['GP', 'CMT', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
     self.df['year'] = self.df.policy_start_date.dt.year
     __benefit_df = self.df[['benefit', 'policy_id', 'year']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', 'policy_id']).count().rename(columns={'year': 'no_of_claims'})
+    __benefit_df  =__benefit_df.astype(int)
     __benefit_df.unstack().stack(dropna=False)
     __benefit_df.fillna(0, inplace=True)
     __benefit_l = __benefit_df.index.get_level_values(level='benefit').unique().tolist() #v
@@ -1154,6 +1155,8 @@ class RawClaimData():
         #yanchor='bottom',
         #y=1.02
       ),
+      width=900,
+      height=600,
     )
     
     return fig
