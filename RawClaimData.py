@@ -1173,6 +1173,7 @@ class RawClaimData():
       fig.add_trace(go.Scatter(
         x=__class_age_df['age'].loc[__class_age_df['class'] == cls],
         y=__class_age_df['incurred_amount'].loc[__class_age_df['class'] == cls],
+        mode='markers',
         #y=[1,2,3],
         name=cls,
         
