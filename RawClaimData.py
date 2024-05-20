@@ -1134,6 +1134,7 @@ class RawClaimData():
         name=b,
         
       ))
+      print(__benefit_df.loc[b].values.tolist())
 
     fig.update_layout(
       barmode='group',
