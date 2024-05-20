@@ -20,25 +20,30 @@ if 'raw_claim' not in st.session_state:
 if 'shortfall' not in st.session_state:
   st.session_state.shortfall = False
   
-  
-if st.button('Reset'):
-  if st.session_state.raw_claim == True:
-    st.cache_resource.clear()
-  st.session_state.raw_claim = False
-  st.session_state.raw_process = False
-  st.session_state.shortfall= False
-  st.session_state.shortfall_process = False
-  st.session_state.op_time = False
-  st.session_state.op_policy = False
+function_col1, function_col2, function_col3 = st.columns([1,1,1])
 
-if st.button('Raw Claim Data'):
-  st.session_state.raw_claim = True
-  st.session_state.shortfall = False
-  st.session_state.shortfall_process = False
-if st.button('Shortfall'):
-  st.session_state.shortfall = True
-  st.session_state.raw_claim = False
-  st.session_state.raw_process = False
+with function_col1:  
+  if st.button('Reset'):
+    if st.session_state.raw_claim == True:
+      st.cache_resource.clear()
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.session_state.shortfall= False
+    st.session_state.shortfall_process = False
+    st.session_state.op_time = False
+    st.session_state.op_policy = False
+
+with function_col2:
+  if st.button('Raw Claim Data'):
+    st.session_state.raw_claim = True
+    st.session_state.shortfall = False
+    st.session_state.shortfall_process = False
+
+with function_col3:
+  if st.button('Shortfall'):
+    st.session_state.shortfall = True
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
 
 
 if st.session_state.raw_claim == True:
@@ -139,6 +144,7 @@ if st.session_state.raw_claim == True:
   if st.session_state.raw_process == True:
     file_config = new_file_config
     st.write('---')
+    st.header('MCR Data Download')
     ben_fp = 'benefit_indexing.xlsx'
     raw_ = RawClaimData(ben_fp)
     for n0 in range(len(file_config)):
@@ -158,22 +164,26 @@ if st.session_state.raw_claim == True:
 
     # Write files to in-memory strings using BytesIO
     # See: https://xlsxwriter.readthedocs.io/workbook.html?highlight=BytesIO#constructor
-  
 
-    st.download_button('MCR data', 
-                      data=raw_.mcr_pages(export=True),
-                      file_name="mcr.xlsx",
-                      mime="application/vnd.ms-excel")
+    data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1]) 
+
+    with data_download_col1:
+      st.download_button('MCR data', 
+                        data=raw_.mcr_pages(export=True),
+                        file_name="mcr.xlsx",
+                        mime="application/vnd.ms-excel")
     
-    st.download_button('Raw Claim Consolidated', 
-                      data=raw_.export_database(),
-                      file_name="raw_claim_data.csv",
-                      mime="application/vnd.ms-excel")
-    
-    st.download_button('Frequent Claimant Analysis', 
-                      data=__freq.to_csv(index=True).encode('utf-8'),
-                      file_name="freq_claimant.csv",
-                      mime="application/vnd.ms-excel")
+    with data_download_col2:
+      st.download_button('Raw Claim Consolidated', 
+                        data=raw_.export_database(),
+                        file_name="raw_claim_data.csv",
+                        mime="application/vnd.ms-excel")
+
+    with data_download_col3:  
+      st.download_button('Frequent Claimant Analysis', 
+                        data=__freq.to_csv(index=True).encode('utf-8'),
+                        file_name="freq_claimant.csv",
+                        mime="application/vnd.ms-excel")
 
     st.write('---')
     st.header('Outpatient Benefit Charts')
