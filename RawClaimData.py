@@ -956,23 +956,23 @@ class RawClaimData():
       self.p27 = p27_df
     return p27_df
   
-    def mcr_p28_class_dep_ip_benefit(self, by=None):
-      if by == None:
-        self.df['year'] = self.df.policy_start_date.dt.year
-        p28_df = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).sum()
-        p28_df['usage_ratio'] = p28_df['paid_amount'] / p28_df['incurred_amount']
-        # if bupa == False:
-        #   p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'paid_amount': 'no_of_claims'})
-        #   p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
-        # else:
-        p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'incur_date': 'no_of_claims'})
-        p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
-        p28_df['incurred_per_claim'] = p28_df['incurred_amount'] / p28_df['no_of_claims']
-        p28_df['paid_per_claim'] = p28_df['paid_amount'] / p28_df['no_of_claims']
-        p28_df = p28_df.unstack().stack(dropna=False)
-        p28_df.sort_values(by=['policy_number', 'year', 'class', 'dep_type', 'paid_amount'], ascending=[True, True, True, True, False], inplace=True)
-        self.p28 = p28_df
-      return p28_df
+  def mcr_p28_class_dep_ip_benefit(self, by=None):
+    if by == None:
+      self.df['year'] = self.df.policy_start_date.dt.year
+      p28_df = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).sum()
+      p28_df['usage_ratio'] = p28_df['paid_amount'] / p28_df['incurred_amount']
+      # if bupa == False:
+      #   p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'paid_amount': 'no_of_claims'})
+      #   p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
+      # else:
+      p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'incur_date': 'no_of_claims'})
+      p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
+      p28_df['incurred_per_claim'] = p28_df['incurred_amount'] / p28_df['no_of_claims']
+      p28_df['paid_per_claim'] = p28_df['paid_amount'] / p28_df['no_of_claims']
+      p28_df = p28_df.unstack().stack(dropna=False)
+      p28_df.sort_values(by=['policy_number', 'year', 'class', 'dep_type', 'paid_amount'], ascending=[True, True, True, True, False], inplace=True)
+      self.p28 = p28_df
+    return p28_df
 
 
 
