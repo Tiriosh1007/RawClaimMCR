@@ -15,6 +15,8 @@ from RawClaimData import *
 from Shortfall import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
+from pygwalker.api.streamlit import StreamlitRenderer
+
 st.set_page_config(layout='wide')
 
 if 'raw_claim' not in st.session_state:
@@ -223,6 +225,14 @@ if st.session_state.raw_claim == True:
     elif st.session_state.age_class_scatter == True:
       fig = raw_.class_age_scatter()
       st.plotly_chart(fig, use_container_width=False)
+
+    st.write('---')
+    st.header('Interactive Dashboard')
+    interactive_df = raw_.df
+    pyg_app = StreamlitRenderer(interactive_df)
+    pyg_app.explorer()
+
+
 
 
 
