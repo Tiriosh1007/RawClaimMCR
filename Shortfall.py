@@ -38,18 +38,18 @@ class Shortfall():
 
 
   def __bupa_shortfall(self, shortfall_fp):
-    t_df = pd.read_excel(shortfall_fp)
-    client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
-    policy_no_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
-    start_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
-    end_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
+    uploaded_shortfall = pd.read_excel(shortfall_fp)
+    client_name_ = uploaded_shortfall.iloc[:, 0].loc[uploaded_shortfall.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
+    policy_no_ = uploaded_shortfall.iloc[:, 0].loc[uploaded_shortfall.iloc[:, 0].str.contains('Contract', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
+    start_d_ = pd.to_datetime(uploaded_shortfall.iloc[:, 0].loc[uploaded_shortfall.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
+    end_d_ = pd.to_datetime(uploaded_shortfall.iloc[:, 0].loc[uploaded_shortfall.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
     duration_ = (end_d_ - start_d_).days + 1
     policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
 
-    t_df = pd.read_excel(shortfall_fp, skiprows=9, dtype='str')
+    uploaded_shortfall = pd.read_excel(shortfall_fp, skiprows=9, dtype='str')
     
 
-    t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
+    t_df_non = uploaded_shortfall.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
     t_df_non.columns= [
         'benefit_type',
         'class',
@@ -62,7 +62,7 @@ class Shortfall():
     ]
     t_df_non['panel'] = 'Non-Panel'
 
-    t_df_all = pd.concat([t_df.iloc[:, 0:4], t_df.iloc[:, 9:14]], axis=1).drop(columns=['Benefit']).dropna()
+    t_df_all = pd.concat([uploaded_shortfall.iloc[:, 0:4], uploaded_shortfall.iloc[:, 9:14]], axis=1).drop(columns=['Benefit']).dropna()
     t_df_all.columns= [
         'benefit_type',
         'class',
@@ -87,31 +87,31 @@ class Shortfall():
       t_df_non[col] = t_df_non[col].astype(float)
       t_df_pan[col] = t_df_all[col] - t_df_non[col]
 
-    t_df = pd.concat([t_df_pan, t_df_non], axis=0, ignore_index=True)
+    uploaded_shortfall = pd.concat([t_df_pan, t_df_non], axis=0, ignore_index=True)
 
-    t_df['policy_id'] = policy_id_
-    t_df['policy_number'] = policy_no_
-    t_df['insurer'] = 'Bupa'
-    t_df['client_name'] = client_name_
-    t_df['policy_start_date'] = start_d_
-    t_df['policy_end_date'] = end_d_
-    t_df['duration_days'] = duration_
-    t_df['benefit_type'].replace({'Clinical': 'Clinic'}, inplace=True)
+    uploaded_shortfall['policy_id'] = policy_id_
+    uploaded_shortfall['policy_number'] = policy_no_
+    uploaded_shortfall['insurer'] = 'Bupa'
+    uploaded_shortfall['client_name'] = client_name_
+    uploaded_shortfall['policy_start_date'] = start_d_
+    uploaded_shortfall['policy_end_date'] = end_d_
+    uploaded_shortfall['duration_days'] = duration_
+    uploaded_shortfall['benefit_type'].replace({'Clinical': 'Clinic'}, inplace=True)
 
     bupa_index = self.benefit_index[['gum_benefit', 'bupa_benefit_desc']]
-    t_df = pd.merge(left=t_df, right=bupa_index, left_on='benefit', right_on='bupa_benefit_desc', how='left')
-    t_df.benefit = t_df.gum_benefit
+    uploaded_shortfall = pd.merge(left=uploaded_shortfall, right=bupa_index, left_on='benefit', right_on='bupa_benefit_desc', how='left')
+    uploaded_shortfall.benefit = uploaded_shortfall.gum_benefit
 
-    t_df = t_df[self.col_setup]
+    uploaded_shortfall = uploaded_shortfall[self.col_setup]
 
-    return t_df
+    return uploaded_shortfall
 
   def add_shortfall(self, shortfall_fp, insurer='Bupa'):
     if insurer == 'Bupa':
-      t_df = self.__bupa_shortfall(shortfall_fp)
+      uploaded_shortfall = self.__bupa_shortfall(shortfall_fp)
 
 
-    self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
+    self.df = pd.concat([self.df, uploaded_shortfall], axis=0, ignore_index=True)
     return
 
   def mcr_p20_policy(self, by=None):
