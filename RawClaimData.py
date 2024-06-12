@@ -767,7 +767,7 @@ class RawClaimData():
       __policy_id = shortfall_panel['policy_id'].iloc[n00]
       __class = shortfall_panel['class'].iloc[n00]
       __benefit = shortfall_panel['benefit'].iloc[n00]
-      t_df = shortfall_panel.iloc[:, n00]
+      t_df = shortfall_panel.iloc[n00, :]
       t_df['no_of_claims'] = t_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &

@@ -39,10 +39,10 @@ class Shortfall():
 
   def __bupa_shortfall(self, shortfall_fp):
     t_df = pd.read_excel(shortfall_fp)
-    client_name_ = t_df.iloc[1, 0].split(': ')[1].split('     ')[-1]
-    policy_no_ = t_df.iloc[2, 0].split(': ')[1].split('     ')[-1]
-    start_d_ = pd.to_datetime(t_df.iloc[3, 0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
-    end_d_ = pd.to_datetime(t_df.iloc[3, 0].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
+    client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer Name:', case=False)].split(': ')[1].split('     ')[-1]
+    policy_no_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Contract Number:', case=False)].split(': ')[1].split('     ')[-1]
+    start_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period:', case=False)].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
+    end_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period', case=False)].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
     duration_ = (end_d_ - start_d_).days + 1
     policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
 
