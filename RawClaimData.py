@@ -767,21 +767,21 @@ class RawClaimData():
       __policy_id = shortfall_panel['policy_id'].iloc[n00]
       __class = shortfall_panel['class'].iloc[n00]
       __benefit = shortfall_panel['benefit'].iloc[n00]
-      t_df = shortfall_panel.iloc[n00, :]
-      t_df['no_of_claims'] = t_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      t_sf_df = shortfall_panel.iloc[n00, :]
+      t_sf_df['no_of_claims'] = t_sf_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &
                                                                                    (self.df['panel'] == 'Panel')].dropna().count()
-      t_df['incurred_amount'] = t_df['incurred_amount'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      t_sf_df['incurred_amount'] = t_sf_df['incurred_amount'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &
                                                                                    (self.df['panel'] == 'Panel')].dropna().sum()
-      t_df['paid_amount'] = t_df['paid_amount'] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      t_sf_df['paid_amount'] = t_sf_df['paid_amount'] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                              (self.df['class'] == __class) &
                                                                              (self.df['benefit'] == __benefit) &
                                                                              (self.df['panel'] == 'Panel')].dropna().sum()
-      t_incur_per_claim = t_df['incurred_amount'].values[0] / t_df['no_of_claims'].values[0]
-      t_paid_per_claim = t_df['paid_amount'].values[0] / t_df['no_of_claims'].values[0]
+      t_incur_per_claim = t_sf_df['incurred_amount'].values[0] / t_sf_df['no_of_claims'].values[0]
+      t_paid_per_claim = t_sf_df['paid_amount'].values[0] / t_sf_df['no_of_claims'].values[0]
 
       self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].fillna(t_incur_per_claim, inplace=True)
       self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].fillna(t_paid_per_claim, inplace=True)
