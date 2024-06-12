@@ -136,8 +136,36 @@ if st.session_state.raw_claim == True:
               enable_enterprise_modules=False)
 
   new_file_config = ag['data']
-  st.write('### updated data')
-  st.dataframe(new_file_config)
+  # st.write('### updated data')
+  # st.dataframe(new_file_config)
+  st.write('---')
+  st.header('Bupa Shortfall')
+  st.write("""
+  The shortfall summary will be used for supplementing the masked data of Panel Doctor Visits. 
+  
+  The shortfall summary should contains both Non-Panel and Overall breakdown.
+  """)
+
+  upload_raw_shortfall_l = []
+  uploaded_raw_shortfall_file_list = []
+  full_raw_shortfall_file_list = []
+
+  uploaded_raw_shortfall_files = st.file_uploader("Upload bupa shortfall excel files", accept_multiple_files=True)
+  for uploaded_raw_shortfall_file in uploaded_raw_shortfall_files:
+      # st.write("filename:", uploaded_file.name)
+      upload_raw_shortfall_l.append(uploaded_raw_shortfall_file.name)
+      uploaded_raw_shortfall_file_list.append(uploaded_raw_shortfall_file)
+
+      import tempfile
+      import os
+      temp_dir = tempfile.mkdtemp()
+      path = os.path.join(temp_dir, uploaded_raw_shortfall_file.name)
+      full_raw_shortfall_file_list.append(path)
+      with open(path, "wb") as f:
+            f.write(uploaded_raw_shortfall_file.getvalue())
+
+  
+  shortfall_files = pd.DataFrame(upload_raw_shortfall_l, columns=['File Name'])
 
   if 'raw_process' not in st.session_state:
     st.session_state.raw_process = False
@@ -158,6 +186,13 @@ if st.session_state.raw_claim == True:
                         policy_start_date=file_config['Policy start date'].iloc[n0], 
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
+
+    if len(upload_raw_shortfall_l) > 0:
+      sf_ = Shortfall()
+      for n0 in range(len(shortfall_files)):
+        sf_.add_shortfall(full_file_list[n0])
+
+      raw_.bupa_shortfall_supplement(sf_.df)
 
     raw_.preprocessing()
     __freq = raw_.frequent_claimant_analysis()

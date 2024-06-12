@@ -761,6 +761,34 @@ class RawClaimData():
     self.benefit_type_list = self.df['benefit_type'].unique().tolist()
     self.benefit_list = self.df['benefit'].unique().tolist()
 
+  def bupa_shortfall_supplement(self, shortfall_processed_df):
+    shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
+    for n00 in range(len(shortfall_panel)):
+      __policy_id = shortfall_panel['policy_id'].iloc[n00]
+      __class = shortfall_panel['class'].iloc[n00]
+      __benefit = shortfall_panel['benefit'].iloc[n00]
+      t_df = shortfall_panel.iloc[:, n00]
+      t_df['no_of_claims'] = t_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+                                                                                   (self.df['class'] == __class) &
+                                                                                   (self.df['benefit'] == __benefit) &
+                                                                                   (self.df['panel'] == 'Panel')].dropna().count()
+      t_df['incurred_amount'] = t_df['incurred_amount'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+                                                                                   (self.df['class'] == __class) &
+                                                                                   (self.df['benefit'] == __benefit) &
+                                                                                   (self.df['panel'] == 'Panel')].dropna().sum()
+      t_df['paid_amount'] = t_df['paid_amount'] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
+                                                                             (self.df['class'] == __class) &
+                                                                             (self.df['benefit'] == __benefit) &
+                                                                             (self.df['panel'] == 'Panel')].dropna().sum()
+      t_incur_per_claim = t_df['incurred_amount'].values[0] / t_df['no_of_claims'].values[0]
+      t_paid_per_claim = t_df['paid_amount'].values[0] / t_df['no_of_claims'].values[0]
+
+      self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].fillna(t_incur_per_claim, inplace=True)
+      self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].fillna(t_paid_per_claim, inplace=True)
+
+
+
+
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
