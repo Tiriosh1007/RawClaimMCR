@@ -15,6 +15,8 @@ from RawClaimData import *
 from Shortfall import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
+st.set_page_config(layout='wide')
+
 if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
 if 'shortfall' not in st.session_state:
