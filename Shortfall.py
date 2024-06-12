@@ -338,3 +338,6 @@ class Shortfall():
         writer.close()
         # processed_data = output.getvalue()
         return output.getvalue()
+      
+  def export_database(self):
+    return self.df.to_csv(index=False).encode('utf-8')

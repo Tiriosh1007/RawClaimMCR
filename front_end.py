@@ -321,9 +321,18 @@ if st.session_state.shortfall == True:
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
       sf_.add_shortfall(full_file_list[n0])
+    
 
-    st.download_button('MCR data', 
-                      data=sf_.mcr_pages(export=True),
-                      file_name="mcr.xlsx",
-                      mime="application/vnd.ms-excel")
+    data_download_col1, data_download_col2= st.columns([1,1]) 
+
+    with data_download_col1:
+      st.download_button('MCR data', 
+                        data=sf_.mcr_pages(export=True),
+                        file_name="mcr.xlsx",
+                        mime="application/vnd.ms-excel")
+    with data_download_col2:
+      st.download_button('Shortfall Consolidated', 
+                        data=sf_.export_database(),
+                        file_name="shortfall_data.csv",
+                        mime="application/vnd.ms-excel")
     
