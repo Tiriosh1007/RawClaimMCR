@@ -764,7 +764,7 @@ class RawClaimData():
   def bupa_shortfall_supplement(self, shortfall_processed_df):
     shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
     for n00 in np.arange(len(shortfall_panel)):
-      __policy_id = shortfall_panel['policy_id'].iloc[n00].values[0]
+      __policy_id = shortfall_panel['policy_id'].iloc[n00].values
       __class = shortfall_panel['class'].iloc[n00].values[0]
       __benefit = shortfall_panel['benefit'].iloc[n00].values[0]
       t_sf_df = shortfall_panel.iloc[n00, :]
