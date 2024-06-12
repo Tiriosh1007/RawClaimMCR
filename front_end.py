@@ -190,7 +190,7 @@ if st.session_state.raw_claim == True:
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()
       for n0 in range(len(shortfall_files)):
-        sf_.add_shortfall(full_file_list[n0])
+        sf_.add_shortfall(full_raw_shortfall_file_list[n0])
 
       raw_.bupa_shortfall_supplement(sf_.df)
 
