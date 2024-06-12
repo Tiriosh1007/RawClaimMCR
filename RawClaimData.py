@@ -1113,7 +1113,7 @@ class RawClaimData():
     fig = px.line(df, x=df.index, y=df.columns,
                 #hover_data={df.index: "|%B %d, %Y"},
                 markers=True,
-                width=900,
+                width=1200,
                 height=600,
                 title='Monthly Number of visit of Outpatient Benefit',
                 )
@@ -1175,7 +1175,7 @@ class RawClaimData():
         #yanchor='bottom',
         #y=1.02
       ),
-      width=900,
+      width=1200,
       height=600,
     )
     
@@ -1215,7 +1215,7 @@ class RawClaimData():
         #yanchor='bottom',
         #y=1.02
       ),
-      width=900,
+      width=1200,
       height=600,
     )
     
