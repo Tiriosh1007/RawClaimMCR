@@ -384,14 +384,15 @@ class RawClaimData():
         # 'policy_start_date', # Period Cell A3
         # 'policy_end_date',
         'Voucher number': 'claim_id',
+        'Voucher Number': 'claim_id',
         'Incur Date': 'incur_date',
         'Incurred From Date': 'incur_date',
         # 'discharge_date', convert from days cover
         'Receipt date': 'submission_date',
         'Pay date': 'pay_date',
         'Pay Date': 'pay_date',
-        # 'claim_status',
-        # 'claim_remark',
+        'Status Code': 'claim_status',
+        'Reject Code Description': 'claim_remark',
         # 'cert_true_copy',
         'Claimant': 'claimant',
         'Sex': 'gender',
@@ -430,14 +431,17 @@ class RawClaimData():
         # 'policy_start_date', # Period Cell A3
         # 'policy_end_date',
         'Voucher number': str,
+        'Voucher Number': str,
         'Incur Date': str,
         'Incurred From Date': str,
         # 'discharge_date', convert from days cover
         'Receipt date': str,
         'Pay date': str,
         'Pay Date': str,
+        'Status Code': str,
         # 'claim_status',
         # 'claim_remark',
+        'Reject Code Description': str,
         # 'cert_true_copy',
         'Claimant': str,
         'Sex': str,
@@ -1014,10 +1018,6 @@ class RawClaimData():
       self.df['year'] = self.df.policy_start_date.dt.year
       p27_df = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Clinic') & (self.df['benefit'].str.contains('DX|PM', case=True) == False)].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).sum()
       p27_df['usage_ratio'] = p27_df['paid_amount'] / p27_df['incurred_amount']
-      # if bupa == False:
-      #   p27_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'paid_amount']].loc[(self.df['benefit_type'] == 'Clinic') & (self.df['benefit'].str.contains('DX|PM', case=True) == False)].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'paid_amount': 'no_of_claims'})
-      #   p27_df['no_of_claims'] = p27_df_claims['no_of_claims']
-      # else:
       p27_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']].loc[(self.df['benefit_type'] == 'Clinic') & (self.df['benefit'].str.contains('DX|PM', case=True) == False)].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'incur_date': 'no_of_claims'})
       p27_df['no_of_claims'] = p27_df_claims['no_of_claims']
       p27_df['incurred_per_claim'] = p27_df['incurred_amount'] / p27_df['no_of_claims']
@@ -1032,10 +1032,6 @@ class RawClaimData():
       self.df['year'] = self.df.policy_start_date.dt.year
       p28_df = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).sum()
       p28_df['usage_ratio'] = p28_df['paid_amount'] / p28_df['incurred_amount']
-      # if bupa == False:
-      #   p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'paid_amount': 'no_of_claims'})
-      #   p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
-      # else:
       p28_df_claims = self.df[['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'class', 'dep_type', 'benefit']).count().rename(columns={'incur_date': 'no_of_claims'})
       p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
       p28_df['incurred_per_claim'] = p28_df['incurred_amount'] / p28_df['no_of_claims']
@@ -1044,6 +1040,20 @@ class RawClaimData():
       p28_df.sort_values(by=['policy_number', 'year', 'class', 'dep_type', 'paid_amount'], ascending=[True, True, True, True, False], inplace=True)
       self.p28 = p28_df
     return p28_df
+  
+  def mcr_p18a_top_diag_ip(self, by=None):
+    if by == None:
+      self.df['year'] = self.df.policy_start_date.dt.year
+      p18a_df = self.df[['policy_number', 'year', 'diagnosis', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'diagnosis']).sum()
+      p18a_df_claimant = self.df[['policy_number', 'year', 'diagnosis', 'claimant']].loc[(self.df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant']).groupby(by=['policy_number', 'year', 'diagnosis']).count().rename(columns={'claimant': 'no_of_claimants'})
+      p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claims']
+      p18a_df_claims = self.df[['policy_number', 'year', 'diagnosis', 'claim_id']].loc[(self.df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=['policy_number', 'year', 'diagnosis']).count().rename(columns={'claim_id': 'no_of_claims'})
+      p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
+      p18a_df = p18a_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
+      # p18a_df = p18a_df.unstack().stack(dropna=False)
+      p18a_df.sort_values(by=['policy_number', 'year', 'paid_amount'], ascending=[True, True, False], inplace=True)
+      self.p18a = p18a_df
+    return p18a_df
 
 
 
@@ -1063,6 +1073,7 @@ class RawClaimData():
     self.mcr_p26_op_panel(by)
     self.mcr_p27_class_dep_op_benefit(by)
     self.mcr_p28_class_dep_ip_benefit(by)
+    self.mcr_p18a_top_diag_ip(by)
 
     if export == True:
       from io import BytesIO
@@ -1084,6 +1095,7 @@ class RawClaimData():
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
         self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
         self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
+        self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         writer.close()
         # processed_data = output.getvalue()
         return output.getvalue()
