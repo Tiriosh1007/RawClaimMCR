@@ -53,7 +53,8 @@ class RawClaimData():
 
     self.col_setup = col_setup
     self.df = pd.DataFrame(columns=self.col_setup)
-
+    self.upload_time = dt.datetime.now()
+    self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
 
 
@@ -452,7 +453,7 @@ class RawClaimData():
 
     df_ = pd.read_excel(raw_claim_path)
     client_ = df_.columns[0].split('   ')[-1]
-    policy_no_ = str(df_.iloc[0,0].split('   ')[-1])
+    policy_no_ = str(df_.loc[df_.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split('   ')[-1])
 
     if policy_start_date != None:
       start_d_ = pd.to_datetime(policy_start_date, format='%Y%m%d')
