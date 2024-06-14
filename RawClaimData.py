@@ -482,7 +482,9 @@ class RawClaimData():
     df_['policy_start_date'] = start_d_
     df_['policy_end_date'] = end_d_
     df_['discharge_date'] = df_['incur_date']
-    df_['discharge_date'].loc[df_.benefit_type == 'H'] = df_['discharge_date'] + pd.to_timedelta(df_.days_cover, unit='D')
+
+    if 'days_cover' in df_.columns:
+      df_['discharge_date'].loc[df_.benefit_type == 'H'] = df_['discharge_date'] + pd.to_timedelta(df_.days_cover, unit='D')
     df_['suboffice'] = df_['contract_number'].str[-2:]
 
     df_[['claim_status', 'claim_remark', 'cert_true_copy', 'currency']] = np.nan
