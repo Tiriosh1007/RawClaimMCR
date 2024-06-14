@@ -800,8 +800,8 @@ class RawClaimData():
         t_incur_per_claim = __incurred_amount / __no_of_claims
         t_paid_per_claim = __paid_amount / __no_of_claims
 
-        self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].fillna(t_incur_per_claim, inplace=True)
-        self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel') ].fillna(t_paid_per_claim, inplace=True)
+        self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel') & (self.df['incurred_amount'] == '')] = t_incur_per_claim
+        self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel') & (self.df['paid_amount_amount'] == '')] = t_paid_per_claim
     
     return
 
