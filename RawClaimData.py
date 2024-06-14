@@ -830,8 +830,6 @@ class RawClaimData():
 
         self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel') & (pd.isna(self.df['incurred_amount']) == True)] = t_incur_per_claim
         self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel') & (pd.isna(self.df['paid_amount']) == True)] = t_paid_per_claim
-
-    
     return
 
 
@@ -845,6 +843,8 @@ class RawClaimData():
       self.df.claim_remark.fillna('no_remark', inplace=True)
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
       self.df = self.df.loc[self.df.claim_status != 'R']
+
+      self.df = self.df.loc[self.df.paid_amount != 0]
 
     if smm == True:
       self.df.benefit.fillna('no_benefit', inplace=True)
