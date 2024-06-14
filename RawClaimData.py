@@ -451,9 +451,9 @@ class RawClaimData():
     }
 
 
-    df_ = pd.read_excel(raw_claim_path)
+    df_ = pd.read_excel(raw_claim_path, sheet_name='Details')
     client_ = df_.columns[0].split('   ')[-1]
-    policy_no_ = str(df_.iloc[:, 0].loc[df_.iloc[:, 0].str.contains('Contract', case=False) == True].split('   ')[1])
+    policy_no_ = str(df_.iloc[:, 0].loc[df_.iloc[:, 0].str.contains('Contract', case=False) == True].str.split('   ')[-1])
   
 
     if policy_start_date != None:
