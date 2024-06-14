@@ -461,7 +461,7 @@ class RawClaimData():
     else:
       start_d_ = pd.to_datetime(df_.iloc[1, 0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
     end_d_ = pd.to_datetime(df_.iloc[1, 0].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
-    df_ = pd.read_excel(raw_claim_path, skiprows=7, dtype=dtype_bupa)
+    df_ = pd.read_excel(raw_claim_path, , sheet_name='Details', skiprows=7, dtype=dtype_bupa)
     df_.rename(columns=bupa_rename_col, inplace=True)
 
     for col in date_cols:
