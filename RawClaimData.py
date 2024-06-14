@@ -782,15 +782,15 @@ class RawClaimData():
       #                                                                        (self.df['panel'] == 'Panel')].dropna().sum()
       
 
-      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00].values[0] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00].values - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &
                                                                                    (self.df['panel'] == 'Panel')].dropna().count()
-      __incurred_amount = shortfall_panel['incurred_amount'].iloc[n00].values[0] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      __incurred_amount = shortfall_panel['incurred_amount'].iloc[n00].values - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &
                                                                                    (self.df['panel'] == 'Panel')].dropna().sum()
-      __paid_amount = shortfall_panel['paid_amount'].iloc[n00].values[0] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      __paid_amount = shortfall_panel['paid_amount'].iloc[n00].values - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                              (self.df['class'] == __class) &
                                                                              (self.df['benefit'] == __benefit) &
                                                                              (self.df['panel'] == 'Panel')].dropna().sum()
