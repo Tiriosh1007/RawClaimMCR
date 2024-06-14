@@ -520,6 +520,10 @@ class RawClaimData():
     df_.gender.loc[df_.gender.str.contains('m', case=False)] = 'M'
     df_.diagnosis.fillna('No diagnosis provided', inplace=True)
 
+    for col in self.col_setup:
+      if col not in df_.columns:
+        df_[col] = np.nan
+
     df_ = df_[self.col_setup]
 
 
