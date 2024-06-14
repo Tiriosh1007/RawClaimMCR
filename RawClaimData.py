@@ -1046,7 +1046,7 @@ class RawClaimData():
       self.df['year'] = self.df.policy_start_date.dt.year
       p18a_df = self.df[['policy_number', 'year', 'diagnosis', 'incurred_amount', 'paid_amount']].loc[(self.df['benefit_type'] == 'Hospital')].groupby(by=['policy_number', 'year', 'diagnosis']).sum()
       p18a_df_claimant = self.df[['policy_number', 'year', 'diagnosis', 'claimant']].loc[(self.df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant']).groupby(by=['policy_number', 'year', 'diagnosis']).count().rename(columns={'claimant': 'no_of_claimants'})
-      p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claims']
+      p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claimants']
       p18a_df_claims = self.df[['policy_number', 'year', 'diagnosis', 'claim_id']].loc[(self.df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=['policy_number', 'year', 'diagnosis']).count().rename(columns={'claim_id': 'no_of_claims'})
       p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
       p18a_df = p18a_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
