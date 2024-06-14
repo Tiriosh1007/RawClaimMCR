@@ -795,9 +795,6 @@ class RawClaimData():
                                                                              (self.df['benefit'] == __benefit) &
                                                                              (self.df['panel'] == 'Panel')].dropna().sum()
       
-      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00]
-      __incurred_amount = shortfall_panel['incurred_amount'].iloc[n00]
-      __paid_amount = shortfall_panel['paid_amount'].iloc[n00]
 
       t_incur_per_claim = __incurred_amount / __no_of_claims
       t_paid_per_claim = __paid_amount / __no_of_claims
