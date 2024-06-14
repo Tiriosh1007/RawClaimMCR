@@ -782,7 +782,7 @@ class RawClaimData():
       #                                                                        (self.df['panel'] == 'Panel')].dropna().sum()
       
 
-      __no_of_claims = t_sf_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
+      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00, :].values[0] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
                                                                                    (self.df['class'] == __class) &
                                                                                    (self.df['benefit'] == __benefit) &
                                                                                    (self.df['panel'] == 'Panel')].dropna().count()
