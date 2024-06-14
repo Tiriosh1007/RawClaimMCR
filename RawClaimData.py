@@ -42,7 +42,7 @@ class RawClaimData():
         'benefit_type',
         'benefit',
         'diagnosis',
-        'chornic',
+        'chronic',
         'currency',
         'incurred_amount',
         'paid_amount',
@@ -88,7 +88,7 @@ class RawClaimData():
         # 'benefit_type', # sheetname
         'BENEFIT CODE': 'benefit', # need process
         # 'diagnosis', # not available
-        # 'chornic', # not available
+        # 'chronic', # not available
         'CURRENCY': 'currency',
         'AMOUNT BILLED': 'incurred_amount',
         'AMOUNT PAID': 'paid_amount',
@@ -124,7 +124,7 @@ class RawClaimData():
         # 'benefit_type', # sheetname
         'BENEFIT CODE': str, # need process
         # 'diagnosis', # not available
-        # 'chornic', # not available
+        # 'chronic', # not available
         'CURRENCY': str,
         'AMOUNT BILLED': float,
         'AMOUNT PAID': float,
@@ -162,7 +162,7 @@ class RawClaimData():
         # 'benefit_type', # sheetname
         'BENEFIT CODE': 'benefit', # need process
         # 'diagnosis', # not available
-        # 'chornic', # not available
+        # 'chronic', # not available
         'CURRENCY': 'currency',
         'AMOUNT BILLED': 'incurred_amount',
         'AMOUNT PAID': 'paid_amount',
@@ -198,7 +198,7 @@ class RawClaimData():
         # 'benefit_type', # sheetname
         'BENEFIT CODE': str, # need process
         # 'diagnosis', # not available
-        # 'chornic', # not available
+        # 'chronic', # not available
         'CURRENCY': str,
         'AMOUNT BILLED': float,
         'AMOUNT PAID': float,
@@ -268,7 +268,7 @@ class RawClaimData():
           df_c['member_status'] = np.nan
           df_c['benefit_type'] = 'Clinic'
           df_c['diagnosis'] = np.nan
-          df_c['chornic'] = np.nan
+          df_c['chronic'] = np.nan
           df_c['panel'] = 'Non-Panel'
           df_c['panel'].loc[df_c.benefit.str.contains('1')] = 'Panel'
 
@@ -308,7 +308,7 @@ class RawClaimData():
           df_d['member_status'] = np.nan
           df_d['benefit_type'] = 'Dental'
           df_d['diagnosis'] = np.nan
-          df_d['chornic'] = np.nan
+          df_d['chronic'] = np.nan
           df_d['panel'] = 'Non-Panel'
           df_d['panel'].loc[df_d.benefit.str.contains('1')] = 'Panel'
 
@@ -349,7 +349,7 @@ class RawClaimData():
           df_h['member_status'] = np.nan
           df_h['benefit_type'] = 'Hospital'
           df_h['diagnosis'] = np.nan
-          df_h['chornic'] = np.nan
+          df_h['chronic'] = np.nan
           df_h['panel'] = 'Non-Panel'
           df_h['panel'].loc[df_h.benefit.str.contains('1')] = 'Panel'
 
@@ -385,9 +385,11 @@ class RawClaimData():
         # 'policy_end_date',
         'Voucher number': 'claim_id',
         'Incur Date': 'incur_date',
+        'Incurred From Date': 'incur_date',
         # 'discharge_date', convert from days cover
         'Receipt date': 'submission_date',
         'Pay date': 'pay_date',
+        'Pay Date': 'pay_date',
         # 'claim_status',
         # 'claim_remark',
         # 'cert_true_copy',
@@ -395,16 +397,22 @@ class RawClaimData():
         'Sex': 'gender',
         'Age': 'age',
         'Member type': 'dep_type',
+        'Member Type': 'dep_type',
+        'Class': 'class',
         'Class ID': 'class',
         'Member Status': 'member_status',
         'Benefit Type': 'benefit_type',
         'Benefit': 'benefit',
+        'Benefit Code Description': 'benefit',
         'Diagnosis description': 'diagnosis',
-        'Chronic flag': 'chornic',
+        'Diagnosis': 'diagnosis',
+        'Chronic flag': 'chronic',
+        'Diagnosis Chronic Flag': 'cheonic',
         # 'currency',
         'Presented': 'incurred_amount',
         'Adjusted': 'paid_amount',
         'Network Category': 'panel',
+        'Network': 'panel',
         # 'suboffice', # deduced from contract number columns last 2 digits
         # 'region',
 
@@ -423,9 +431,11 @@ class RawClaimData():
         # 'policy_end_date',
         'Voucher number': str,
         'Incur Date': str,
+        'Incurred From Date': str,
         # 'discharge_date', convert from days cover
         'Receipt date': str,
         'Pay date': str,
+        'Pay Date': str,
         # 'claim_status',
         # 'claim_remark',
         # 'cert_true_copy',
@@ -433,16 +443,22 @@ class RawClaimData():
         'Sex': str,
         'Age': int,
         'Member type': str,
+        'Member Type': str,
+        'Class': str,
         'Class ID': str,
         'Member Status': str,
         'Benefit Type': str,
         'Benefit': str,
+        'Benefit Code Description': str,
         'Diagnosis description': str,
+        'Diagnosis': str,
         'Chronic flag': str,
+        'Diagnosis Chronic Flag': str,
         # 'currency',
         'Presented': float,
         'Adjusted': float,
         'Network Category': str,
+        'Network': str,
         # 'suboffice', # deduced from contract number columns last 2 digits
         # 'region',
 
@@ -547,7 +563,7 @@ class RawClaimData():
         'Claim Type 2': str,
         'Ben Desc': str,
         'Diagnosis': str,
-        # 'chornic',
+        # 'chronic',
         'Billed Currency': str,
         'Submitted Claim Amount': float,
         'Presented Amount': float,
@@ -594,7 +610,7 @@ class RawClaimData():
         'Claim Type 2': 'benefit',
         'Ben Desc': 'benefit',
         'Diagnosis': 'diagnosis',
-        # 'chornic',
+        # 'chronic',
         'Billed Currency': 'currency',
         'Submitted Claim Amount': 'incurred_amount',
         'Presented Amount': 'incurred_amount',
@@ -724,7 +740,7 @@ class RawClaimData():
       'benefit_type': str,
       'benefit': str,
       'diagnosis': str,
-      'chornic': str,
+      'chronic': str,
       'currency': str,
       'incurred_amount': float,
       'paid_amount': float,
