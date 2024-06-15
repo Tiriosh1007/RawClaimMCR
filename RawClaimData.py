@@ -844,7 +844,7 @@ class RawClaimData():
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
       self.df = self.df.loc[self.df.claim_status != 'R']
 
-      self.df = self.df.loc[self.df.paid_amount != 0]
+      self.df = self.df.loc[self.df.claim_remark != 'no_remark']
 
     if smm == True:
       self.df.benefit.fillna('no_benefit', inplace=True)
