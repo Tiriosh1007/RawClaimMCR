@@ -507,7 +507,6 @@ class RawClaimData():
       df_['discharge_date'].loc[df_.benefit_type == 'H'] = df_['discharge_date'] + pd.to_timedelta(df_.days_cover, unit='D')
     df_['suboffice'] = df_['contract_number'].str[-2:]
 
-    df_[['claim_status', 'claim_remark', 'cert_true_copy', 'currency']] = np.nan
     df_['region'] = region
 
     bupa_index = self.benefit_index[['gum_benefit', 'bupa_benefit_desc']]
