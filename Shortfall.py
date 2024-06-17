@@ -48,6 +48,11 @@ class Shortfall():
 
     t_df = pd.read_excel(shortfall_fp, sheet_name='Report', skiprows=9, dtype='str')
 
+    __cols = ['no_of_claims',
+          'no_of_claimants',
+          'incurred_amount',
+          'paid_amount',]
+
     if len(t_df.columns) > 10:
       t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
       t_df_non.columns = [
@@ -76,10 +81,6 @@ class Shortfall():
       t_df_all['panel'] = 'Overall'
 
       t_df_pan = t_df_all
-      __cols = ['no_of_claims',
-                'no_of_claimants',
-                'incurred_amount',
-                'paid_amount',]
       t_df_pan['panel'] = 'Panel'
 
       for col in __cols:
