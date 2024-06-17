@@ -840,11 +840,12 @@ class RawClaimData():
 
     return None
 
-  def mcr_p20_policy(self, by='suboffice'):
+  def mcr_p20_policy(self, by=['suboffice']):
     if by == None:
       __p20_policy_df_col = ['policy_number', 'year', 'incurred_amount', 'paid_amount']
       __p20_policy_group_col = ['policy_number', 'year']
     else: 
+
       __p20_policy_df_col = ['policy_number', 'year'] + by + ['incurred_amount', 'paid_amount']
       __p20_policy_group_col = ['policy_number', 'year'] + by
     
