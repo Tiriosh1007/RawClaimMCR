@@ -789,40 +789,25 @@ class RawClaimData():
     self.benefit_list = self.df['benefit'].unique().tolist()
 
   def bupa_shortfall_supplement(self, shortfall_processed_df):
-    shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
+    # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
+    shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Overall']
     for n00 in np.arange(len(shortfall_panel)):
       __policy_id = shortfall_panel['policy_id'].iloc[n00]
       __class = shortfall_panel['class'].iloc[n00]
       __benefit = shortfall_panel['benefit'].iloc[n00]
-      t_sf_df = shortfall_panel.iloc[n00, :]
-      # t_sf_df['no_of_claims'] = t_sf_df['no_of_claims'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
-      #                                                                              (self.df['class'] == __class) &
-      #                                                                              (self.df['benefit'] == __benefit) &
-      #                                                                              (self.df['panel'] == 'Panel')].dropna().count()
-      # t_sf_df['incurred_amount'] = t_sf_df['incurred_amount'] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
-      #                                                                              (self.df['class'] == __class) &
-      #                                                                              (self.df['benefit'] == __benefit) &
-      #                                                                              (self.df['panel'] == 'Panel')].dropna().sum()
-      # t_sf_df['paid_amount'] = t_sf_df['paid_amount'] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
-      #                                                                        (self.df['class'] == __class) &
-      #                                                                        (self.df['benefit'] == __benefit) &
-      #                                                                        (self.df['panel'] == 'Panel')].dropna().sum()
+    
+      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00] - \
+        self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Non-Panel')].dropna().count() - \
+        self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].dropna().count()
       
-
-      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
-                                                                                   (self.df['class'] == __class) &
-                                                                                   (self.df['benefit'] == __benefit) &
-                                                                                   (self.df['panel'] == 'Panel')].dropna().count()
       if __no_of_claims > 0:
-        __incurred_amount = shortfall_panel['incurred_amount'].iloc[n00] - self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) &
-                                                                                    (self.df['class'] == __class) &
-                                                                                    (self.df['benefit'] == __benefit) &
-                                                                                    (self.df['panel'] == 'Panel')].dropna().sum()
-        __paid_amount = shortfall_panel['paid_amount'].iloc[n00] - self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) &
-                                                                              (self.df['class'] == __class) &
-                                                                              (self.df['benefit'] == __benefit) &
-                                                                              (self.df['panel'] == 'Panel')].dropna().sum()
+        __incurred_amount = shortfall_panel['incurred_amount'].iloc[n00] - \
+          self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Non-Panel')].dropna().sum() - \
+          self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].dropna().sum()
         
+        __paid_amount = shortfall_panel['paid_amount'].iloc[n00] - \
+          self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Non-Panel')].dropna().sum() -\
+          self.df['paid_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].dropna().sum()
 
         t_incur_per_claim = __incurred_amount / __no_of_claims
         t_paid_per_claim = __paid_amount / __no_of_claims
@@ -840,10 +825,11 @@ class RawClaimData():
     if rejected_claim == True:
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
       self.df.claim_remark.fillna('no_remark', inplace=True)
-      
+      # Bupa claim remark = Reject Code so it must be rejected
+      self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
       self.df = self.df.loc[self.df.claim_status != 'R']
-      self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
+      # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
       
 
     if smm == True:

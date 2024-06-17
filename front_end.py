@@ -191,8 +191,9 @@ if st.session_state.raw_claim == True:
       sf_ = Shortfall()
       for n0 in range(len(shortfall_files)):
         sf_.add_shortfall(full_raw_shortfall_file_list[n0])
-
-      raw_.bupa_shortfall_supplement(sf_.df)
+      
+      sf_.remove_overall()
+      raw_.bupa_shortfall_supplement(sf_.full_df)
 
     raw_.preprocessing()
     __freq = raw_.frequent_claimant_analysis()
@@ -321,6 +322,8 @@ if st.session_state.shortfall == True:
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
       sf_.add_shortfall(full_file_list[n0])
+
+    sf_.remove_overall()
     
 
     data_download_col1, data_download_col2= st.columns([1,1]) 

@@ -47,47 +47,67 @@ class Shortfall():
     policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
 
     t_df = pd.read_excel(shortfall_fp, skiprows=9, dtype='str')
-    
 
-    t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
-    t_df_non.columns= [
-        'benefit_type',
-        'class',
-        'benefit',
-        'no_of_claims',
-        'no_of_claimants',
-        'incurred_amount',
-        'paid_amount',
-        'usage_ratio',
-    ]
-    t_df_non['panel'] = 'Non-Panel'
+    if len(t_df.columns) > 10:
+      t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
+      t_df_non.columns = [
+          'benefit_type',
+          'class',
+          'benefit',
+          'no_of_claims',
+          'no_of_claimants',
+          'incurred_amount',
+          'paid_amount',
+          'usage_ratio',
+      ]
+      t_df_non['panel'] = 'Non-Panel'
 
-    t_df_all = pd.concat([t_df.iloc[:, 0:4], t_df.iloc[:, 9:14]], axis=1).drop(columns=['Benefit']).dropna()
-    t_df_all.columns= [
-        'benefit_type',
-        'class',
-        'benefit',
-        'no_of_claims',
-        'no_of_claimants',
-        'incurred_amount',
-        'paid_amount',
-        'usage_ratio',
-    ]
+      t_df_all = pd.concat([t_df.iloc[:, 0:4], t_df.iloc[:, 9:14]], axis=1).drop(columns=['Benefit']).dropna()
+      t_df_all.columns= [
+          'benefit_type',
+          'class',
+          'benefit',
+          'no_of_claims',
+          'no_of_claimants',
+          'incurred_amount',
+          'paid_amount',
+          'usage_ratio',
+      ]
+      t_df_all['panel'] = 'Overall'
 
-    t_df_pan = t_df_all
-    __cols = ['no_of_claims',
-              'no_of_claimants',
-              'incurred_amount',
-              'paid_amount',]
-    t_df_pan['panel'] = 'Panel'
+      t_df_pan = t_df_all
+      __cols = ['no_of_claims',
+                'no_of_claimants',
+                'incurred_amount',
+                'paid_amount',]
+      t_df_pan['panel'] = 'Panel'
 
-    for col in __cols:
-      t_df_pan[col] = t_df_pan[col].astype(float)
-      t_df_all[col] = t_df_all[col].astype(float)
-      t_df_non[col] = t_df_non[col].astype(float)
-      t_df_pan[col] = t_df_all[col] - t_df_non[col]
+      for col in __cols:
+        t_df_pan[col] = t_df_pan[col].astype(float)
+        t_df_all[col] = t_df_all[col].astype(float)
+        t_df_non[col] = t_df_non[col].astype(float)
+        t_df_pan[col] = t_df_all[col] - t_df_non[col]
 
-    t_df = pd.concat([t_df_pan, t_df_non], axis=0, ignore_index=True)
+      t_df = pd.concat([t_df_pan, t_df_non, t_df_all], axis=0, ignore_index=True)
+    else:
+      t_df_all = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
+      t_df_all.columns= [
+          'benefit_type',
+          'class',
+          'benefit',
+          'no_of_claims',
+          'no_of_claimants',
+          'incurred_amount',
+          'paid_amount',
+          'usage_ratio',
+      ]
+      t_df_all['panel'] = 'Overall'
+      for col in __cols:
+        t_df_all[col] = t_df_all[col].astype(float)
+
+      t_df = t_df_all
+
+
 
     t_df['policy_id'] = policy_id_
     t_df['policy_number'] = policy_no_
@@ -112,6 +132,11 @@ class Shortfall():
 
 
     self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
+    return
+  
+  def remove_overall(self):
+    self.full_df = self.df
+    self.df = self.df.loc[self.df.panel != 'Overall']
     return
 
   def mcr_p20_policy(self, by=None):
@@ -301,7 +326,7 @@ class Shortfall():
 
 
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
-
+    
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
     self.mcr_p20_panel(by)
@@ -340,4 +365,4 @@ class Shortfall():
         return output.getvalue()
       
   def export_database(self):
-    return self.df.to_csv(index=False).encode('utf-8')
+    return self.full_df.to_csv(index=False).encode('utf-8')
