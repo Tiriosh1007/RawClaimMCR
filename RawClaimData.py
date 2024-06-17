@@ -1172,7 +1172,7 @@ class RawClaimData():
     else: 
       __p18_df_col = ['policy_number', 'year'] + by + ['diagnosis', 'incurred_amount', 'paid_amount']
       __p18_group_col = ['policy_number', 'year'] + by + ['diagnosis']
-      __p18_claimants_col = ['policy_number', 'year'] + by ['diagnosis', 'claimant']
+      __p18_claimants_col = ['policy_number', 'year'] + by + ['diagnosis', 'claimant']
       __p18_claims_col = ['policy_number', 'year'] + by + ['diagnosis', 'claim_id']
       __p18_sort_col = ['policy_number', 'year'] + by + ['paid_amount']
       __p18_sort_order = [True, True] + len(by) * [True] + [False]
