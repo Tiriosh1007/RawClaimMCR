@@ -38,7 +38,7 @@ class Shortfall():
 
 
   def __bupa_shortfall(self, shortfall_fp):
-    t_df = pd.read_excel(shortfall_fp)
+    t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
     client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
     policy_no_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
     start_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
@@ -46,7 +46,7 @@ class Shortfall():
     duration_ = (end_d_ - start_d_).days + 1
     policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
 
-    t_df = pd.read_excel(shortfall_fp, skiprows=9, dtype='str')
+    t_df = pd.read_excel(shortfall_fp, sheet_name='Report', skiprows=9, dtype='str')
 
     if len(t_df.columns) > 10:
       t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
@@ -91,7 +91,7 @@ class Shortfall():
       t_df = pd.concat([t_df_pan, t_df_non, t_df_all], axis=0, ignore_index=True)
     else:
       t_df_all = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
-      t_df_all.columns= [
+      t_df_all.columns = [
           'benefit_type',
           'class',
           'benefit',
