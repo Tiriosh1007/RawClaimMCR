@@ -114,7 +114,7 @@ class Shortfall():
         t_df['no_of_claimants'].iloc[n00] = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
         t_df['incurred_amount'].iloc[n00] = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
         t_df['paid_amount'].iloc[n00] = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
-        t_df.drop(index=n00+1)
+        t_df.drop(index=n00+1, inplace=True)
 
 
     t_df['policy_id'] = policy_id_
