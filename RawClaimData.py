@@ -1051,7 +1051,7 @@ class RawClaimData():
 
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
 
-    self.mcr_p20_policy(by)
+    self.mcr_p20_policy()
     self.mcr_p20_benefit(by, benefit_type_order)
     self.mcr_p20_panel(by)
     self.mcr_p21_class(by)
