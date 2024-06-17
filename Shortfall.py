@@ -108,6 +108,13 @@ class Shortfall():
 
       t_df = t_df_all
 
+    for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index():
+      if 'Bonsetter' in t_df['benefit'].iloc[n00+1]:
+        t_df['no_of_claims'].iloc[n00] = t_df['no_of_claims'].iloc[n00] + t_df['no_of_claims'].iloc[n00 + 1]
+        t_df['no_of_claimants'].iloc[n00] = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
+        t_df['incurred_amount'].iloc[n00] = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
+        t_df['paid_amount'].iloc[n00] = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
+        t_df.drop(index=n00+1)
 
 
     t_df['policy_id'] = policy_id_
