@@ -80,7 +80,7 @@ class Shortfall():
       ]
       t_df_all['panel'] = 'Overall'
 
-      t_df_pan = t_df_all
+      t_df_pan = t_df_all.copy(deep=True)
       t_df_pan['panel'] = 'Panel'
 
       for col in __cols:
