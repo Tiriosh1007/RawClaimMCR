@@ -167,6 +167,14 @@ if st.session_state.raw_claim == True:
   
   shortfall_files = pd.DataFrame(upload_raw_shortfall_l, columns=['File Name'])
 
+  st.write('---')
+  suboffice_toggle = st.toggle('MCR by suboffice')
+
+  if suboffice_toggle:
+    by=['suboffice']
+  else:
+    by=None
+
   if 'raw_process' not in st.session_state:
     st.session_state.raw_process = False
 
@@ -191,9 +199,8 @@ if st.session_state.raw_claim == True:
       sf_ = Shortfall()
       for n0 in range(len(shortfall_files)):
         sf_.add_shortfall(full_raw_shortfall_file_list[n0])
-      
-      sf_.remove_overall()
-      raw_.bupa_shortfall_supplement(sf_.full_df)
+
+      raw_.bupa_shortfall_supplement(sf_.df)
 
     raw_.preprocessing()
     __freq = raw_.frequent_claimant_analysis()
@@ -209,7 +216,7 @@ if st.session_state.raw_claim == True:
 
     with data_download_col1:
       st.download_button('MCR data', 
-                        data=raw_.mcr_pages(export=True),
+                        data=raw_.mcr_pages(export=True, by=by),
                         file_name="mcr.xlsx",
                         mime="application/vnd.ms-excel")
     
@@ -322,8 +329,6 @@ if st.session_state.shortfall == True:
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
       sf_.add_shortfall(full_file_list[n0])
-
-    sf_.remove_overall()
     
 
     data_download_col1, data_download_col2= st.columns([1,1]) 
