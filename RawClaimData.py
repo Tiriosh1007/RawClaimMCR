@@ -842,11 +842,17 @@ class RawClaimData():
 
   def mcr_p20_policy(self, by=None):
     if by == None:
-      self.df['year'] = self.df.policy_start_date.dt.year
-      p20_policy_df = self.df[['policy_number', 'year', 'incurred_amount', 'paid_amount']].groupby(by=['policy_number', 'year'], dropna=False).sum()
-      p20_policy_df['usage_ratio'] = p20_policy_df['paid_amount'] / p20_policy_df['incurred_amount']
-      p20_policy_df = p20_policy_df.unstack().stack(dropna=False)
-      self.p20_policy = p20_policy_df
+      __p20_policy_df_col = ['policy_number', 'year', 'incurred_amount', 'paid_amount']
+      __p20_policy_group_col = ['policy_number', 'year']
+    else: 
+      __p20_policy_df_col = ['policy_number', 'year'] + by + ['incurred_amount', 'paid_amount']
+      __p20_policy_group_col = ['policy_number', 'year'] + by
+    
+    self.df['year'] = self.df.policy_start_date.dt.year
+    p20_policy_df = self.df[__p20_policy_df_col].groupby(by=__p20_policy_group_col, dropna=False).sum()
+    p20_policy_df['usage_ratio'] = p20_policy_df['paid_amount'] / p20_policy_df['incurred_amount']
+    p20_policy_df = p20_policy_df.unstack().stack(dropna=False)
+    self.p20_policy = p20_policy_df
     return p20_policy_df
 
   def mcr_p20_benefit(self, by=None, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
