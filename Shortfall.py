@@ -110,12 +110,13 @@ class Shortfall():
 
     bone_pos_list = []
     for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index:
-      if 'Bonsetter' in t_df['benefit'].iloc[n00+1] and n00 < len(t_df.benefit):
-        t_df['no_of_claims'].iloc[n00] = t_df['no_of_claims'].iloc[n00] + t_df['no_of_claims'].iloc[n00 + 1]
-        t_df['no_of_claimants'].iloc[n00] = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
-        t_df['incurred_amount'].iloc[n00] = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
-        t_df['paid_amount'].iloc[n00] = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
-        bone_pos_list.append(n00+1)
+      if n00 < len(t_df.benefit) - 1:
+        if 'Bonsetter' in t_df['benefit'].iloc[n00+1]:
+          t_df['no_of_claims'].iloc[n00] = t_df['no_of_claims'].iloc[n00] + t_df['no_of_claims'].iloc[n00 + 1]
+          t_df['no_of_claimants'].iloc[n00] = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
+          t_df['incurred_amount'].iloc[n00] = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
+          t_df['paid_amount'].iloc[n00] = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
+          bone_pos_list.append(n00+1)
     if len(bone_pos_list) > 0:
       t_df.drop(index=bone_pos_list, inplace=True)
 
