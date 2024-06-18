@@ -860,10 +860,12 @@ class RawClaimData():
     if by == None:
       __p20_benefit_df_col = ['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount']
       __p20_benefit_group_col = ['policy_number', 'year', 'benefit_type']
+      __p20_benefit_claims_col = ['policy_number', 'year', 'benefit_type', 'incur_date']
     else: 
 
       __p20_benefit_df_col = ['policy_number', 'year'] + by + ['benefit_type', 'incurred_amount', 'paid_amount']
       __p20_benefit_group_col = ['policy_number', 'year'] + by + ['benefit_type']
+      __p20_benefit_claims_col = ['policy_number', 'year'] + by + ['benefit_type', 'incur_date']
     
 
     self.df['year'] = self.df.policy_start_date.dt.year
@@ -877,7 +879,14 @@ class RawClaimData():
               p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
           # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
 
+    p20_no_claims = self.df[__p20_benefit_claims_col].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p20_ip_no_claims = self.df[__p20_benefit_claims_col].loc[self.df['benefit'].str.contains('DayCentre|Surgeon', case=False) == True].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p20_no_claims['no_of_claims'].loc['Hospital'] = p20_ip_no_claims['no_of_claims']
+
     p20_benefit_df['usage_ratio'] = p20_benefit_df['paid_amount'] / p20_benefit_df['incurred_amount']
+    p20_benefit_df['no_of_claims'] = p20_no_claims['no_of_claims']
+    p20_benefit_df['incurred_per_claim'] = p20_benefit_df['incurred_amount'] / p20_benefit_df['no_of_claims']
+    p20_benefit_df['paid_per_claim'] = p20_benefit_df['paid_amount'] / p20_benefit_df['no_of_claims']
     p20_benefit_df = p20_benefit_df.unstack().stack(dropna=False)
     p20_benefit_df = p20_benefit_df.reindex(benefit_type_order, level='benefit_type')
     self.p20_benefit = p20_benefit_df
