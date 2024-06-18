@@ -110,13 +110,13 @@ class Shortfall():
 
     bone_pos_list = []
     for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index.get_level_values(0).tolist():
-      if n00 + 1 <= len(t_df.benefit):
+      if n00 + 1 <= len(t_df):
         if t_df['benefit'].loc[n00 + 1] == 'Bonesetter':
           __no_of_claims = t_df['no_of_claims'].loc[n00] + t_df['no_of_claims'].loc[n00 + 1]
           t_df['no_of_claims'].loc[n00] = __no_of_claims 
           __no_of_claimants = t_df['no_of_claimants'].loc[n00] + t_df['no_of_claimants'].loc[n00 + 1]
           t_df['no_of_claimants'].loc[n00] = __no_of_claimants
-          __incurred = t_df['incurred_amount'].loc[n00] + t_df['incurred_amount'].loc[n00 + 1]
+          __incurred = t_df['incurred_amount'].loc[n00] + t_df['incurred_asmount'].loc[n00 + 1]
           t_df['incurred_amount'].loc[n00] = __incurred
           __paid = t_df['paid_amount'].loc[n00] + t_df['paid_amount'].loc[n00 + 1]
           t_df['paid_amount'].loc[n00] = __paid
