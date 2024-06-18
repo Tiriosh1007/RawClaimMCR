@@ -109,16 +109,16 @@ class Shortfall():
       t_df = t_df_all
 
     bone_pos_list = []
-    for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index.get_level_values(0):
+    for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index.get_level_values(0).tolist():
       if n00 + 1 <= len(t_df.benefit):
-        if t_df['benefit'].iloc[n00 +1] == 'Bonesetter':
-          __no_of_claims = t_df['no_of_claims'].iloc[n00] + t_df['no_of_claims'].iloc[n00 + 1]
+        if t_df['benefit'].loc[n00 + 1] == 'Bonesetter':
+          __no_of_claims = t_df['no_of_claims'].loc[n00] + t_df['no_of_claims'].loc[n00 + 1]
           t_df['no_of_claims'].loc[n00] = __no_of_claims 
-          __no_of_claimants = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
+          __no_of_claimants = t_df['no_of_claimants'].loc[n00] + t_df['no_of_claimants'].loc[n00 + 1]
           t_df['no_of_claimants'].loc[n00] = __no_of_claimants
-          __incurred = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
+          __incurred = t_df['incurred_amount'].loc[n00] + t_df['incurred_amount'].loc[n00 + 1]
           t_df['incurred_amount'].loc[n00] = __incurred
-          __paid = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
+          __paid = t_df['paid_amount'].loc[n00] + t_df['paid_amount'].loc[n00 + 1]
           t_df['paid_amount'].loc[n00] = __paid
           bone_pos_list.append(n00+1)
     if len(bone_pos_list) > 0:
@@ -251,7 +251,8 @@ class Shortfall():
       p24_op_benefit_df['paid_per_claim'] = p24_op_benefit_df['paid_amount'] / p24_op_benefit_df['no_of_claims']
       # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
       p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
-      # p24_op_benefit_df.sort_values(by=['policy_number', 'year', 'paid_amount'], ascending=[True, True, False], inplace=True)
+      if len(p24_op_benefit_df) > 0:
+        p24_op_benefit_df.sort_values(by=['policy_number', 'year', 'paid_amount'], ascending=[True, True, False], inplace=True)
       self.p24_op_benefit = p24_op_benefit_df
       self.p24 = p24_op_benefit_df
     return p24_op_benefit_df
@@ -269,7 +270,8 @@ class Shortfall():
       p24_op_class_benefit_df['paid_per_claim'] = p24_op_class_benefit_df['paid_amount'] / p24_op_class_benefit_df['no_of_claims']
       # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
       p24_op_class_benefit_df = p24_op_class_benefit_df.unstack().stack(dropna=False)
-      # p24_op_class_benefit_df.sort_values(by=['policy_number', 'year', 'class', 'paid_amount'], ascending=[True, True, True, False], inplace=True)
+      if len(p24_op_class_benefit_df) > 0:
+        p24_op_class_benefit_df.sort_values(by=['policy_number', 'year', 'class', 'paid_amount'], ascending=[True, True, True, False], inplace=True)
       self.p24a_op_class_benefit = p24_op_class_benefit_df
       self.p24a = p24_op_class_benefit_df
     return p24_op_class_benefit_df
