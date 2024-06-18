@@ -109,7 +109,7 @@ class Shortfall():
       t_df = t_df_all
 
     bone_pos_list = []
-    for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index.get_level_values(0).tolist():
+    for n00 in t_df.loc[t_df['benefit'].str.contains('Herbalist', case=False)].index.tolist():
       if n00 + 1 <= len(t_df):
         if t_df['benefit'].loc[n00 + 1] == 'Bonesetter':
           __no_of_claims = t_df['no_of_claims'].loc[n00] + t_df['no_of_claims'].loc[n00 + 1]
