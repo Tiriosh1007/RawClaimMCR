@@ -251,7 +251,7 @@ class Shortfall():
       p24_op_benefit_df['paid_per_claim'] = p24_op_benefit_df['paid_amount'] / p24_op_benefit_df['no_of_claims']
       # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
       p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
-      p24_op_benefit_df.sort_values(by=['policy_number', 'year', 'paid_amount'], ascending=[True, True, False], inplace=True)
+      p24_op_benefit_df.sort_values(by=['policy_number', 'year', 'no_of_claims'], ascending=[True, True, False], inplace=True)
       self.p24_op_benefit = p24_op_benefit_df
       self.p24 = p24_op_benefit_df
     return p24_op_benefit_df
