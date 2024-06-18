@@ -168,11 +168,18 @@ if st.session_state.raw_claim == True:
   shortfall_files = pd.DataFrame(upload_raw_shortfall_l, columns=['File Name'])
 
   st.write('---')
-  suboffice_toggle = st.toggle('MCR by suboffice')
+  mcr_by_col1, mcr_by_col2, mcr_by_col3, mcr_by_col4, mcr_by_col5, mcr_by_col6 = st.columns([1,1,1,1,1,1])
+  with mcr_by_col1:
+    suboffice_toggle = st.toggle('MCR by suboffice')
+  with mcr_by_col2:
+    gender_toggle = st.toggle('MCR by gender')
 
+  by = []
   if suboffice_toggle:
-    by=['suboffice']
-  else:
+    by.append('suboffice')
+  if gender_toggle:
+    by.append('gender')
+  if len(by) == 0:
     by=None
 
   if 'raw_process' not in st.session_state:
