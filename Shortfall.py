@@ -259,6 +259,7 @@ class Shortfall():
   def mcr_p24a_op_class_benefit(self, by=None):
     if by == None:
       self.df['year'] = self.df.policy_start_date.dt.year
+      print(self.df.columns)
       p24_op_class_benefit_df = self.df[['policy_number', 'year', 'class', 'benefit', 'incurred_amount', 'paid_amount', 'no_of_claims']].loc[self.df['benefit_type'] == 'Clinic'].groupby(by=['policy_number', 'year', 'class', 'benefit'], dropna=False).sum()
       p24_op_class_benefit_df['usage_ratio'] = p24_op_class_benefit_df['paid_amount'] / p24_op_class_benefit_df['incurred_amount']
       # p24_op_class_no_claims = self.df[['policy_number', 'year', 'class', 'benefit', 'incur_date']].loc[self.df['benefit_type'] == 'Clinic'].groupby(by=['policy_number', 'year', 'class', 'benefit'], dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
