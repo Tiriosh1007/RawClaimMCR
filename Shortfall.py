@@ -113,13 +113,13 @@ class Shortfall():
       if n00 + 1 <= len(t_df.benefit):
         if t_df['benefit'].iloc[n00 +1] == 'Bonesetter':
           __no_of_claims = t_df['no_of_claims'].iloc[n00] + t_df['no_of_claims'].iloc[n00 + 1]
-          t_df['no_of_claims'].iloc[n00] = __no_of_claims 
+          t_df['no_of_claims'].loc[n00] = __no_of_claims 
           __no_of_claimants = t_df['no_of_claimants'].iloc[n00] + t_df['no_of_claimants'].iloc[n00 + 1]
-          t_df['no_of_claimants'].iloc[n00] = __no_of_claimants
+          t_df['no_of_claimants'].loc[n00] = __no_of_claimants
           __incurred = t_df['incurred_amount'].iloc[n00] + t_df['incurred_amount'].iloc[n00 + 1]
-          t_df['incurred_amount'].iloc[n00] = __incurred
+          t_df['incurred_amount'].loc[n00] = __incurred
           __paid = t_df['paid_amount'].iloc[n00] + t_df['paid_amount'].iloc[n00 + 1]
-          t_df['paid_amount'].iloc[n00] = __paid
+          t_df['paid_amount'].loc[n00] = __paid
           bone_pos_list.append(n00+1)
     if len(bone_pos_list) > 0:
       t_df.drop(index=bone_pos_list, inplace=True)
