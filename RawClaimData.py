@@ -1208,8 +1208,7 @@ class RawClaimData():
 
     self.mcr_df = self.df.copy(deep=True)
     if 'dep' in by:
-      self.mcr_df.dep_type.replace({'CH': 'DEP'}, inplace=True)
-      self.mcr_df.dep_type.replace({'SP': 'DEP'}, inplace=True)
+      self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'] == 'CH') | (self.mcr_df['dep_type'] == 'SP')] = 'DEP'
     
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
