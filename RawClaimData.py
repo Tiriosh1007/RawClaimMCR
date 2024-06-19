@@ -1217,8 +1217,8 @@ class RawClaimData():
     self.mcr_p24_dent_benefit(by)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
     self.mcr_p26_op_panel(by)
-    self.mcr_p27_class_dep_op_benefit(by)
-    self.mcr_p28_class_dep_ip_benefit(by)
+    #self.mcr_p27_class_dep_op_benefit(by)
+    #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
 
     if export == True:
@@ -1239,8 +1239,8 @@ class RawClaimData():
         self.p24_dent_benefit.to_excel(writer, sheet_name='P.24b_DentalBenefit', index=True, merge_cells=False)
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
-        self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
-        self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
+        #self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
+        #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         writer.close()
         # processed_data = output.getvalue()
