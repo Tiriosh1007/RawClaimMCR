@@ -838,7 +838,7 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)]
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
-    self.mcr_df = self.df.copy(deep=True)
+
     if dep == True:
       self.mcr_df.dep_type.replace({'CH': 'DEP'}, inplace=True)
       self.mcr_df.dep_type.replace({'SP': 'DEP'}, inplace=True)
@@ -1211,7 +1211,7 @@ class RawClaimData():
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     
     if type(by) is not list and by != None: by = [by]
-    
+    self.mcr_df = self.df.copy(deep=True)
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
     self.mcr_p20_panel(by)
