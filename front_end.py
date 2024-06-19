@@ -206,7 +206,11 @@ if st.session_state.raw_claim == True:
                         policy_start_date=file_config['Policy start date'].iloc[n0], 
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
-    raw_.preprocessing()
+    if 'dep' in by:
+      raw_.preprocessing(dep=True)
+    else:
+     raw_.preprocessing()
+     
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()
       for n0 in range(len(shortfall_files)):
