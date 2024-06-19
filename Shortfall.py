@@ -52,7 +52,7 @@ class Shortfall():
           'no_of_claimants',
           'incurred_amount',
           'paid_amount',]
-
+    t_df.replace({'-': 0 }, inplace=True)
     if len(t_df.columns) > 10:
       t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
       t_df_non.columns = [
@@ -90,6 +90,7 @@ class Shortfall():
         t_df_pan[col] = t_df_all[col] - t_df_non[col]
 
       t_df = pd.concat([t_df_pan, t_df_non, t_df_all], axis=0, ignore_index=True)
+      
     else:
       t_df_all = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
       t_df_all.columns = [
