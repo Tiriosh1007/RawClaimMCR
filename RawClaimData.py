@@ -818,7 +818,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, dep=False):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
@@ -1207,8 +1207,8 @@ class RawClaimData():
     if type(by) is not list and by != None: by = [by]
 
     self.mcr_df = self.df.copy(deep=True)
-    if 'dep' in by:
-      self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'] == 'CH') | (self.mcr_df['dep_type'] == 'SP')] = 'DEP'
+    if 'dep_type' in by:
+      self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
     
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
