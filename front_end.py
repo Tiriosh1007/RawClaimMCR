@@ -209,8 +209,8 @@ if st.session_state.raw_claim == True:
     if 'dep' in by:
       raw_.preprocessing(dep=True)
     else:
-     raw_.preprocessing()
-     
+      raw_.preprocessing()
+
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()
       for n0 in range(len(shortfall_files)):
