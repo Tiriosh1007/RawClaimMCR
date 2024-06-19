@@ -1118,7 +1118,7 @@ class RawClaimData():
     self.p26 = p26_op_panel_df
     return p26_op_panel_df
 
-  def mcr_p27_class_dep_op_benefit(self, by=None):
+  '''def mcr_p27_class_dep_op_benefit(self, by=None):
     if by == None:
       __p27_df_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']
       __p27_group_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit']
@@ -1168,7 +1168,7 @@ class RawClaimData():
     p28_df = p28_df.unstack().stack(dropna=False)
     p28_df.sort_values(by=__p28_sort_col, ascending=__p28_sort_order, inplace=True)
     self.p28 = p28_df
-    return p28_df
+    return p28_df'''
   
   def mcr_p18a_top_diag_ip(self, by=None):
     if by == None:

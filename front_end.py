@@ -170,11 +170,16 @@ if st.session_state.raw_claim == True:
   st.write('---')
   mcr_by_col1, mcr_by_col2, mcr_by_col3, mcr_by_col4, mcr_by_col5, mcr_by_col6 = st.columns([1,1,1,1,1,1])
   with mcr_by_col1:
-    suboffice_toggle = st.toggle('MCR by suboffice')
+    dep_toggle = st.toggle('MCR by dependent type')
   with mcr_by_col2:
+    suboffice_toggle = st.toggle('MCR by suboffice')
+  with mcr_by_col3:
     gender_toggle = st.toggle('MCR by gender')
+  
 
   by = []
+  if dep_toggle:
+    by.append('dep_type')
   if suboffice_toggle:
     by.append('suboffice')
   if gender_toggle:
