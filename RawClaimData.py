@@ -838,7 +838,7 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)]
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
-    self.df = self.mcr_df
+    self.mcr_df = self.df.copy(deep=True)
     if dep == True:
       self.mcr_df.dep_type.replace({'CH': 'DEP'}, inplace=True)
       self.mcr_df.dep_type.replace({'SP': 'DEP'}, inplace=True)
