@@ -1207,8 +1207,9 @@ class RawClaimData():
     if type(by) is not list and by != None: by = [by]
 
     self.mcr_df = self.df.copy(deep=True)
-    if 'dep_type' in by:
-      self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
+    if type(by) is list:
+      if 'dep_type' in by:
+        self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
     
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
