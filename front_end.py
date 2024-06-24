@@ -175,6 +175,8 @@ if st.session_state.raw_claim == True:
     suboffice_toggle = st.toggle('MCR by suboffice')
   with mcr_by_col3:
     gender_toggle = st.toggle('MCR by gender')
+  with mcr_by_col4:
+    diagnosis_toggle = st.toggle('MCR by diagnosis')
   
 
   by = []
@@ -184,6 +186,8 @@ if st.session_state.raw_claim == True:
     by.append('suboffice')
   if gender_toggle:
     by.append('gender')
+  if diagnosis_toggle:
+    by.append('diagnosis')
   if len(by) == 0:
     by=None
 
