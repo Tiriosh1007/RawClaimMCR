@@ -1172,7 +1172,7 @@ class RawClaimData():
   #   return p28_df
   
   def mcr_p18a_top_diag_ip(self, by=None):
-    if by == None:
+    if by == None or 'diagnosis' in by:
       __p18_df_col = ['policy_number', 'year', 'diagnosis', 'incurred_amount', 'paid_amount']
       __p18_group_col = ['policy_number', 'year', 'diagnosis']
       __p18_claimants_col = ['policy_number', 'year', 'diagnosis', 'claimant']
