@@ -1493,7 +1493,7 @@ class RawClaimData():
       width=1500,
       height=600,
     )
-    fig.update_xaxes(type='category')
+    fig.update_xaxes(type='category', categoryorder='category ascending')
     return fig
 
 
