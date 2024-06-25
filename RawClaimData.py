@@ -1461,7 +1461,7 @@ class RawClaimData():
   def paid_amount_by_dep_type_by_policy_year(self):
     self.df['year'] = self.df.policy_start_date.dt.year
 
-    __temp_df = self.df[['policy_id','class','dep_type','paid_amount']]
+    __temp_df = self.df[['policy_id','class','dep_type','paid_amount']].replace({'CH': 'DEP', 'SP': 'DEP'})
     __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).count().rename(columns={'paid_amount': 'no_of_claims'})
     __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class']).sum()
     __paid_by_dep_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
