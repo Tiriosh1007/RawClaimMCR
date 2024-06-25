@@ -1400,8 +1400,11 @@ class RawClaimData():
 
     fig.update_layout(
       barmode='group',
-      title='Number of visit of Outpatient Benefit',
-      title_x = 0.5,
+      title=dict(
+        text='Number of visit of Outpatient Benefit',
+        font=dict(size=28),
+                 ),
+      # title_x = 0.5,
       xaxis_title='Policy',
       yaxis_title='No. of Visit',
       yaxis=dict(
@@ -1441,8 +1444,11 @@ class RawClaimData():
 
 
     fig.update_layout(
-      title='Relationship of age and incurred amount of inpatient',
-      title_x = 0.5,
+      title=dict(
+        text='Relationship of age and incurred amount of inpatient',
+        font=dict(size=28),
+                 ),
+      # title_x = 0.5,
       xaxis_title='Age',
       yaxis_title='Incurred Amount',
       yaxis=dict(
@@ -1474,13 +1480,16 @@ class RawClaimData():
 
     fig.update_layout(
       yaxis_title='Paid Amount',
-      title='Paid Amount by Dependent Type by Policy Year',
+      title=dict(
+        text='Paid Amount by Dependent Type by Policy Year',
+        font=dict(size=28),
+        ),
       # title_x = 0.5,
       yaxis=dict(
         tickmode='linear',
         tick0=0,
         dtick=100_000
-      ),
+        ),
       xaxis_type='category',
       # xaxis=dict(
       #   tickmode='array',
@@ -1491,7 +1500,7 @@ class RawClaimData():
         
         #yanchor='bottom',
         #y=1.02
-      ),
+        ),
       legend_title_text='Dependent Type',
       width=900,
       height=600,
@@ -1512,8 +1521,11 @@ class RawClaimData():
 
     fig.update_layout(
       yaxis_title='Paid Amount',
-      title='Paid Amount by Dependent Type by Class by Policy Year',
-      title_x = 0.5,
+      title=dict(
+        text='Paid Amount by Dependent Type by Class by Policy Year',
+        font=dict(size=28),
+                 ),
+      # title_x = 0.5,
       yaxis=dict(
         tickmode='linear',
         tick0=0,
