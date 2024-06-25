@@ -1466,6 +1466,7 @@ class RawClaimData():
     __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class']).sum()
     __paid_by_dep_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
     __paid_by_dep_plot_df = __paid_by_dep_plot_df.reset_index()
+    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
     fig = px.bar(__paid_by_dep_plot_df, x='class', y='paid_amount', color='dep_type', barmode='group',facet_col='policy_id',hover_data = {'no_of_claims': True})
 
     fig.update_layout(
