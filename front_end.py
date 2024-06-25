@@ -37,7 +37,7 @@ with function_col1:
     st.session_state.op_time = False
     st.session_state.op_policy = False
     st.session_state.dep_type_paid = False
-    st.sessnion_state.dep_type_paid_class = False
+    st.session_state.dep_type_paid_class = False
     st.session_state.pygwalker = False
 
 with function_col2:
