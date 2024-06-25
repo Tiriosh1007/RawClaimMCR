@@ -1478,7 +1478,7 @@ class RawClaimData():
         tick0=0,
         dtick=50_000
       ),
-      xaxes_type='category',
+      xaxis_type='category',
       # xaxis=dict(
       #   tickmode='array',
       #   tickvals = __paid_by_dep_plot_df['class'].drop_duplicates(keep='first').to_list(),
@@ -1493,6 +1493,7 @@ class RawClaimData():
       width=1500,
       height=600,
     )
+    fig.update_xaxes(type='category')
     return fig
 
 
