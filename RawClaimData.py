@@ -1092,7 +1092,7 @@ class RawClaimData():
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
     p24_wellness_benefit_df = self.mcr_df[__p24w_df_col].loc[(self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check', case=False))].groupby(by=__p24w_group_col, dropna=False).sum()
     p24_wellness_benefit_df['usage_ratio'] = p24_wellness_benefit_df['paid_amount'] / p24_wellness_benefit_df['incurred_amount']
-    p24_wellness_no_claims = self.mcr_df[__p24w_claims_col].loc[self.mcr_df['benefit_type'] == 'Dental'].groupby(by=__p24w_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p24_wellness_no_claims = self.mcr_df[__p24w_claims_col].loc[(self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check', case=False))].groupby(by=__p24w_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
     p24_wellness_benefit_df['no_of_claims'] = p24_wellness_no_claims['no_of_claims']
     p24_wellness_benefit_df['incurred_per_claim'] = p24_wellness_benefit_df['incurred_amount'] / p24_wellness_benefit_df['no_of_claims']
     p24_wellness_benefit_df['paid_per_claim'] = p24_wellness_benefit_df['paid_amount'] / p24_wellness_benefit_df['no_of_claims']
