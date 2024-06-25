@@ -302,12 +302,12 @@ if st.session_state.raw_claim == True:
     with dep_type_chart_col1:
       if st.button('Paid by Dependent Policy Id'):
         st.sessnion_state.dep_type_paid = True
-        st.sessnion_state.dep_type_paid_class = False
+        st.session_state.dep_type_paid_class = False
 
     with dep_type_chart_col2:
       if st.button('Paid Amount by Dependent Class Policy Id'):
         st.session_state.dep_type_paid = False
-        st.sessnion_state.dep_type_paid_class = True
+        st.session_state.dep_type_paid_class = True
 
     if st.session_state.dep_type_paid == True:
       fig = raw_.paid_amount_by_dep_type_policy_year()
