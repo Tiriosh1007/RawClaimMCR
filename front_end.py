@@ -301,7 +301,7 @@ if st.session_state.raw_claim == True:
 
     with dep_type_chart_col1:
       if st.button('Paid by Dependent Policy Id'):
-        st.sessnion_state.dep_type_paid = True
+        st.session_state.dep_type_paid = True
         st.session_state.dep_type_paid_class = False
 
     with dep_type_chart_col2:
