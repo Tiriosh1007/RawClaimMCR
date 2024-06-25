@@ -1466,12 +1466,12 @@ class RawClaimData():
     __temp_df = pd.merge(__temp_df, __frequency_counts, on=['policy_id', 'dep_type','class'], how='right')
     __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class','frequency']).agg({'paid_amount': 'sum'}).reset_index()
 
-    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
+    
     #print(df)
 
     __new_column_names = {'dep_type': 'Dependent Type','class':'Class'}
     __paid_by_dep_plot_df = __paid_by_dep_plot_df.rename(columns=__new_column_names)
-
+    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
     fig = px.bar(__paid_by_dep_plot_df, x='Class', y='paid_amount', color='Dependent Type', barmode='group',facet_col='policy_id',hover_data = {'frequency': True})
 
     fig.update_layout(
@@ -1488,7 +1488,7 @@ class RawClaimData():
         #yanchor='bottom',
         #y=1.02
       ),
-      width=1200,
+      width=1500,
       height=600,
     )
     return fig
