@@ -308,7 +308,7 @@ if st.session_state.raw_claim == True:
         st.sessnion_state.dep_type_paid_class = True
 
     if st.session_state.dep_type_paid == True:
-      fig = raw_.paid_amount_by_dep_type__policy_year()
+      fig = raw_.paid_amount_by_dep_type_policy_year()
       st.plotly_chart(fig, use_container_width=False)
     if st.session_state.dep_type_paid_class == True:
       fig = raw_.paid_amount_by_dep_type_class_policy_year()
