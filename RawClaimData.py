@@ -1472,11 +1472,11 @@ class RawClaimData():
     fig.update_layout(
       yaxis_title='Paid Amount',
       title='Paid Amount by Dependent Type by Policy Year',
-      title_x = 0.5,
+      # title_x = 0.5,
       yaxis=dict(
         tickmode='linear',
         tick0=0,
-        dtick=50_000
+        dtick=100_000
       ),
       xaxis_type='category',
       # xaxis=dict(
@@ -1509,7 +1509,7 @@ class RawClaimData():
 
     fig.update_layout(
       yaxis_title='Paid Amount',
-      title='Paid Amount by Dependent Type by Policy Year',
+      title='Paid Amount by Dependent Type by Class by Policy Year',
       title_x = 0.5,
       yaxis=dict(
         tickmode='linear',
