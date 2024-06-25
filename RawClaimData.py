@@ -1480,7 +1480,7 @@ class RawClaimData():
       ),
       xaxis=dict(
         tickmode='array',
-        tickvals = __paid_by_dep_plot_df['class'].drop_duplicates(keep=first).to_list(),
+        tickvals = __paid_by_dep_plot_df['class'].drop_duplicates(keep='first').to_list(),
       ),
       legend=dict(
         orientation='h',
