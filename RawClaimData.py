@@ -1471,7 +1471,7 @@ class RawClaimData():
 
     __new_column_names = {'dep_type': 'Dependent Type','class':'Class'}
     __paid_by_dep_plot_df = __paid_by_dep_plot_df.rename(columns=__new_column_names)
-    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
+    __paid_by_dep_plot_df['Class'] = __paid_by_dep_plot_df['Class'].astype(str)
     fig = px.bar(__paid_by_dep_plot_df, x='Class', y='paid_amount', color='Dependent Type', barmode='group',facet_col='policy_id',hover_data = {'frequency': True})
 
     fig.update_layout(
