@@ -1490,7 +1490,7 @@ class RawClaimData():
         #y=1.02
       ),
       legend_title_text='Dependent Type',
-      width=1500,
+      width=900,
       height=600,
     )
     # fig.update_xaxes(type='category', categoryorder='category ascending')
