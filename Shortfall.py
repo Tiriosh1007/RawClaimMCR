@@ -30,6 +30,7 @@ class Shortfall():
     ]
 
 
+
     self.col_setup = col_setup
     self.df = pd.DataFrame(columns=self.col_setup)
 
@@ -47,6 +48,31 @@ class Shortfall():
     policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
 
     t_df = pd.read_excel(shortfall_fp, sheet_name='Report', skiprows=9, dtype='str')
+    read_no_sub_col = [
+      'benefit_type',
+      'class',
+      'benefit',
+      'no_of_claims',
+      'no_of_claimants',
+      'incurred_amount',
+      'paid_amount',
+      'usage_ratio',
+    ]
+    read_sub_col = [
+      'benefit_type',
+      'class',
+      'benefit',
+      'non_no_of_claims',
+      'non_no_of_claimants',
+      'non_incurred_amount',
+      'non_paid_amount',
+      'non_usage_ratio',
+      'all_no_of_claims',
+      'all_no_of_claimants',
+      'all_incurred_amount',
+      'all_paid_amount',
+      'all_usage_ratio',
+    ]
 
     __cols = ['no_of_claims',
           'no_of_claimants',
@@ -54,34 +80,39 @@ class Shortfall():
           'paid_amount',]
     t_df.replace({'-': 0 }, inplace=True)
     if len(t_df.columns) > 10:
+      if 'Contract Number' in t_df.columns.tolist():
+        t_df = t_df.iloc[:, 1:15].drop(columns=['Benefit']).dropna()
+        t_df.columns = read_sub_col
+        class_l = t_df['class'].drop_duplicates(keep='first').to_list()
+        b_l = t_df['benefit'].drop_duplicates(keep='first').to_list()
+        btype_l = t_df['benefit_type'].drop_duplicates(keep='first').to_list()
+        reconstruct_df = pd.DataFrame(columns=read_sub_col)
+        for bt in btype_l:
+          for c in class_l:
+            for b in b_l:
+              t = t_df.loc[(t_df['benefit_type'] == bt) & (t_df['benefit'] == b) & (t_df['class'] == c)]
+              if len(t) > 0:
+                t2 = t.iloc[:, 3:].sum(axis=0)
+                t2['benefit_type'] = bt
+                t2['class'] = c
+                t2['benefit'] = b
+                t2 = t2[read_sub_col]
+                reconstruct_df = pd.concat([reconstruct_df, t2], axis=0, ignore_index=True)
+        t_df = reconstruct_df
+      
       t_df_non = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
-      t_df_non.columns = [
-          'benefit_type',
-          'class',
-          'benefit',
-          'no_of_claims',
-          'no_of_claimants',
-          'incurred_amount',
-          'paid_amount',
-          'usage_ratio',
-      ]
+      t_df_non.columns = read_no_sub_col
       t_df_non['panel'] = 'Non-Panel'
+      t_df_non['suboffice'] = '00'
 
       t_df_all = pd.concat([t_df.iloc[:, 0:4], t_df.iloc[:, 9:14]], axis=1).drop(columns=['Benefit']).dropna()
-      t_df_all.columns= [
-          'benefit_type',
-          'class',
-          'benefit',
-          'no_of_claims',
-          'no_of_claimants',
-          'incurred_amount',
-          'paid_amount',
-          'usage_ratio',
-      ]
+      t_df_all.columns= read_no_sub_col
       t_df_all['panel'] = 'Overall'
+      t_df_all['suboffice'] = '00'
 
       t_df_pan = t_df_all.copy(deep=True)
       t_df_pan['panel'] = 'Panel'
+      t_df_pan['suboffice'] = '00'
 
       for col in __cols:
         t_df_pan[col] = t_df_pan[col].astype(float)
@@ -93,17 +124,9 @@ class Shortfall():
       
     else:
       t_df_all = t_df.iloc[:, 0:9].drop(columns=['Benefit']).dropna()
-      t_df_all.columns = [
-          'benefit_type',
-          'class',
-          'benefit',
-          'no_of_claims',
-          'no_of_claimants',
-          'incurred_amount',
-          'paid_amount',
-          'usage_ratio',
-      ]
+      t_df_all.columns = read_no_sub_col
       t_df_all['panel'] = 'Overall'
+      t_df_all['suboffice'] = '00'
       for col in __cols:
         t_df_all[col] = t_df_all[col].astype(float)
 

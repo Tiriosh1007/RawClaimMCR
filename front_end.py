@@ -36,6 +36,8 @@ with function_col1:
     st.session_state.shortfall_process = False
     st.session_state.op_time = False
     st.session_state.op_policy = False
+    st.session_state.dep_type_paid = False
+    st.session_state.pygwalker = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -261,37 +263,32 @@ if st.session_state.raw_claim == True:
     if 'age_class_scatter' not in st.session_state:
       st.session_state.age_class_scatter = False
 
-    with chart_col1:
+    st.write('---')
+    st.header('Dependent Type Charts')
+    dep_type_chart_col1, dep_type_chart_col2, dep_type_chart_col3, dep_type_chart_col4, dep_type_chart_col5, dep_type_chart_col6  = st.columns([1 ,1 ,1,1,1,1]) 
+    if 'dep_type_paid' not in st.session_state:
+      st.session_state.dep_type_paid = False
+
+    with dep_type_chart_col1:
       if st.button('Outpatient Benefit Time Series'):
-        st.session_state.op_time = True
-        st.session_state.op_policy = False
-        st.session_state.age_class_scatter = False
-    with chart_col2:
-      if st.button('Policy Year Comparison'):
-        st.session_state.op_time = False
-        st.session_state.op_policy = True
-        st.session_state.age_class_scatter = False
-    with chart_col3:
-      if st.button('Class Age Scatterplot'):
-        st.session_state.op_time = False
-        st.session_state.op_policy = False 
-        st.session_state.age_class_scatter = True
-         
-    if st.session_state.op_time == True:
-      fig = raw_.benefit_op_monthly()
-      st.plotly_chart(fig, use_container_width=False)
-    elif st.session_state.op_policy == True:
-      fig = raw_.benefit_op_yearly_bar()
-      st.plotly_chart(fig, use_container_width=False)
-    elif st.session_state.age_class_scatter == True:
-      fig = raw_.class_age_scatter()
+        st.session_state.dep_type_paid = True
+
+    if st.session_state.dep_type_paid == True:
+      fig = raw_.paid_amount_by_dep_type_by_policy_year()
       st.plotly_chart(fig, use_container_width=False)
 
     st.write('---')
     st.header('Interactive Dashboard')
-    interactive_df = raw_.df
-    pyg_app = StreamlitRenderer(interactive_df)
-    pyg_app.explorer()
+    if 'pygwalker' not in st.session_state:
+      st.session_state.pygwalker = False
+
+    if st.button('PyGWalker Interactive Dashboard'):
+        st.session_state.pygwalker = True
+
+    if st.session_state.pygwalker == True:
+      interactive_df = raw_.df
+      pyg_app = StreamlitRenderer(interactive_df)
+      pyg_app.explorer()
 
 
 

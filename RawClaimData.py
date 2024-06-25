@@ -943,7 +943,7 @@ class RawClaimData():
     return p22_class_benefit_df
 
   def mcr_p23_ip_benefit(self, by=None):
-    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY')].drop_duplicates(keep='last').values.tolist()
+    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
     if by == None:
       __p23_df_col = ['policy_number', 'year', 'benefit', 'incurred_amount', 'paid_amount']
       __p23_group_col = ['policy_number', 'year', 'benefit']
@@ -965,7 +965,7 @@ class RawClaimData():
     return p23_ip_benefit_df
 
   def mcr_p23a_class_ip_benefit(self, by=None):
-    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY')].drop_duplicates(keep='last').values.tolist()
+    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
     if by == None:
       __p23a_df_col = ['policy_number', 'year', 'class', 'benefit', 'incurred_amount', 'paid_amount']
       __p23a_group_col = ['policy_number', 'year', 'class', 'benefit']
@@ -1398,6 +1398,7 @@ class RawClaimData():
     fig.update_layout(
       barmode='group',
       title='Number of visit of Outpatient Benefit',
+      title_x = 0.5,
       xaxis_title='Policy',
       yaxis_title='No. of Visit',
       yaxis=dict(
@@ -1438,6 +1439,7 @@ class RawClaimData():
 
     fig.update_layout(
       title='Relationship of age and incurred amount of inpatient',
+      title_x = 0.5,
       xaxis_title='Age',
       yaxis_title='Incurred Amount',
       yaxis=dict(
@@ -1456,6 +1458,42 @@ class RawClaimData():
     
     return fig
   
+  def paid_amount_by_dep_type_by_policy_year(self):
+    self.df['year'] = self.df.policy_start_date.dt.year
+
+
+    __temp_df = self.df[['policy_id','class','dep_type','paid_amount']]
+    __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).size().reset_index(name='frequency')
+    __temp_df = pd.merge(__temp_df, __frequency_counts, on=['policy_id', 'dep_type','class'], how='right')
+    __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class','frequency']).agg({'paid_amount': 'sum'}).reset_index()
+
+    # df['class'] = df['class'].astype(str)
+    #print(df)
+
+    __new_column_names = {'dep_type': 'Dependent Type','class':'Class'}
+    __paid_by_dep_plot_df = __paid_by_dep_plot_df.rename(columns=__new_column_names)
+
+    fig = px.bar(__paid_by_dep_plot_df, x='Class', y='paid_amount', color='Dependent Type', barmode='group',facet_col='policy_id',hover_data = {'frequency': True})
+
+    fig.update_layout(
+      yaxis_title='Paid Amount',
+      title='Paid Amount by Dependent Type by Policy Year',
+      title_x = 0.5,
+      yaxis=dict(
+        tickmode='linear',
+        tick0=0,
+        dtick=50_000
+      ),
+      legend=dict(
+        orientation='h',
+        #yanchor='bottom',
+        #y=1.02
+      ),
+      width=1200,
+      height=600,
+    )
+    return fig
+
 
   def gender_analysis_by_op(self):
     self.df['year'] = self.df.policy_start_date.dt.year
