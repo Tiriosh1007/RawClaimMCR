@@ -297,7 +297,7 @@ if st.session_state.raw_claim == True:
     if 'dep_type_paid' not in st.session_state:
       st.session_state.dep_type_paid = False
     if 'dep_type_paid_class' not in st.session_state:
-      st.sessnion_state.dep_type_paid_class = False
+      st.session_state.dep_type_paid_class = False
 
     with dep_type_chart_col1:
       if st.button('Paid by Dependent Policy Id'):
