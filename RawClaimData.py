@@ -1461,13 +1461,12 @@ class RawClaimData():
   def paid_amount_by_dep_type_by_policy_year(self):
     self.df['year'] = self.df.policy_start_date.dt.year
 
-
     __temp_df = self.df[['policy_id','class','dep_type','paid_amount']]
     __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).size().reset_index(name='frequency')
     __temp_df = pd.merge(__temp_df, __frequency_counts, on=['policy_id', 'dep_type','class'], how='right')
     __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class','frequency']).agg({'paid_amount': 'sum'}).reset_index()
 
-    # df['class'] = df['class'].astype(str)
+    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
     #print(df)
 
     __new_column_names = {'dep_type': 'Dependent Type','class':'Class'}

@@ -263,6 +263,33 @@ if st.session_state.raw_claim == True:
     if 'age_class_scatter' not in st.session_state:
       st.session_state.age_class_scatter = False
 
+
+    with chart_col1:
+      if st.button('Outpatient Benefit Time Series'):
+        st.session_state.op_time = True
+        st.session_state.op_policy = False
+        st.session_state.age_class_scatter = False
+    with chart_col2:
+      if st.button('Outpatient Benefit by Policy Id'):
+        st.session_state.op_time = False
+        st.session_state.op_policy = True
+        st.session_state.age_class_scatter = False
+    with chart_col3:
+      if st.button('Class Age'):
+        st.session_state.op_time = False
+        st.session_state.op_policy = False
+        st.session_state.age_class_scatter = True
+
+    if st.session_state.op_time == True:
+      fig = raw_.benefit_op_monthly()
+      st.plotly_chart(fig, use_container_width=False)
+    if st.session_state.op_policy == True:
+      fig = raw_.benefit_op_yearly_bar()
+      st.plotly_chart(fig, use_container_width=False)
+    if st.session_state.age_class_scatter == True:
+      fig = raw_.class_age_scatter()
+      st.plotly_chart(fig, use_container_width=False)
+
     st.write('---')
     st.header('Dependent Type Charts')
     dep_type_chart_col1, dep_type_chart_col2, dep_type_chart_col3, dep_type_chart_col4, dep_type_chart_col5, dep_type_chart_col6  = st.columns([1 ,1 ,1,1,1,1]) 
@@ -270,7 +297,7 @@ if st.session_state.raw_claim == True:
       st.session_state.dep_type_paid = False
 
     with dep_type_chart_col1:
-      if st.button('Outpatient Benefit Time Series'):
+      if st.button('Paid Amount by Dependent Type by Policy Id'):
         st.session_state.dep_type_paid = True
 
     if st.session_state.dep_type_paid == True:
