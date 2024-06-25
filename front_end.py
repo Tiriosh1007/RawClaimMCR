@@ -296,6 +296,7 @@ if st.session_state.raw_claim == True:
     dep_type_chart_col1, dep_type_chart_col2, dep_type_chart_col3, dep_type_chart_col4, dep_type_chart_col5, dep_type_chart_col6  = st.columns([1 ,1 ,1,1,1,1]) 
     if 'dep_type_paid' not in st.session_state:
       st.session_state.dep_type_paid = False
+    if 'dep_type_paid_class' not in st.session_state:
       st.sessnion_state.dep_type_paid_class = False
 
     with dep_type_chart_col1:
