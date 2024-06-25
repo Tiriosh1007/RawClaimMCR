@@ -1479,10 +1479,11 @@ class RawClaimData():
       ),
       legend=dict(
         orientation='h',
-        legend_title_text='Dependent Type',
+        
         #yanchor='bottom',
         #y=1.02
       ),
+      legend_title_text='Dependent Type',
       width=1500,
       height=600,
     )
