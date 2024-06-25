@@ -1103,6 +1103,36 @@ class RawClaimData():
       p24_wellness_benefit_df.sort_values(by=__p24w_sort_col, ascending=__p24w_sort_order, inplace=True)
     self.p24_wellness_benefit = p24_wellness_benefit_df
     return p24_wellness_benefit_df
+  
+  def mcr_p24_class_wellness_benefit(self, by=None):
+    if by == None:
+      __p24wc_df_col = ['policy_number', 'year', 'class', 'benefit', 'incurred_amount', 'paid_amount']
+      __p24wc_group_col = ['policy_number', 'year', 'class', 'benefit']
+      __p24wc_claims_col = ['policy_number', 'year', 'class', 'benefit', 'incur_date']
+      __p24wc_sort_col = ['policy_number', 'year', 'class', 'paid_amount']
+      __p24wc_sort_order = [True, True, True, False]
+    else: 
+      __p24wc_df_col = ['policy_number', 'year'] + by + ['class', 'benefit', 'incurred_amount', 'paid_amount']
+      __p24wc_group_col = ['policy_number', 'year'] + by + ['class', 'benefit']
+      __p24wc_claims_col = ['policy_number', 'year'] + by + ['class', 'benefit', 'incur_date']
+      __p24wc_sort_col = ['policy_number', 'year'] + by + ['class', 'paid_amount']
+      __p24wc_sort_order = [True, True] + len(by) * [True] + [True, False]
+
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p24_class_wellness_benefit_df = self.mcr_df[__p24wc_df_col].loc[(self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check', case=False))].groupby(by=__p24wc_group_col, dropna=False).sum()
+    p24_class_wellness_benefit_df['usage_ratio'] = p24_class_wellness_benefit_df['paid_amount'] / p24_class_wellness_benefit_df['incurred_amount']
+    p24_class_wellness_no_claims = self.mcr_df[__p24wc_claims_col].loc[(self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check', case=False))].groupby(by=__p24wc_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p24_class_wellness_benefit_df['no_of_claims'] = p24_class_wellness_no_claims['no_of_claims']
+    p24_class_wellness_benefit_df['incurred_per_claim'] = p24_class_wellness_benefit_df['incurred_amount'] / p24_class_wellness_benefit_df['no_of_claims']
+    p24_class_wellness_benefit_df['paid_per_claim'] = p24_class_wellness_benefit_df['paid_amount'] / p24_class_wellness_benefit_df['no_of_claims']
+    # p24_dent_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
+    # print(p24_dent_benefit_df)
+    p24_class_wellness_benefit_df = p24_class_wellness_benefit_df.unstack().stack(dropna=False)
+    if len(p24_class_wellness_benefit_df) > 0:
+      p24_class_wellness_benefit_df.sort_values(by=__p24wc_sort_col, ascending=__p24wc_sort_order, inplace=True)
+    self.p24_class_wellness_benefit = p24_class_wellness_benefit_df
+    return p24_class_wellness_benefit_df
 
   def mcr_p25_class_panel_benefit(self, by=None, benefit_type_order=None):
     if by == None:
@@ -1252,6 +1282,7 @@ class RawClaimData():
     self.mcr_p24a_op_class_benefit(by)
     self.mcr_p24_dent_benefit(by)
     self.mcr_p24_wellness_benefit(by)
+    self.mcr_p24_class_wellness_benefit(by)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
     self.mcr_p26_op_panel(by)
     #self.mcr_p27_class_dep_op_benefit(by)
@@ -1275,6 +1306,7 @@ class RawClaimData():
         self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
         self.p24_dent_benefit.to_excel(writer, sheet_name='P.24d_DentalBenefit', index=True, merge_cells=False)
         self.p24_wellness_benefit.to_excel(writer, sheet_name='P.24w_WellnessBenefit', index=True, merge_cells=False)
+        self.p24_class_wellness_benefit.to_excel(writer, sheet_name='P.24wc_Class_WellnessBenefit', index=True, merge_cells=False)
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
         #self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
