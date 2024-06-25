@@ -1462,17 +1462,11 @@ class RawClaimData():
     self.df['year'] = self.df.policy_start_date.dt.year
 
     __temp_df = self.df[['policy_id','class','dep_type','paid_amount']]
-    __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).size().reset_index(name='frequency')
-    __temp_df = pd.merge(__temp_df, __frequency_counts, on=['policy_id', 'dep_type','class'], how='right')
-    __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class','frequency']).agg({'paid_amount': 'sum'}).reset_index()
+    __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).count().rename(columns={'paid_amount': 'no_of_claims'})
+    __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class']).sum(axis=0)
+    __paid_by_dep_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
 
-    
-    #print(df)
-
-    __new_column_names = {'dep_type': 'Dependent Type','class':'Class'}
-    __paid_by_dep_plot_df = __paid_by_dep_plot_df.rename(columns=__new_column_names)
-    __paid_by_dep_plot_df['Class'] = __paid_by_dep_plot_df['Class'].astype(str)
-    fig = px.bar(__paid_by_dep_plot_df, x='Class', y='paid_amount', color='Dependent Type', barmode='group',facet_col='policy_id',hover_data = {'frequency': True})
+    fig = px.bar(__paid_by_dep_plot_df, x='class', y='paid_amount', color='dep_type', barmode='group',facet_col='policy_id',hover_data = {'no_of_claims': True})
 
     fig.update_layout(
       yaxis_title='Paid Amount',
@@ -1485,6 +1479,7 @@ class RawClaimData():
       ),
       legend=dict(
         orientation='h',
+        legend_title_text='Dependent Type',
         #yanchor='bottom',
         #y=1.02
       ),
