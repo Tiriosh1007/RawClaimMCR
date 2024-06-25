@@ -1458,16 +1458,54 @@ class RawClaimData():
     
     return fig
   
-  def paid_amount_by_dep_type_by_policy_year(self):
+
+  def paid_amount_by_dep_type_policy_year(self):
+    self.df['year'] = self.df.policy_start_date.dt.year
+
+    __temp_df = self.df[['policy_id','dep_type','paid_amount']].replace({'CH': 'DEP', 'SP': 'DEP'})
+    __frequency_counts = self.df.groupby(['policy_id', 'dep_type']).count().rename(columns={'paid_amount': 'no_of_claims'})
+    __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type']).sum()
+    __paid_by_dep_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
+    __paid_by_dep_plot_df = __paid_by_dep_plot_df.reset_index()
+    fig = px.bar(__paid_by_dep_plot_df, x='policy_id', y='paid_amount', color='dep_type', barmode='group', hover_data = {'no_of_claims': True})
+
+    fig.update_layout(
+      yaxis_title='Paid Amount',
+      title='Paid Amount by Dependent Type by Policy Year',
+      title_x = 0.5,
+      yaxis=dict(
+        tickmode='linear',
+        tick0=0,
+        dtick=50_000
+      ),
+      xaxis_type='category',
+      # xaxis=dict(
+      #   tickmode='array',
+      #   tickvals = __paid_by_dep_plot_df['class'].drop_duplicates(keep='first').to_list(),
+      # ),
+      legend=dict(
+        orientation='h',
+        
+        #yanchor='bottom',
+        #y=1.02
+      ),
+      legend_title_text='Dependent Type',
+      width=1500,
+      height=600,
+    )
+    # fig.update_xaxes(type='category', categoryorder='category ascending')
+    return fig
+  
+  def paid_amount_by_dep_type_class_policy_year(self):
     self.df['year'] = self.df.policy_start_date.dt.year
 
     __temp_df = self.df[['policy_id','class','dep_type','paid_amount']].replace({'CH': 'DEP', 'SP': 'DEP'})
     __frequency_counts = self.df.groupby(['policy_id', 'dep_type','class']).count().rename(columns={'paid_amount': 'no_of_claims'})
-    __paid_by_dep_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class']).sum()
-    __paid_by_dep_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
-    __paid_by_dep_plot_df = __paid_by_dep_plot_df.reset_index()
-    __paid_by_dep_plot_df['class'] = __paid_by_dep_plot_df['class'].astype(str)
-    fig = px.bar(__paid_by_dep_plot_df, x='class', y='paid_amount', color='dep_type', barmode='group',facet_col='policy_id',hover_data = {'no_of_claims': True})
+    __paid_by_dep_class_plot_df = __temp_df.groupby(['policy_id', 'dep_type' ,'class']).sum()
+    __paid_by_dep_class_plot_df['no_of_claims'] = __frequency_counts['no_of_claims']
+    __paid_by_dep_class_plot_df = __paid_by_dep_class_plot_df.reset_index()
+    __paid_by_dep_class_plot_df['class'] = __paid_by_dep_class_plot_df['class'].astype(str)
+    fig = px.bar(__paid_by_dep_class_plot_df, x='class', y='paid_amount', color='dep_type', barmode='group',facet_col='policy_id',hover_data = {'no_of_claims': True})
 
     fig.update_layout(
       yaxis_title='Paid Amount',
