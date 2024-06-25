@@ -1316,6 +1316,9 @@ class RawClaimData():
     #__freq_df = pd.merge(left=__freq_df, right=__dep, left_index=True, right_index=True, how='left')
     __freq_df = pd.merge(left=__freq_df, right=__dep, left_on='claimant', right_index=True, how='left').drop(columns=['claimant'])
     __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
+
+    __freq_df['GP + SP'] = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)']].sum(axis=1)
+    __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
     self.frequent_analysis = __freq_df
 
     return __freq_df
