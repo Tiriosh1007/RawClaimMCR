@@ -1364,7 +1364,8 @@ class RawClaimData():
     # return self.by_time
 
   def frequent_claimant_analysis(self, sub_policy=None):
-    freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+    freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)']
+    total_visit_col = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
     self.df['year'] = self.df.policy_start_date.dt.year
     self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
     __dep = self.df
@@ -1377,7 +1378,7 @@ class RawClaimData():
     __freq_df = __freq_df.unstack()
     __dep.index = __dep['claimant'].values.tolist()
     __freq_df.columns = __freq_df.columns.droplevel()
-    __freq_df['total_claims'] = __freq_df.sum(axis=1)
+    __freq_df['total_claims'] = __freq_df[total_visit_col].sum(axis=1)
     # __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=False)
     # print(__dep)
     # print(__freq_df)
@@ -1387,6 +1388,7 @@ class RawClaimData():
 
     __freq_df['GP + SP'] = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)']].sum(axis=1)
     __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
+    __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)']]
     self.frequent_analysis = __freq_df
 
     return __freq_df
