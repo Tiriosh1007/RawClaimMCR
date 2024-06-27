@@ -1414,7 +1414,7 @@ class RawClaimData():
         # print(f"\nDescriptive Statistics for {column}:")
         __temp_df = pd.concat([__temp_df, descriptive_stats(__freq_df[column])], axis=1, ignore_index=False)
       __temp_df['year'] = y
-      __temp_df = __temp_df[[y + numeric_columns.tolist()]]
+      __temp_df = __temp_df[[y] + numeric_columns.tolist()]
       __freq_stat_df = pd.concat([__freq_stat_df, __temp_df], axis=0)
           
 
