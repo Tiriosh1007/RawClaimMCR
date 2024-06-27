@@ -1407,7 +1407,7 @@ class RawClaimData():
 
 
     numeric_columns = __freq_df.select_dtypes(include=[np.number]).columns
-    order_cols = [str(y)] + numeric_columns.tolist()
+    order_cols = ['year'] + numeric_columns.tolist()
     __freq_stat_df = pd.DataFrame()
     for y in __freq_df.index.get_level_values(level='year').tolist():
       __temp_df = pd.DataFrame()
