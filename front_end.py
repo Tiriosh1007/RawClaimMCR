@@ -223,12 +223,6 @@ if st.session_state.raw_claim == True:
 
       raw_.bupa_shortfall_supplement(sf_.df)
 
-    
-    __freq = raw_.frequent_claimant_analysis()
-
-
-
-
 
     # Write files to in-memory strings using BytesIO
     # See: https://xlsxwriter.readthedocs.io/workbook.html?highlight=BytesIO#constructor
@@ -249,8 +243,8 @@ if st.session_state.raw_claim == True:
 
     with data_download_col3:  
       st.download_button('Frequent Claimant Analysis', 
-                        data=__freq.to_csv(index=True).encode('utf-8'),
-                        file_name="freq_claimant.csv",
+                        data=raw_.frequent_claimant_analysis(),
+                        file_name="freq_claimant.xlsx",
                         mime="application/vnd.ms-excel")
 
     st.write('---')

@@ -1363,7 +1363,7 @@ class RawClaimData():
       # self.whatever_df.index.strftime('%b')
     # return self.by_time
 
-  def frequent_claimant_analysis(self, sub_policy=None):
+  def frequent_claimant_analysis(self, export=True, sub_policy=None):
     freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)']
     total_visit_col = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
     self.df['year'] = self.df.policy_start_date.dt.year
@@ -1390,6 +1390,37 @@ class RawClaimData():
     __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
     __freq_df = __freq_df[['policy_number', 'year', 'claimant', 'class', 'dep_type', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)']]
     self.frequent_analysis = __freq_df
+
+    def descriptive_stats(data):
+    # Calculate statistics
+      stats = data.describe()
+      # Add median to the statistics
+      stats.loc['median'] = data.median()
+      stats.loc['90%'] = data.quantile(q=0.9)
+      stats.loc['95%'] = data.quantile(q=0.95)
+      # Reorder the statistics
+      stats = stats.reindex(['count', 'mean', 'median', 'std', 'min', '25%', '50%', '75%', '90%', '95%', 'max'])
+      return stats
+
+
+    numeric_columns = __freq_df.select_dtypes(include=[np.number]).columns
+    __freq_stat_df = pd.DataFrame()
+    for column in numeric_columns:
+        # print(f"\nDescriptive Statistics for {column}:")
+        __freq_stat_df = pd.concat([__freq_stat_df, descriptive_stats(__freq_df[column])], axis=1, ignore_index=False)
+
+    self.frequent_analysis_stat = __freq_stat_df
+
+    if export == True:
+      from io import BytesIO
+      output = BytesIO()
+      # mcr_filename = 'mcr.xlsx'
+      freq_claimant_file = output
+      with pd.ExcelWriter(freq_claimant_file) as writer:
+        self.frequent_analysis.to_excel(writer, sheet_name='Claimant Visits', index=True, merge_cells=False)
+        self.frequent_analysis_stat.to_excel(writer, sheet_name='Claimant Statistics', index=True, merge_cells=False)
+        writer.close()
+      return output.getvalue()
 
     return __freq_df
 
