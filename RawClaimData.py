@@ -1399,8 +1399,10 @@ class RawClaimData():
       stats.loc['median'] = data.median()
       stats.loc['90%'] = data.quantile(q=0.9)
       stats.loc['95%'] = data.quantile(q=0.95)
+      stats.loc['97%'] = data.quantile(q=0.97)
+      stats.loc['99%'] = data.quantile(q=0.99)
       # Reorder the statistics
-      stats = stats.reindex(['count', 'mean', 'median', 'std', 'min', '25%', '50%', '75%', '90%', '95%', 'max'])
+      stats = stats.reindex(['count', 'mean', 'median', 'std', 'min', '25%', '50%', '75%', '90%', '95%', '97%', '99%', 'max'])
       return stats
 
 
