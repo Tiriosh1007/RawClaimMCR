@@ -1433,11 +1433,11 @@ class RawClaimData():
     numeric_columns = __freq_df.select_dtypes(include=[np.number]).columns
     order_cols = ['year'] + numeric_columns.tolist()
     __freq_stat_df = pd.DataFrame()
-    for y in __freq_df['year'].unique():
+    for y in __freq_df.index.get_level_values(level='year').unique():
       __temp_df = pd.DataFrame()
       for column in numeric_columns:
         # print(f"\nDescriptive Statistics for {column}:")
-        __temp_df = pd.concat([__temp_df, descriptive_stats(__freq_df[column].loc[__freq_df['year'] == y])], axis=1, ignore_index=False)
+        __temp_df = pd.concat([__temp_df, descriptive_stats(__freq_df[column].loc[__freq_df.index.get_level_values(level='year') == y])], axis=1, ignore_index=False)
       __temp_df['year'] = y
       __temp_df = __temp_df[order_cols]
       __freq_stat_df = pd.concat([__freq_stat_df, __temp_df], axis=0)
