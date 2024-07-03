@@ -1407,7 +1407,7 @@ class RawClaimData():
     __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['class', 'dep_type', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)']]
-    
+    __freq_df = __freq_df.reindex()
     __freq_df_sum = self.df[['policy_number', 'year', 'claimant', 'benefit', 'paid_amount']].dropna()
     __freq_df_sum = __freq_df_sum.loc[__freq_df_sum.benefit.isin(total_visit_col)].groupby(['policy_number', 'year', 'claimant']).sum().reindex().rename(columns={'paid_amount': 'total_paid_excl_DX'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_df_sum, left_on='claimant', right_on='claimant', how='left')
@@ -1432,11 +1432,11 @@ class RawClaimData():
     numeric_columns = __freq_df.select_dtypes(include=[np.number]).columns
     order_cols = ['year'] + numeric_columns.tolist()
     __freq_stat_df = pd.DataFrame()
-    for y in __freq_df.index.get_level_values(level='year').unique():
+    for y in __freq_df['year'].unique():
       __temp_df = pd.DataFrame()
       for column in numeric_columns:
         # print(f"\nDescriptive Statistics for {column}:")
-        __temp_df = pd.concat([__temp_df, descriptive_stats(__freq_df[column].loc[__freq_df.index.get_level_values(level='year') == y])], axis=1, ignore_index=False)
+        __temp_df = pd.concat([__temp_df, descriptive_stats(__freq_df[column].loc[__freq_df['year'] == y])], axis=1, ignore_index=False)
       __temp_df['year'] = y
       __temp_df = __temp_df[order_cols]
       __freq_stat_df = pd.concat([__freq_stat_df, __temp_df], axis=0)
