@@ -1410,7 +1410,7 @@ class RawClaimData():
 
 
     __freq_df = __freq_df.reset_index()
-    __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[__freq_sum_df.benefit.isin(total_visit_col)].groupby(['claimant']).sum()
+    __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum()
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'claimant'])
     
