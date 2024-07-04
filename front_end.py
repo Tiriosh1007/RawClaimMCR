@@ -235,21 +235,21 @@ if st.session_state.raw_claim == True:
     if st.button('MCR and Raw Claim Generate'):
       st.session_state.mcr_data = True
 
-    if st.session_state.mcr_data == True:
+   
 
-      data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1])
+    data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1])
 
-      with data_download_col1:
-        st.download_button('MCR data', 
-                          data=raw_.mcr_pages(export=True, by=by),
-                          file_name="mcr.xlsx",
-                          mime="application/vnd.ms-excel")
-      
-      with data_download_col2:
-        st.download_button('Raw Claim Consolidated', 
-                          data=raw_.export_database(),
-                          file_name="raw_claim_data.csv",
-                          mime="application/vnd.ms-excel")
+    with data_download_col1:
+      st.download_button('MCR data', 
+                        data=raw_.mcr_pages(export=True, by=by),
+                        file_name="mcr.xlsx",
+                        mime="application/vnd.ms-excel")
+    
+    with data_download_col2:
+      st.download_button('Raw Claim Consolidated', 
+                        data=raw_.export_database(),
+                        file_name="raw_claim_data.csv",
+                        mime="application/vnd.ms-excel")
 
     # with data_download_col3:  
     #   st.download_button('Frequent Claimant Analysis', 
