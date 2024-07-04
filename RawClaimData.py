@@ -1470,10 +1470,11 @@ class RawClaimData():
     __fair_ibnr_df = self.df.copy(deep=True)
     __fair_ibnr_df['ibnr_date'] = __fair_ibnr_df['policy_start_date'] + pd.DateOffset(months=months)
     __fair_ibnr_df['ibnr_paid'] = 0
-    __fair_ibnr_df['ibnr_paid'].loc[__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date']] = __fair_ibnr_df['paid_amount'].loc[__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date']]
-    fair_ibnr = __fair_ibnr_df[['policy_number', 'year', 'paid_amount', 'ibnr_paid']].groupby(by=['policy_number', 'year']).sum()
-    fair_ibnr['ibnr_paid'] = fair_ibnr['paid_amount'] - fair_ibnr['ibnr_paid']
-    fair_ibnr['ibnr_rate'] = fair_ibnr['ibnr_paid'] / fair_ibnr['paid_amount']
+    __fair_ibnr_df['ibnr_paid'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])] = __fair_ibnr_df['paid_amount'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])]
+    __fair_ibnr_df['reported_paid'] = 0
+    __fair_ibnr_df['reported_paid'].loc[(__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date'])] = __fair_ibnr_df['paid_amount'].loc[(__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date'])]
+    fair_ibnr = __fair_ibnr_df[['policy_number', 'year', 'reported_paid', 'ibnr_paid']].groupby(by=['policy_number', 'year']).sum()
+    fair_ibnr['ibnr_rate'] = fair_ibnr['ibnr_paid'] / fair_ibnr['reported_paid']
     self.fair_ibnr = fair_ibnr
     return fair_ibnr
 
