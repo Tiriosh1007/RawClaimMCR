@@ -1466,6 +1466,17 @@ class RawClaimData():
 
     return __freq_df
 
+  def fair_ibnr_estimation(self, months=9):
+    __fair_ibnr_df = self.df.copy(deep=True)
+    __fair_ibnr_df['ibnr_date'] = __fair_ibnr_df['policy_start_date'] + pd.DateOffset(months=months)
+    __fair_ibnr_df['ibnr_paid'] = 0
+    __fair_ibnr_df['ibnr_paid'].loc[__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date']] = __fair_ibnr_df['paid_amount'].loc[__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date']]
+    fair_ibnr = __fair_ibnr_df[['policy_number', 'year', 'paid_amount', 'ibnr_paid']].groupby(by=['policy_number', 'year']).sum()
+    fair_ibnr['ibnr_paid'] = fair_ibnr['paid_amount'] - fair_ibnr['ibnr_paid']
+    fair_ibnr['ibnr_rate'] = fair_ibnr['ibnr_paid'] / fair_ibnr['paid_amount']
+    self.fair_ibnr = fair_ibnr
+    return fair_ibnr
+
   def make_autopct(values):
     def my_autopct(pct):
         total = np.sum(values)

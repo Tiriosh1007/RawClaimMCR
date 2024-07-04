@@ -248,6 +248,15 @@ if st.session_state.raw_claim == True:
                         mime="application/vnd.ms-excel")
 
     st.write('---')
+    st.header('Fair IBNR based on historical')
+    st.write("""
+            ## Please make sure that the raw claim data provides the claim submission date!
+             """)
+    ibnr_month = st.slider("Month for IBNR estimation:",
+                           1, 12, 9)
+    st.dataframe(data = raw_.fair_ibnr_estimation(months=ibnr_month))
+
+    st.write('---')
     st.header('Outpatient Benefit Charts')
 
     chart_col1, chart_col2, chart_col3 = st.columns([1,1, 1]) 
