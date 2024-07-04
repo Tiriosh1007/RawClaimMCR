@@ -248,9 +248,9 @@ if st.session_state.raw_claim == True:
                         mime="application/vnd.ms-excel")
 
     st.write('---')
-    st.header('Fair IBNR based on historical')
+    st.header('Fair IBNR estimation based on historical data')
     st.write("""
-            ## Please make sure that the raw claim data provides the claim submission date!
+            ### Please make sure that the raw claim data provides the claim submission date!
              """)
     ibnr_month = st.slider("Month for IBNR estimation:",
                            1, 12, 9)

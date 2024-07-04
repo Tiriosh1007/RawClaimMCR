@@ -1473,8 +1473,17 @@ class RawClaimData():
     __fair_ibnr_df['ibnr_paid'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])] = __fair_ibnr_df['paid_amount'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])]
     __fair_ibnr_df['reported_paid'] = 0
     __fair_ibnr_df['reported_paid'].loc[(__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date'])] = __fair_ibnr_df['paid_amount'].loc[(__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['submission_date'])]
-    fair_ibnr = __fair_ibnr_df[['policy_number', 'year', 'reported_paid', 'ibnr_paid']].groupby(by=['policy_number', 'year']).sum()
+    __fair_ibnr_df['hospital_ibnr_paid'], __fair_ibnr_df['hospital_reported_paid'], __fair_ibnr_df['clinic_ibnr_paid'], __fair_ibnr_df['clinic_reported_paid'] = 0, 0, 0, 0
+    __fair_ibnr_df['hospital_ibnr_paid'].loc[__fair_ibnr_df.benefit_type == 'Hospital'] = __fair_ibnr_df['ibnr_paid'].loc[__fair_ibnr_df.benefit_type == 'Hospital']
+    __fair_ibnr_df['hospital_reported_paid'].loc[__fair_ibnr_df.benefit_type == 'Hospital'] = __fair_ibnr_df['reported_paid'].loc[__fair_ibnr_df.benefit_type == 'Hospital']
+    __fair_ibnr_df['clinic_ibnr_paid'].loc[__fair_ibnr_df.benefit_type == 'Clinic'] = __fair_ibnr_df['ibnr_paid'].loc[__fair_ibnr_df.benefit_type == 'Clinic']
+    __fair_ibnr_df['clinic_reported_paid'].loc[__fair_ibnr_df.benefit_type == 'Clinic'] = __fair_ibnr_df['reported_paid'].loc[__fair_ibnr_df.benefit_type == 'Clinic']
+    
+    fair_ibnr = __fair_ibnr_df[['policy_number', 'year', 'reported_paid', 'ibnr_paid', 'hospital_reported_paid', 'hospital_ibnr_paid', 'clinic_reported_paid', 'clinic_ibnr_paid']].groupby(by=['policy_number', 'year']).sum()
     fair_ibnr['ibnr_rate'] = fair_ibnr['ibnr_paid'] / fair_ibnr['reported_paid']
+    fair_ibnr['hospital_ibnr_rate'] = fair_ibnr['hospital_ibnr_paid'] / fair_ibnr['hospital_reported_paid']
+    fair_ibnr['clinic_ibnr_rate'] = fair_ibnr['clinic_ibnr_paid'] / fair_ibnr['clinic_reported_paid']
+    fair_ibnr = fair_ibnr[['reported_paid', 'ibnr_paid', 'ibnr_rate', 'hospital_reported_paid', 'hospital_ibnr_paid', 'hospital_ibnr_rate', 'clinic_reported_paid', 'clinic_ibnr_paid', 'clinic_ibnr_rate']]
     self.fair_ibnr = fair_ibnr
     return fair_ibnr
 
