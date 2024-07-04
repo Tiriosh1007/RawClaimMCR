@@ -39,6 +39,8 @@ with function_col1:
     st.session_state.dep_type_paid = False
     st.session_state.dep_type_paid_class = False
     st.session_state.pygwalker = False
+    st.session_state.mcr_data = False
+    st.session_state.frequent_claimant = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -227,25 +229,46 @@ if st.session_state.raw_claim == True:
     # Write files to in-memory strings using BytesIO
     # See: https://xlsxwriter.readthedocs.io/workbook.html?highlight=BytesIO#constructor
 
-    data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1]) 
+    if 'mcr_data' not in st.session_state:
+      st.session_state.mcr_data = False
 
-    with data_download_col1:
-      st.download_button('MCR data', 
-                        data=raw_.mcr_pages(export=True, by=by),
-                        file_name="mcr.xlsx",
-                        mime="application/vnd.ms-excel")
-    
-    with data_download_col2:
-      st.download_button('Raw Claim Consolidated', 
-                        data=raw_.export_database(),
-                        file_name="raw_claim_data.csv",
-                        mime="application/vnd.ms-excel")
+    if st.button('MCR and Raw Claim Generate'):
+      st.session_state.mcr_data = True
 
-    with data_download_col3:  
+    if st.session_state.mcr_data == True:
+
+      data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1])
+
+      with data_download_col1:
+        st.download_button('MCR data', 
+                          data=raw_.mcr_pages(export=True, by=by),
+                          file_name="mcr.xlsx",
+                          mime="application/vnd.ms-excel")
+      
+      with data_download_col2:
+        st.download_button('Raw Claim Consolidated', 
+                          data=raw_.export_database(),
+                          file_name="raw_claim_data.csv",
+                          mime="application/vnd.ms-excel")
+
+    # with data_download_col3:  
+    #   st.download_button('Frequent Claimant Analysis', 
+    #                     data=raw_.frequent_claimant_analysis(),
+    #                     file_name="freq_claimant.xlsx",
+    #                     mime="application/vnd.ms-excel")
+    st.write('---')
+    st.header('Frequent Claimant Analysis')
+    if 'frequent_claimant' not in st.session_state:
+      st.session_state.frequent_claimant = False
+
+    if st.button('Frequent Claimant Analysis'):
+      st.session_state.frequent_claimant = True
+
+    if st.session_state.frequent_claimant == True:
       st.download_button('Frequent Claimant Analysis', 
-                        data=raw_.frequent_claimant_analysis(),
-                        file_name="freq_claimant.xlsx",
-                        mime="application/vnd.ms-excel")
+                          data=raw_.frequent_claimant_analysis(),
+                          file_name="freq_claimant.xlsx",
+                          mime="application/vnd.ms-excel")
 
     st.write('---')
     st.header('Fair IBNR estimation based on historical data')
