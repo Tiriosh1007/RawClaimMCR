@@ -1468,7 +1468,7 @@ class RawClaimData():
 
   def fair_ibnr_estimation(self, months=9):
     __fair_ibnr_df = self.df.copy(deep=True)
-    __fair_ibnr_df['year']  = __fair_ibnr_df['polic_start_date'].dt.year
+    __fair_ibnr_df['year']  = __fair_ibnr_df['policy_start_date'].dt.year
     __fair_ibnr_df['ibnr_date'] = __fair_ibnr_df['policy_start_date'] + pd.DateOffset(months=months)
     __fair_ibnr_df['ibnr_paid'] = 0
     __fair_ibnr_df['ibnr_paid'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])] = __fair_ibnr_df['paid_amount'].loc[(__fair_ibnr_df['ibnr_date'] <= __fair_ibnr_df['submission_date']) & (__fair_ibnr_df['ibnr_date'] > __fair_ibnr_df['incur_date'])]
