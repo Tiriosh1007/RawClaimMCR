@@ -781,7 +781,10 @@ class RawClaimData():
 
     for col in date_cols:
       if len(t_df[col].unique()) > 1:
-        t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='%m/%d/%y')
+        try:
+          t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='%m/%d/%y')
+        except:
+          t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='%Y-%m-%d')
 
     return t_df
 
