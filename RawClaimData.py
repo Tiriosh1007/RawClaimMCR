@@ -781,7 +781,7 @@ class RawClaimData():
 
     for col in date_cols:
       if len(t_df[col].unique()) > 1:
-        t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='ISO8601')
+        t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())])
 
     return t_df
 
