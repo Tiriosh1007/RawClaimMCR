@@ -42,5 +42,5 @@ class ColNameMgnt():
 
     def remove_col_mapper(self, df_to_remove):
         self.col_df = self.col_df[~self.col_df.isin(df_to_remove)]
-        self.col_df.to_csv('col_mapper.csv', index=True)
+        self.col_df.to_csv('./col_mapper.csv', index=False)
         return
