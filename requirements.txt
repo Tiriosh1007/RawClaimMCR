@@ -6,5 +6,7 @@ matplotlib
 plotly
 seaborn
 streamlit-aggrid
+st-gsheets-connection
 openpyxl
 pygwalker
+GitPython

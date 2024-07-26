@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import streamlit as st
+import git
+from streamlit_gsheets import GSheetsConnection
 warnings.filterwarnings('ignore')
 
 class ColNameMgnt():
@@ -19,7 +22,15 @@ class ColNameMgnt():
             'col_name': str,
             'data_type': str,
         }
-        self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
+        self.conn = st.connection("gsheets", type=GSheetsConnection)
+        self.col_df = self.conn.read(
+            worksheet='Sheet1',
+            ttl="10m",
+            usescols=[0, 1, 2, 3],
+            dtype=self.col_dtype
+        )
+
+        # self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
 
     def update_col_mapper(self, updated_df):
         temp = pd.concat(self.col_df, updated_df, axis=0, ignore_index=False)
@@ -41,6 +52,6 @@ class ColNameMgnt():
         return
 
     def remove_col_mapper(self, df_to_remove):
-        self.col_df = self.col_df[~self.col_df.isin(df_to_remove)]
-        self.col_df.to_csv('./col_mapper.csv', index=False)
+        self.col_df = self.col_df[~self.col_df.isin(df_to_remove)].dropna()
+        self.col_df.to_csv('col_mapper.csv', index=False)
         return
