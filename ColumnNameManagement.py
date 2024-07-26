@@ -29,7 +29,8 @@ class ColNameMgnt():
         # )
 
         # self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
-        self.col_df = pd.read_html("https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=drive_link", encoding='utf-8')[0]
+        self.col_df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQmJ6yKFYMK1D0mKKwu9VLCh3JQoTiIsBmjb7dIPnSbWyt5_ZdciOnDMkQXefnU8jvUQ27u-nVTFQUZ/pub?output=csv")
+        # self.col_df = pd.read_html("https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=drive_link", encoding='utf-8')[0]
 
     def update_col_mapper(self, updated_df):
         temp = pd.concat(self.col_df, updated_df, axis=0, ignore_index=False)
