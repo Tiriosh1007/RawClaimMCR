@@ -476,7 +476,8 @@ if st.session_state.col_management == True:
     for_display = for_display[col_manage.col_df['col_name'] == col_filter]
   st.dataframe(for_display)
   st.write("---")
-  st.write('#### Add Column Name')
+  st.write("Update Column Name: [link](https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=sharing)")
+  """st.write('#### Add Column Name')
   df_to_add = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])
   add_col_name_col1, add_col_name_col2, add_col_name_col3, add_col_name_col4 = st.columns([1,1,1,1])
   with add_col_name_col1:
@@ -544,5 +545,5 @@ if st.session_state.col_management == True:
     col_manage.add_col_mapper(df_to_add)
     col_manage.remove_col_mapper(df_to_remove)
     st.write('Column Name Updated!')
-    st.session_state.col_management = False
+    st.session_state.col_management = False"""
   
