@@ -477,7 +477,7 @@ if st.session_state.col_management == True:
   st.dataframe(for_display)
   st.write("---")
   st.write("Update Column Name: [link](https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=sharing)")
-  """st.write('#### Add Column Name')
+  if False:"""st.write('#### Add Column Name')
   df_to_add = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])
   add_col_name_col1, add_col_name_col2, add_col_name_col3, add_col_name_col4 = st.columns([1,1,1,1])
   with add_col_name_col1:
