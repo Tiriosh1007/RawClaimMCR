@@ -23,14 +23,14 @@ class ColNameMgnt():
             'data_type': str,
         }
         self.conn = st.connection("gsheets", type=GSheetsConnection)
-        self.col_df = self.conn.read(
-            worksheet='Sheet1',
-            ttl="10m",
-            usescols=[0, 1, 2, 3],
-            dtype=self.col_dtype
-        )
+        # self.col_df = self.conn.read(
+        #     worksheet='Sheet1',
+        #     ttl="10m",
+        #     usescols=[0, 1, 2, 3],
+        #     dtype=self.col_dtype
+        # )
 
-        # self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
+        self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
 
     def update_col_mapper(self, updated_df):
         temp = pd.concat(self.col_df, updated_df, axis=0, ignore_index=False)
