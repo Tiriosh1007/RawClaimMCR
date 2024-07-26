@@ -13,6 +13,7 @@ plt.rcParams["axes.formatter.limits"] = (-99, 99)
 
 from RawClaimData import *
 from Shortfall import *
+from ColumnNameManagement import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -57,7 +58,7 @@ with function_col3:
     st.session_state.shortfall = True
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
-    st.sessiom_state.col_management = False
+    st.session_state.col_management = False
 
 with function_col4:
   if st.button('Column Management'):
@@ -440,7 +441,7 @@ if st.session_state.shortfall == True:
     
 
 if st.session_state.col_management == True:
-  from ColumnNameManagement import *
+  
   st.write("""
   # Gain Miles Assurance Consultancy Ltd
 

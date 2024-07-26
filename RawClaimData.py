@@ -15,6 +15,8 @@ warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
 
+from ColumnNameManagement import *
+
 class RawClaimData():
 
   def __init__(self, benefit_index_path):
@@ -58,7 +60,8 @@ class RawClaimData():
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
 
 
-  def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
+
+  def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
 
     axa_df = pd.DataFrame(columns=self.col_setup)
 
@@ -374,103 +377,100 @@ class RawClaimData():
     # self.df = pd.concat([self.df, t_df], axis=0)
     return t_df
 
-  def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
+  def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      bupa_rename_col = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          # 'policy_number', # Contract NUmber A1
+          # 'insurer', # Bupa
+          # 'client_name', # Customer Name A2
+          # 'policy_start_date', # Period Cell A3
+          # 'policy_end_date',
+          'Voucher number': 'claim_id',
+          'Voucher Number': 'claim_id',
+          'Incur Date': 'incur_date',
+          'Incurred From Date': 'incur_date',
+          # 'discharge_date', convert from days cover
+          'Receipt date': 'submission_date',
+          'Pay date': 'pay_date',
+          'Pay Date': 'pay_date',
+          'Status Code': 'claim_status',
+          'Reject Code Description': 'claim_remark',
+          # 'cert_true_copy',
+          'Claimant': 'claimant',
+          'Sex': 'gender',
+          'Age': 'age',
+          'Member type': 'dep_type',
+          'Member Type': 'dep_type',
+          'Class': 'class',
+          'Class ID': 'class',
+          'Member Status': 'member_status',
+          'Benefit Type': 'benefit_type',
+          'Benefit': 'benefit',
+          'Benefit Code Description': 'benefit',
+          'Diagnosis description': 'diagnosis',
+          'Diagnosis': 'diagnosis',
+          'Chronic flag': 'chronic',
+          'Diagnosis Chronic Flag': 'cheonic',
+          # 'currency',
+          'Presented': 'incurred_amount',
+          'Adjusted': 'paid_amount',
+          'Network Category': 'panel',
+          'Network': 'panel',
+          # 'suboffice', # deduced from contract number columns last 2 digits
+          # 'region',
 
-    bupa_rename_col = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        # 'policy_number', # Contract NUmber A1
-        # 'insurer', # Bupa
-        # 'client_name', # Customer Name A2
-        # 'policy_start_date', # Period Cell A3
-        # 'policy_end_date',
-        'Voucher number': 'claim_id',
-        'Voucher Number': 'claim_id',
-        'Incur Date': 'incur_date',
-        'Incurred From Date': 'incur_date',
-        # 'discharge_date', convert from days cover
-        'Receipt date': 'submission_date',
-        'Pay date': 'pay_date',
-        'Pay Date': 'pay_date',
-        'Status Code': 'claim_status',
-        'Reject Code Description': 'claim_remark',
-        # 'cert_true_copy',
-        'Claimant': 'claimant',
-        'Sex': 'gender',
-        'Age': 'age',
-        'Member type': 'dep_type',
-        'Member Type': 'dep_type',
-        'Class': 'class',
-        'Class ID': 'class',
-        'Member Status': 'member_status',
-        'Benefit Type': 'benefit_type',
-        'Benefit': 'benefit',
-        'Benefit Code Description': 'benefit',
-        'Diagnosis description': 'diagnosis',
-        'Diagnosis': 'diagnosis',
-        'Chronic flag': 'chronic',
-        'Diagnosis Chronic Flag': 'cheonic',
-        # 'currency',
-        'Presented': 'incurred_amount',
-        'Adjusted': 'paid_amount',
-        'Network Category': 'panel',
-        'Network': 'panel',
-        # 'suboffice', # deduced from contract number columns last 2 digits
-        # 'region',
+          'Days Cover': 'days_cover',
+          'Contract Number': 'contract_number',
+      }
+      dtype_bupa = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          # 'policy_number', # Contract NUmber A1
+          # 'insurer', # Bupa
+          # 'client_name', # Customer Name A2
+          # 'policy_start_date', # Period Cell A3
+          # 'policy_end_date',
+          'Voucher number': str,
+          'Voucher Number': str,
+          'Incur Date': str,
+          'Incurred From Date': str,
+          # 'discharge_date', convert from days cover
+          'Receipt date': str,
+          'Pay date': str,
+          'Pay Date': str,
+          'Status Code': str,
+          # 'claim_status',
+          # 'claim_remark',
+          'Reject Code Description': str,
+          # 'cert_true_copy',
+          'Claimant': str,
+          'Sex': str,
+          'Age': int,
+          'Member type': str,
+          'Member Type': str,
+          'Class': str,
+          'Class ID': str,
+          'Member Status': str,
+          'Benefit Type': str,
+          'Benefit': str,
+          'Benefit Code Description': str,
+          'Diagnosis description': str,
+          'Diagnosis': str,
+          'Chronic flag': str,
+          'Diagnosis Chronic Flag': str,
+          # 'currency',
+          'Presented': float,
+          'Adjusted': float,
+          'Network Category': str,
+          'Network': str,
+          # 'suboffice', # deduced from contract number columns last 2 digits
+          # 'region',
 
-        'Days Cover': 'days_cover',
-        'Contract Number': 'contract_number',
-    }
+          'Days Cover': int,
+          'Contract Number': str,
+      }
 
     date_cols = ['incur_date', 'submission_date', 'pay_date']
-
-    dtype_bupa = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        # 'policy_number', # Contract NUmber A1
-        # 'insurer', # Bupa
-        # 'client_name', # Customer Name A2
-        # 'policy_start_date', # Period Cell A3
-        # 'policy_end_date',
-        'Voucher number': str,
-        'Voucher Number': str,
-        'Incur Date': str,
-        'Incurred From Date': str,
-        # 'discharge_date', convert from days cover
-        'Receipt date': str,
-        'Pay date': str,
-        'Pay Date': str,
-        'Status Code': str,
-        # 'claim_status',
-        # 'claim_remark',
-        'Reject Code Description': str,
-        # 'cert_true_copy',
-        'Claimant': str,
-        'Sex': str,
-        'Age': int,
-        'Member type': str,
-        'Member Type': str,
-        'Class': str,
-        'Class ID': str,
-        'Member Status': str,
-        'Benefit Type': str,
-        'Benefit': str,
-        'Benefit Code Description': str,
-        'Diagnosis description': str,
-        'Diagnosis': str,
-        'Chronic flag': str,
-        'Diagnosis Chronic Flag': str,
-        # 'currency',
-        'Presented': float,
-        'Adjusted': float,
-        'Network Category': str,
-        'Network': str,
-        # 'suboffice', # deduced from contract number columns last 2 digits
-        # 'region',
-
-        'Days Cover': int,
-        'Contract Number': str,
-    }
-
-
     df_ = pd.read_excel(raw_claim_path, sheet_name='Details')
     client_ = df_.columns[0].split('   ')[-1]
     policy_no_ = str(df_.iloc[0, 0].split('   ')[-1])
@@ -533,118 +533,118 @@ class RawClaimData():
 
     return df_
 
-  def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
+  def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_aia = {
+          # 'policy_id',
+          'Policy No': str,
+          'Policy': str,
+          # 'insurer',
+          'client_name': str,
+          'Plan Start Date': str,
+          'Plan End Date': str,
+          'Claim ID': str,
+          'ClaimNo.': str,
+          'Claim No.': str,
+          'Admission Date': str,
+          'Incurred Date': str,
+          'Date From': str,
+          'Discharge date': str,
+          'File Date': str,
+          'Received Date': str,
+          'Date Notified': str,
+          'Claim Payment Date': str,
+          'Process Date': str,
+          # 'claim_status',
+          'Remark1': str,
+          # 'cert_true_copy',
+          'Member ID': str,
+          'Claimant No.': str,
+          'Claimant Name': str,
+          'Gender': str,
+          'Sex': str, # M/F
+          'Age': str,
+          'Relationships': str, # MEMBER/ SPOUSE/ CHILD
+          'Dep Type': str, # M/ S/ C
+          'Plan': str,
+          'BenPlan': str,
+          # 'member_status',
+          'Claim Type': str,
+          'Product Name': str,
+          'Claim Type 2': str,
+          'Ben Desc': str,
+          'Diagnosis': str,
+          # 'chronic',
+          'Billed Currency': str,
+          'Currency Symbol': str,
+          'Submitted Claim Amount': float,
+          'Presented Amount': float,
+          'Amount Billed': float,
+          'Paid Claim': float,
+          'Reimbursed Amount': float,
+          'Amount Paid': float,
+          'Provider Type': str,
+          'Network/Non-network': str,
+          'SubOffice': str,
+          # 'Entity': str,
+          # 'region',
+      }
+      aia_rename_col = {
+          # 'policy_id',
+          'Policy No': 'policy_number',
+          'Policy': 'policy_number',
+          # 'insurer',
+          'client_name': 'Client Name',
+          'Plan Start Date': 'policy_start_date',
+          'Plan End Date': 'policy_end_date',
+          'Claim ID': 'claim_id',
+          'ClaimNo.': 'claim_id',
+          'Claim No.': 'claim_id',
+          'Admission Date': 'incur_date',
+          'Incurred Date': 'incur_date',
+          'Date From': 'incur_date',
+          # 'Discharge date': 'discharge_date',
+          # 'File Date': 'submission_date',
+          'Received Date': 'submission_date',
+          'Date Notified': 'submission_date',
+          'Claim Payment Date': 'pay_date',
+          'Process Date': 'pay_date',
+          'Date Paid': 'pay_date',
+          # 'claim_status',
+          'Remark1': 'claim_remark',
+          # 'cert_true_copy',
+          'Member ID': 'claimant',
+          'Claimant No.': 'claimant',
+          'Claimant Name': 'claimant',
+          'Gender': 'gender',
+          'Sex': 'gender', # M/F
+          'Age': 'age',
+          'Relationships': 'dep_type', # MEMBER/ SPOUSE/ CHILD
+          'Dep Type': 'dep_type', # M/ S/ C
+          'Plan': 'class',
+          'BenPlan': 'class',
+          # 'member_status',
+          'Claim Type': 'benefit_type',
+          'Product Name': 'benefit_type',
+          'Claim Type 2': 'benefit',
+          'Ben Desc': 'benefit',
+          'Diagnosis': 'diagnosis',
+          # 'chronic',
+          'Billed Currency': 'currency',
+          'Currency Symbol': 'currency', 
+          'Submitted Claim Amount': 'incurred_amount',
+          'Presented Amount': 'incurred_amount',
+          'Amount Billed': 'incurred_amount',
+          'Paid Claim': 'paid_amount',
+          'Reimbursed Amount': 'paid_amount',
+          'Amount Paid': 'paid_amount',
+          'Provider Type': 'panel',
+          'Network/Non-network': 'panel',
+          'SubOffice': 'suboffice',
+          # 'Entity': 'suboffice',
+          # 'region',
+      }
 
-    dtype_aia = {
-        # 'policy_id',
-        'Policy No': str,
-        'Policy': str,
-        # 'insurer',
-        'client_name': str,
-        'Plan Start Date': str,
-        'Plan End Date': str,
-        'Claim ID': str,
-        'ClaimNo.': str,
-        'Claim No.': str,
-        'Admission Date': str,
-        'Incurred Date': str,
-        'Date From': str,
-        'Discharge date': str,
-        'File Date': str,
-        'Received Date': str,
-        'Date Notified': str,
-        'Claim Payment Date': str,
-        'Process Date': str,
-        # 'claim_status',
-        'Remark1': str,
-        # 'cert_true_copy',
-        'Member ID': str,
-        'Claimant No.': str,
-        'Claimant Name': str,
-        'Gender': str,
-        'Sex': str, # M/F
-        'Age': str,
-        'Relationships': str, # MEMBER/ SPOUSE/ CHILD
-        'Dep Type': str, # M/ S/ C
-        'Plan': str,
-        'BenPlan': str,
-        # 'member_status',
-        'Claim Type': str,
-        'Product Name': str,
-        'Claim Type 2': str,
-        'Ben Desc': str,
-        'Diagnosis': str,
-        # 'chronic',
-        'Billed Currency': str,
-        'Currency Symbol': str,
-        'Submitted Claim Amount': float,
-        'Presented Amount': float,
-        'Amount Billed': float,
-        'Paid Claim': float,
-        'Reimbursed Amount': float,
-        'Amount Paid': float,
-        'Provider Type': str,
-        'Network/Non-network': str,
-        'SubOffice': str,
-        # 'Entity': str,
-        # 'region',
-    }
-
-    aia_rename_col = {
-        # 'policy_id',
-        'Policy No': 'policy_number',
-        'Policy': 'policy_number',
-        # 'insurer',
-        'client_name': 'Client Name',
-        'Plan Start Date': 'policy_start_date',
-        'Plan End Date': 'policy_end_date',
-        'Claim ID': 'claim_id',
-        'ClaimNo.': 'claim_id',
-        'Claim No.': 'claim_id',
-        'Admission Date': 'incur_date',
-        'Incurred Date': 'incur_date',
-        'Date From': 'incur_date',
-        # 'Discharge date': 'discharge_date',
-        # 'File Date': 'submission_date',
-        'Received Date': 'submission_date',
-        'Date Notified': 'submission_date',
-        'Claim Payment Date': 'pay_date',
-        'Process Date': 'pay_date',
-        'Date Paid': 'pay_date',
-        # 'claim_status',
-        'Remark1': 'claim_remark',
-        # 'cert_true_copy',
-        'Member ID': 'claimant',
-        'Claimant No.': 'claimant',
-        'Claimant Name': 'claimant',
-        'Gender': 'gender',
-        'Sex': 'gender', # M/F
-        'Age': 'age',
-        'Relationships': 'dep_type', # MEMBER/ SPOUSE/ CHILD
-        'Dep Type': 'dep_type', # M/ S/ C
-        'Plan': 'class',
-        'BenPlan': 'class',
-        # 'member_status',
-        'Claim Type': 'benefit_type',
-        'Product Name': 'benefit_type',
-        'Claim Type 2': 'benefit',
-        'Ben Desc': 'benefit',
-        'Diagnosis': 'diagnosis',
-        # 'chronic',
-        'Billed Currency': 'currency',
-        'Currency Symbol': 'currency', 
-        'Submitted Claim Amount': 'incurred_amount',
-        'Presented Amount': 'incurred_amount',
-        'Amount Billed': 'incurred_amount',
-        'Paid Claim': 'paid_amount',
-        'Reimbursed Amount': 'paid_amount',
-        'Amount Paid': 'paid_amount',
-        'Provider Type': 'panel',
-        'Network/Non-network': 'panel',
-        'SubOffice': 'suboffice',
-        # 'Entity': 'suboffice',
-        # 'region',
-    }
 
     date_cols = ['policy_start_date', 'policy_end_date', 'incur_date', 'discharge_date', 'submission_date', 'pay_date']
 
@@ -789,14 +789,14 @@ class RawClaimData():
     return t_df
 
 
-  def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK'):
+  def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
 
     if insurer == 'AXA':
-      temp_df = self.__axa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
+      temp_df = self.__axa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'AIA':
-      temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
+      temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'Bupa':
-      temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
+      temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
