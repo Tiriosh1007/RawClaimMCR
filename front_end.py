@@ -444,7 +444,6 @@ if st.session_state.col_management == True:
   st.write("""
   # Gain Miles Assurance Consultancy Ltd
 
-  ### Column Management Tool
   """)
   st.write("---")
 
@@ -478,6 +477,7 @@ if st.session_state.col_management == True:
   st.dataframe(for_display)
   st.write("---")
   st.write('#### Add Column Name')
+  df_to_add = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])
   add_col_name_col1, add_col_name_col2, add_col_name_col3, add_col_name_col4 = st.columns([1,1,1,1])
   with add_col_name_col1:
     add_insurer = st.selectbox(
@@ -503,12 +503,12 @@ if st.session_state.col_management == True:
       placeholder="Data Type",
     )
   if st.button('Add Column Name'):
-    new_col = pd.DataFrame({'insurer': [add_insurer], 'ins_col_name': [add_ins_col_name], 'col_name': [add_our_col_name], 'data_type': [add_col_data_type]})
-    for_display = pd.concat([for_display, new_col], axis=0, ignore_index=True)
+    df_to_add = pd.concat([df_to_add, pd.DataFrame([[add_insurer, add_ins_col_name, add_our_col_name, add_col_data_type]], columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])])
   
   st.write('---')
   st.write('#### Remove Column Name')
   remove_col_name_col1, remove_col_name_col2, remove_col_name_col3 = st.columns([1,1,1])
+  df_to_remove = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name'])
   with remove_col_name_col1:
     remove_insurer = st.selectbox(
       "Remove Insurer",
@@ -532,11 +532,12 @@ if st.session_state.col_management == True:
       placeholder="Insurer Column Name",
     )
   if st.button('Remove Column Name'):
-    for_display = for_display.loc[~((for_display['insurer'] == remove_insurer) & (for_display['col_name'] == remove_col_name) & (for_display['ins_col_name'] == remove_ins_col))]
+    df_to_remove = pd.concat([df_to_remove, pd.DataFrame([[remove_insurer, remove_ins_col, remove_col_name]], columns=['insurer', 'ins_col_name', 'col_name'])])
   
   st.write('---')
   if st.button('Confirm Update Column Name'):
-    col_manage.import_col_mapper(for_display)
+    col_manage.add_col_mapper(df_to_add)
+    col_manage.remove_col_mapper(df_to_remove)
     st.write('Column Name Updated!')
     st.session_state.col_management = False
   

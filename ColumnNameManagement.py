@@ -26,10 +26,21 @@ class ColNameMgnt():
         temp = temp.reset_index().drop(columns=['index'])
         temp.drop_duplicates(subset=['insurer', 'ins_col_name', 'col_name', 'data_type'], inplace=True)
         self.col_df = temp
-        self.col_df.to_csv('col_mapper.csv')
+        self.col_df.to_csv('col_mapper.csv', index=False)
         return
 
     def import_col_mapper(self, new_mapper):
         self.col_df = new_mapper
-        self.col_df.to_csv('col_mapper.csv')
+        self.col_df.to_csv('col_mapper.csv', index=False)
+        return
+
+    def add_col_mapper(self, df_to_add):
+        self.col_df = pd.concat(self.col_df, df_to_add, axis=0, ignore_index=False)
+        self.col_df.drop_duplicates(subset=['insurer', 'ins_col_name', 'col_name', 'data_type'], inplace=True)
+        self.col_df.to_csv('col_mapper.csv', index=False)
+        return
+
+    def remove_col_mapper(self, df_to_remove):
+        self.col_df = self.col_df[~self.col_df.isin(df_to_remove)]
+        self.col_df.to_csv('col_mapper.csv', index=False)
         return
