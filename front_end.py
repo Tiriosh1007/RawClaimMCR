@@ -504,7 +504,9 @@ if st.session_state.col_management == True:
     )
   if st.button('Add Column Name'):
     df_to_add = pd.concat([df_to_add, pd.DataFrame([[add_insurer, add_ins_col_name, add_our_col_name, add_col_data_type]], columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])])
-  
+  if len(df_to_add) > 0:
+    st.dataframe(df_to_add)
+
   st.write('---')
   st.write('#### Remove Column Name')
   remove_col_name_col1, remove_col_name_col2, remove_col_name_col3 = st.columns([1,1,1])
@@ -533,7 +535,10 @@ if st.session_state.col_management == True:
     )
   if st.button('Remove Column Name'):
     df_to_remove = pd.concat([df_to_remove, pd.DataFrame([[remove_insurer, remove_ins_col, remove_col_name]], columns=['insurer', 'ins_col_name', 'col_name'])])
-  
+  if len(df_to_remove) > 0:
+    st.dataframe(df_to_remove)
+
+
   st.write('---')
   if st.button('Confirm Update Column Name'):
     col_manage.add_col_mapper(df_to_add)
