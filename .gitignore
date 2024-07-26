@@ -152,9 +152,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# .streamlit/secrets.toml
-[connections.gsheets]
-spreadsheet = "https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=sharing"
+
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
