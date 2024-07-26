@@ -1,0 +1,93 @@
+﻿insurer,ins_col_name,col_name,data_type
+AXA,POLICY HOLDER NO,policy_number,object
+AXA,CLAIM NUMBER,claim_id,object
+AXA,DATE OF ADMISSION,incur_date,object
+AXA,DATE OF DISCHARGE,pay_date,object
+AXA,DATE OF RECEIPT,submission_date,object
+AXA,DATE OF PAYMENT,pay_date,object
+AXA,STATUS,claim_status,object
+AXA,REMARK,claim_remark,object
+AXA,MEMBER,claimant,object
+AXA,CERTIFICATE NO,claimant,object
+AXA,SEX,gender,object
+AXA,DEPENDENT NO,dep_type,object
+AXA,HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS,class,object
+AXA,BENEFIT CODE,benefit,object
+AXA,CURRENCY,currency,object
+AXA,AMOUNT BILLED,incurred_amount,float
+AXA,AMOUNT PAID,paid_amount,float
+AXA,AFFILIATED CO,suboffice,object
+AXA,DATE OF BIRTH,birth_date,object
+AIA,Policy No,policy_number,object
+AIA,Policy,policy_number,object
+AIA,Client Name,client_name,object
+AIA,Plan Start Date,policy_start_date,object
+AIA,Plan End Date,policy_end_date,object
+AIA,Claim ID,claim_id,object
+AIA,ClaimNo.,claim_id,object
+AIA,Claim No.,claim_id,object
+AIA,Admission Date,incur_date,object
+AIA,Incurred Date,incur_date,object
+AIA,Date From,incur_date,object
+AIA,Received Date,submission_date,object
+AIA,Date Notified,submission_date,object
+AIA,Claim Payment Date,pay_date,object
+AIA,Process Date,pay_date,object
+AIA,Date Paid,pay_date,object
+AIA,Remark1,claim_remark,object
+AIA,Member ID,claimant,object
+AIA,Claimant No.,claimant,object
+AIA,Claimant Name,claimant,object
+AIA,Gender,gender,object
+AIA,Sex,gender,object
+AIA,Age,age,object
+AIA,Relationships,dep_type,object
+AIA,Dep Type,dep_type,object
+AIA,Plan,class,object
+AIA,BenPlan,class,object
+AIA,Claim Type,benefit_type,object
+AIA,Product Name,benefit_type,object
+AIA,Claim Type 2,benefit,object
+AIA,Ben Desc,benefit,object
+AIA,Diagnosis,diagnosis,object
+AIA,Billed Currency,currency,object
+AIA,Currency Symbol,currency,object
+AIA,Submitted Claim Amount,incurred_amount,float
+AIA,Presented Amount,incurred_amount,float
+AIA,Amount Billed,incurred_amount,float
+AIA,Paid Claim,paid_amount,float
+AIA,Reimbursed Amount,paid_amount,float
+AIA,Amount Paid,paid_amount,float
+AIA,Provider Type,panel,object
+AIA,Network/Non-network,panel,object
+AIA,SubOffice,suboffice,object
+Bupa,Voucher number,claim_id,object
+Bupa,Voucher Number,claim_id,object
+Bupa,Incur Date,incur_date,object
+Bupa,Incurred From Date,incur_date,object
+Bupa,Receipt date,submission_date,object
+Bupa,Pay date,pay_date,object
+Bupa,Pay Date,pay_date,object
+Bupa,Status Code,claim_status,object
+Bupa,Reject Code Description,claim_remark,object
+Bupa,Claimant,claimant,object
+Bupa,Sex,gender,object
+Bupa,Age,age,object
+Bupa,Member type,dep_type,object
+Bupa,Member Type,dep_type,object
+Bupa,Class,class,object
+Bupa,Class ID,class,object
+Bupa,Member Status,member_status,object
+Bupa,Benefit Type,benefit_type,object
+Bupa,Benefit,benefit,object
+Bupa,Benefit Code Description,benefit,object
+Bupa,Diagnosis description,diagnosis,object
+Bupa,Diagnosis,diagnosis,object
+Bupa,Chronic flag,chronic,object
+Bupa,Diagnosis Chronic Flag,chronic,object
+Bupa,Presented,incurred_amount,float
+Bupa,Adjusted,paid_amount,float
+Bupa,Network Category,panel,object
+Bupa,Network,panel,object
+Bupa,Days Cover,days_cover,int
+Bupa,Contract Number,contract_number,object

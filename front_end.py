@@ -23,8 +23,10 @@ if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
 if 'shortfall' not in st.session_state:
   st.session_state.shortfall = False
+if 'col_management' not in st.session_state:
+  st.session_state.col_management = False
   
-function_col1, function_col2, function_col3 = st.columns([1,1,1])
+function_col1, function_col2, function_col3, function_col4 = st.columns([1,1,1, 1])
 
 with function_col1:  
   if st.button('Reset'):
@@ -41,16 +43,26 @@ with function_col1:
     st.session_state.pygwalker = False
     st.session_state.mcr_data = False
     st.session_state.frequent_claimant = False
+    st.session_state.col_management = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
     st.session_state.raw_claim = True
     st.session_state.shortfall = False
     st.session_state.shortfall_process = False
+    st.session_state.col_management = False
 
 with function_col3:
   if st.button('Shortfall'):
     st.session_state.shortfall = True
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.sessiom_state.col_management = False
+
+with function_col4:
+  if st.button('Column Management'):
+    st.session_state.col_management = True
+    st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
 
@@ -426,3 +438,105 @@ if st.session_state.shortfall == True:
                         file_name="shortfall_data.csv",
                         mime="application/vnd.ms-excel")
     
+
+if st.session_state.col_management == True:
+  from ColumnNameManagement import *
+  st.write("""
+  # Gain Miles Assurance Consultancy Ltd
+
+  ### Column Management Tool
+  """)
+  st.write("---")
+
+  st.header('Column Management Tool')
+
+  col_manage = ColNameMgnt()
+  filter_col1, filter_col2, filter_col3 = st.columns([1,1,1])
+
+  insurer_l = col_manage.col_df['insurer'].unique()
+  col_name_l = col_manage.col_df['col_name'].unique()
+  with filter_col1:
+    insurer_filter = st.selectbox(
+    "Insurer Filter",
+    options=insurer_l,
+    index=None,
+    placeholder="Select Insurer",
+    )
+  with filter_col2:
+    col_filter = st.selectionbox(
+      "Column Filter",
+      options=col_name_l,
+      index=None,
+      placeholder="Select Our Column Name",
+    )
+
+  for_display = col_manage.col_df.copy(deep=True)
+  if insurer_filter != None:
+    for_display = for_display[col_manage.col_df['insurer'] == insurer_filter]
+  if col_filter != None:
+    for_display = for_display[col_manage.col_df['col_name'] == col_filter]
+  st.dataframe(for_display)
+  st.write("---")
+  st.write('#### Add Column Name')
+  add_col_name_col1, add_col_name_col2, add_col_name_col3, add_col_name_col4 = st.columns([1,1,1,1])
+  with add_col_name_col1:
+    add_insurer = st.selectbox(
+      "Insurer",
+      options=insurer_l,
+      index=None,
+      placeholder="Insurer",
+    )
+  with add_col_name_col2:
+    add_ins_col_name = st.text_input('Insurer Column Name')
+  with add_col_name_col3:
+    add_our_col_name = st.selectbox(
+      "Our Column Name",
+      options=col_name_l,
+      index=None,
+      placeholder="Our Column Name",
+    )
+  with add_col_name_col4:
+    add_col_data_type = st.selectbox(
+      "Data Type (Please select 'object' for Dates)",
+      options=['object', 'int', 'float'],
+      index=None,
+      placeholder="Data Type",
+    )
+  if st.button('Add Column Name'):
+    new_col = pd.DataFrame({'insurer': [add_insurer], 'ins_col_name': [add_ins_col_name], 'col_name': [add_our_col_name], 'data_type': [add_col_data_type]})
+    for_display = pd.concat([for_display, new_col], axis=0, ignore_index=True)
+  
+  st.write('---')
+  st.write('#### Remove Column Name')
+  remove_col_name_col1, remove_col_name_col2, remove_col_name_col3 = st.columns([1,1,1])
+  with remove_col_name_col1:
+    remove_insurer = st.selectbox(
+      "Insurer",
+      options=insurer_l,
+      index=None,
+      placeholder="Insurer",
+    )
+  with remove_col_name_col2:
+    remove_col_name = st.selectbox(
+      "Our Column Name",
+      options=col_name_l,
+      index=None,
+      placeholder="Our Column Name",
+    )
+  remove_ins_col_l = for_display['ins_col_name'].loc[(for_display['insurer'] == remove_insurer) & (for_display['col_name'] == remove_col_name)].unique()
+  with remove_col_name_col3:
+    remove_ins_col = st.selectbox(
+      "Insurer Column Name",
+      options=remove_ins_col_l,
+      index=None,
+      placeholder="Insurer Column Name",
+    )
+  if st.button('Remove Column Name'):
+    for_display = for_display.loc[~((for_display['insurer'] == remove_insurer) & (for_display['col_name'] == remove_col_name) & (for_display['ins_col_name'] == remove_ins_col))]
+  
+  st.write('---')
+  if st.button('Confirm Update Column Name'):
+    col_manage.update_col_mapper(for_display)
+    st.write('Column Name Updated!')
+    st.session_state.col_management = False
+  
