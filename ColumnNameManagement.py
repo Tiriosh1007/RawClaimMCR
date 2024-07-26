@@ -4,7 +4,7 @@ import os
 import warnings
 import streamlit as st
 # import git
-from streamlit_gsheets import GSheetsConnection
+from streamlit_gsheets import GSheetsConnectionS
 warnings.filterwarnings('ignore')
 
 class ColNameMgnt():
