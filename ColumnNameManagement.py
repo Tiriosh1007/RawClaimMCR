@@ -3,8 +3,8 @@ import numpy as np
 import os
 import warnings
 import streamlit as st
-import git
-from streamlit_gsheets import GSheetsConnection
+# import git
+# from streamlit_gsheets import GSheetsConnection
 warnings.filterwarnings('ignore')
 
 class ColNameMgnt():
@@ -22,7 +22,7 @@ class ColNameMgnt():
             'col_name': str,
             'data_type': str,
         }
-        self.conn = st.connection("gsheets", type=GSheetsConnection)
+        # self.conn = st.connection("gsheets", type=GSheetsConnection)
         # self.col_df = self.conn.read(
         #     worksheet='Sheet1',
         #     ttl="10m",
