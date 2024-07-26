@@ -463,7 +463,7 @@ if st.session_state.col_management == True:
     placeholder="Select Insurer",
     )
   with filter_col2:
-    col_filter = st.selectionbox(
+    col_filter = st.selectbox(
       "Column Filter",
       options=col_name_l,
       index=None,
@@ -536,7 +536,7 @@ if st.session_state.col_management == True:
   
   st.write('---')
   if st.button('Confirm Update Column Name'):
-    col_manage.update_col_mapper(for_display)
+    col_manage.import_col_mapprt(for_display)
     st.write('Column Name Updated!')
     st.session_state.col_management = False
   
