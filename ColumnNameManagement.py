@@ -35,7 +35,7 @@ class ColNameMgnt():
         return
 
     def add_col_mapper(self, df_to_add):
-        self.col_df = pd.concat(self.col_df, df_to_add, axis=0, ignore_index=False)
+        self.col_df = pd.concat([self.col_df, df_to_add], axis=0, ignore_index=False)
         self.col_df.drop_duplicates(subset=['insurer', 'ins_col_name', 'col_name', 'data_type'], inplace=True)
         self.col_df.to_csv('col_mapper.csv', index=False)
         return
