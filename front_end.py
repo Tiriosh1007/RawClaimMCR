@@ -511,14 +511,14 @@ if st.session_state.col_management == True:
   remove_col_name_col1, remove_col_name_col2, remove_col_name_col3 = st.columns([1,1,1])
   with remove_col_name_col1:
     remove_insurer = st.selectbox(
-      "Insurer",
+      "Remove Insurer",
       options=insurer_l,
       index=None,
       placeholder="Insurer",
     )
   with remove_col_name_col2:
     remove_col_name = st.selectbox(
-      "Our Column Name",
+      "Remove Our Column Name",
       options=col_name_l,
       index=None,
       placeholder="Our Column Name",
@@ -526,7 +526,7 @@ if st.session_state.col_management == True:
   remove_ins_col_l = for_display['ins_col_name'].loc[(for_display['insurer'] == remove_insurer) & (for_display['col_name'] == remove_col_name)].unique()
   with remove_col_name_col3:
     remove_ins_col = st.selectbox(
-      "Insurer Column Name",
+      "Remove Insurer Column Name",
       options=remove_ins_col_l,
       index=None,
       placeholder="Insurer Column Name",
