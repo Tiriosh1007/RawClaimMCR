@@ -525,7 +525,7 @@ if st.session_state.col_management == True:
       index=None,
       placeholder="Our Column Name",
     )
-  remove_ins_col_l = col_manage['ins_col_name'].loc[(col_manage['insurer'] == remove_insurer) & (col_manage['col_name'] == remove_col_name)].unique()
+  remove_ins_col_l = col_manage.col_df['ins_col_name'].loc[(col_manage['insurer'] == remove_insurer) & (col_manage['col_name'] == remove_col_name)].unique()
   with remove_col_name_col3:
     remove_ins_col = st.selectbox(
       "Remove Insurer Column Name",
