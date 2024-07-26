@@ -2,9 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
-import streamlit as st
-# import git
-from streamlit_gsheets import GSheetsConnectionS
+
 warnings.filterwarnings('ignore')
 
 class ColNameMgnt():
@@ -22,15 +20,16 @@ class ColNameMgnt():
             'col_name': str,
             'data_type': str,
         }
-        self.conn = st.connection("gsheets", type=GSheetsConnection)
-        self.col_df = self.conn.read(
-            worksheet='Sheet1',
-            ttl="10m",
-            usescols=[0, 1, 2, 3],
-            dtype=self.col_dtype
-        )
+        # self.conn = st.connection("gsheets", type=GSheetsConnection)
+        # self.col_df = self.conn.read(
+        #     worksheet='Sheet1',
+        #     ttl="10m",
+        #     usescols=[0, 1, 2, 3],
+        #     dtype=self.col_dtype
+        # )
 
         # self.col_df = pd.read_csv('col_mapper.csv', dtype=self.col_dtype)
+        self.col_df = pd.read_html("https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=drive_link", encoding='utf-8')[0]
 
     def update_col_mapper(self, updated_df):
         temp = pd.concat(self.col_df, updated_df, axis=0, ignore_index=False)
