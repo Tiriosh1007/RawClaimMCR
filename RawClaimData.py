@@ -59,6 +59,11 @@ class RawClaimData():
     self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
 
+    self.col_manager = ColumnNameManagement()
+    self.col_df = self.col_manager.col_df
+    self.aia_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AIA']
+    self.axa_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AXA']
+    self.bupa_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'Bupa']
 
 
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
@@ -364,7 +369,7 @@ class RawClaimData():
       t_df = pd.concat([df_c[self.col_setup], df_h[self.col_setup], df_d[self.col_setup]], axis=0, ignore_index=True)
       t_df = pd.merge(left=t_df, right=axa_index, left_on='benefit', right_on='axa_benefit_code', how='left')
       t_df.benefit = t_df.gum_benefit
-      t_df.suboffice.fillna('00', inplace=True)
+      t_df.suboffice.fillna('00', inplsace=True)
       t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
       t_df['region'] = region
       t_df = t_df[self.col_setup]
@@ -378,10 +383,12 @@ class RawClaimData():
     return t_df
 
   def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    if col_mapper == None:
+    bupa_rename_col = self.bupa_col_df[['ins_col', 'col_name']].set_index('ins_col').to_dict()
+    dtype_bupa = self.bupa_col_df[['ins_col', 'data_type']].set_index('ins_col').to_dict()
+    if col_mapper != None:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-          # 'policy_number', # Contract NUmber A1
+          # 'policy_number', # Contract NUmber A1s
           # 'insurer', # Bupa
           # 'client_name', # Customer Name A2
           # 'policy_start_date', # Period Cell A3
@@ -534,7 +541,9 @@ class RawClaimData():
     return df_
 
   def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    if col_mapper == None:
+    aia_rename_col = self.aia_col_df[['ins_col', 'col_name']].set_index('ins_col').to_dict()
+    dtype_aia = self.aia_col_df[['ins_col', 'data_type']].set_index('ins_col').to_dict()
+    if col_mapper != None:
       dtype_aia = {
           # 'policy_id',
           'Policy No': str,
