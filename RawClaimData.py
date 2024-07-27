@@ -373,7 +373,7 @@ class RawClaimData():
       t_df = pd.concat([df_c, df_h, df_d], axis=0, ignore_index=True)
       t_df = pd.merge(left=t_df, right=axa_index, left_on='benefit', right_on='axa_benefit_code', how='left')
       t_df.benefit = t_df.gum_benefit
-      t_df.suboffice.fillna('00', inplsace=True)
+      t_df.suboffice.fillna('00', inplace=True)
       t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
       t_df['region'] = region
       t_df = t_df[self.col_setup]
