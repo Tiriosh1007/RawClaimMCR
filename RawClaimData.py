@@ -59,7 +59,7 @@ class RawClaimData():
     self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
 
-    self.col_manager = ColumnNameManagement()
+    self.col_manager = ColNameMgnt()
     self.col_df = self.col_manager.col_df
     self.aia_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AIA']
     self.axa_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AXA']
