@@ -550,7 +550,7 @@ class RawClaimData():
     aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
     # dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
-    if col_mapper != None:
+    if col_mapper == None:
       dtype_aia = {
           # 'policy_id',
           'Policy No': str,
