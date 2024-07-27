@@ -383,8 +383,8 @@ class RawClaimData():
     return t_df
 
   def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    bupa_rename_col = self.bupa_col_df[['ins_col', 'col_name']].set_index('ins_col').to_dict()
-    dtype_bupa = self.bupa_col_df[['ins_col', 'data_type']].set_index('ins_col').to_dict()
+    bupa_rename_col = self.bupa_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
+    dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     if col_mapper != None:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
@@ -541,8 +541,8 @@ class RawClaimData():
     return df_
 
   def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    aia_rename_col = self.aia_col_df[['ins_col', 'col_name']].set_index('ins_col').to_dict()
-    dtype_aia = self.aia_col_df[['ins_col', 'data_type']].set_index('ins_col').to_dict()
+    aia_rename_col = self.aia_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
+    dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     if col_mapper != None:
       dtype_aia = {
           # 'policy_id',
