@@ -383,9 +383,11 @@ class RawClaimData():
     return t_df
 
   def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    bupa_rename_col = self.bupa_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
-    dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
-    if col_mapper == None:
+    # bupa_rename_col = self.bupa_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
+    bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
+    # dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
+    dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
+    if col_mapper != None:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           # 'policy_number', # Contract NUmber A1s
@@ -513,8 +515,8 @@ class RawClaimData():
     if 'days_cover' in df_.columns:
       df_['discharge_date'].loc[df_.benefit_type == 'H'] = df_['discharge_date'] + pd.to_timedelta(df_.days_cover, unit='D')
 
-    if 'contract_number' in df_.columns:
-      df_['suboffice'] = df_['contract_number'].str[-2:]
+    # if 'contract_number' in df_.columns:
+    df_['suboffice'] = df_['contract_number'].str[-2:]
 
     df_['region'] = region
 
