@@ -74,7 +74,7 @@ class RawClaimData():
     dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
     dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
 
-    if col_mapper == None:
+    if col_mapper != None:
       rename_col_clin = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           'POLICY HOLDER NO': 'policy_number',
@@ -369,6 +369,9 @@ class RawClaimData():
 
       axa_index = self.benefit_index[['gum_benefit', 'axa_benefit_code']]
       df_c, df_h, df_d = df_c[self.col_setup].reset_index(drop=True), df_h[self.col_setup].reset_index(drop=True), df_d[self.col_setup].reset_index(drop=True)
+      print(df_c.columns)
+      print(df_h.columns)
+      print(df_d.columns)
       # t_df = pd.concat([t_df, df_c[self.col_setup], df_h[self.col_setup], df_d[self.col_setup]], axis=0, ignore_index=True)
       t_df = pd.concat([df_c, df_h, df_d], axis=0, ignore_index=True)
       t_df = pd.merge(left=t_df, right=axa_index, left_on='benefit', right_on='axa_benefit_code', how='left')
