@@ -369,7 +369,7 @@ class RawClaimData():
 
       axa_index = self.benefit_index[['gum_benefit', 'axa_benefit_code']]
       t_df = pd.DataFrame()
-      t_df = pd.concat([df_c[self.col_setup], df_h[self.col_setup], df_d[self.col_setup]], axis=0, ignore_index=True)
+      t_df = pd.concat([t_df, df_c[self.col_setup], df_h[self.col_setup], df_d[self.col_setup]], axis=0, ignore_index=True)
       t_df = pd.merge(left=t_df, right=axa_index, left_on='benefit', right_on='axa_benefit_code', how='left')
       t_df.benefit = t_df.gum_benefit
       t_df.suboffice.fillna('00', inplsace=True)
