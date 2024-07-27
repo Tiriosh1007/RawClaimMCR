@@ -333,7 +333,7 @@ class RawClaimData():
         if len(df_h) > 0:
           for col in date_col_hosp:
             if col in df_h.columns.tolist():
-              df_h[col] = pd.to_datetime(df_h[col], format='%Y%m%d')
+              df_h[col] = pd.to_datetime(df_h[col].astype(str), format='%Y%m%d')
             else:
               df_h[col] = np.nan
 
