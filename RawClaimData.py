@@ -512,7 +512,9 @@ class RawClaimData():
 
     if 'days_cover' in df_.columns:
       df_['discharge_date'].loc[df_.benefit_type == 'H'] = df_['discharge_date'] + pd.to_timedelta(df_.days_cover, unit='D')
-    df_['suboffice'] = df_['contract_number'].str[-2:]
+
+    if 'contract_number' in df_.columns:
+      df_['suboffice'] = df_['contract_number'].str[-2:]
 
     df_['region'] = region
 
