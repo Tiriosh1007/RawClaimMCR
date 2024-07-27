@@ -550,7 +550,7 @@ class RawClaimData():
     aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
     # dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
-    if col_mapper == None:
+    if col_mapper != None:
       dtype_aia = {
           # 'policy_id',
           'Policy No': str,
@@ -697,7 +697,7 @@ class RawClaimData():
       t_df['client_name'] = client_name
 
     __start_date = t_df['policy_start_date'].iloc[0]
-    __policy_number = t_df.policy_number.values[0]
+    __policy_number = t_df['policy_number'].values[0]
     t_df['policy_id'] = f'{__policy_number}_{__start_date:%Y%m}'
 
 
