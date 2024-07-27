@@ -69,153 +69,154 @@ class RawClaimData():
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
 
     axa_df = pd.DataFrame(columns=self.col_setup)
+    rename_col_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
+    rename_col_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
+    dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
+    dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
 
+    if col_mapper != None:
+      rename_col_clin = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          'POLICY HOLDER NO': 'policy_number',
+          # 'insurer', # AXA
+          # 'client_name', # self input
+          # 'policy_start_date', # from file name
+          # 'policy_end_date', # from file name
+          'CLAIM NUMBER': 'claim_id',
+          'DATE OF ADMISSION': 'incur_date',
+          # 'discharge_date', # clinic set to incur_date
+          'DATE OF RECEIPT': 'submission_date',
+          'DATE OF PAYMENT': 'pay_date',
+          'STATUS': 'claim_status',
+          'REMARK CODE1': 'claim_remark',
+          # 'cert_true_copy', # deduce from remark code
+          'MEMBER': 'claimant',
+          'CERTIFICATE NO': 'claimant',
+          'SEX': 'gender',
+          # 'age', deduce from DOB
+          'DEPENDENT NO': 'dep_type',
+          'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': 'class',
+          # 'member_status', # not available
+          # 'benefit_type', # sheetname
+          'BENEFIT CODE': 'benefit', # need process
+          # 'diagnosis', # not available
+          # 'chronic', # not available
+          'CURRENCY': 'currency',
+          'AMOUNT BILLED': 'incurred_amount',
+          'AMOUNT PAID': 'paid_amount',
+          # 'panel', deduce from benefit code
+          'AFFILIATED CO': 'suboffice',
+          # 'region',
 
-    rename_col_clin = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        'POLICY HOLDER NO': 'policy_number',
-        # 'insurer', # AXA
-        # 'client_name', # self input
-        # 'policy_start_date', # from file name
-        # 'policy_end_date', # from file name
-        'CLAIM NUMBER': 'claim_id',
-        'DATE OF ADMISSION': 'incur_date',
-        # 'discharge_date', # clinic set to incur_date
-        'DATE OF RECEIPT': 'submission_date',
-        'DATE OF PAYMENT': 'pay_date',
-        'STATUS': 'claim_status',
-        'REMARK CODE1': 'claim_remark',
-        # 'cert_true_copy', # deduce from remark code
-        'MEMBER': 'claimant',
-        'CERTIFICATE NO': 'claimant',
-        'SEX': 'gender',
-        # 'age', deduce from DOB
-        'DEPENDENT NO': 'dep_type',
-        'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': 'class',
-        # 'member_status', # not available
-        # 'benefit_type', # sheetname
-        'BENEFIT CODE': 'benefit', # need process
-        # 'diagnosis', # not available
-        # 'chronic', # not available
-        'CURRENCY': 'currency',
-        'AMOUNT BILLED': 'incurred_amount',
-        'AMOUNT PAID': 'paid_amount',
-        # 'panel', deduce from benefit code
-        'AFFILIATED CO': 'suboffice',
-        # 'region',
+          'DATE OF BIRTH': 'birth_date'
+      }
 
-        'DATE OF BIRTH': 'birth_date'
-    }
+      dtype_axa_clin = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          'POLICY HOLDER NO': str,
+          # 'insurer', # AXA
+          # 'client_name', # self input
+          # 'policy_start_date', # from file name
+          # 'policy_end_date', # from file name
+          'CLAIM NUMBER': str,
+          'DATE OF ADMISSION': str,
+          # 'discharge_date', # clinic set to 1
+          'DATE OF RECEIPT': str,
+          'DATE OF PAYMENT': str,
+          'STATUS': str,
+          'REMARK CODE1': str,
+          # 'cert_true_copy', # deduce from remark code
+          'MEMBER': str,
+          'CERTIFICATE NO': str,
+          'SEX': str,
+          # 'age', deduce from DOB
+          'DEPENDENT NO': str,
+          'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': str,
+          # 'member_status', # not available
+          # 'benefit_type', # sheetname
+          'BENEFIT CODE': str, # need process
+          # 'diagnosis', # not available
+          # 'chronic', # not available
+          'CURRENCY': str,
+          'AMOUNT BILLED': float,
+          'AMOUNT PAID': float,
+          # 'panel', deduce from benefit code
+          'AFFILIATED CO': str,
+          # 'region',
 
-    dtype_axa_clin = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        'POLICY HOLDER NO': str,
-        # 'insurer', # AXA
-        # 'client_name', # self input
-        # 'policy_start_date', # from file name
-        # 'policy_end_date', # from file name
-        'CLAIM NUMBER': str,
-        'DATE OF ADMISSION': str,
-        # 'discharge_date', # clinic set to 1
-        'DATE OF RECEIPT': str,
-        'DATE OF PAYMENT': str,
-        'STATUS': str,
-        'REMARK CODE1': str,
-        # 'cert_true_copy', # deduce from remark code
-        'MEMBER': str,
-        'CERTIFICATE NO': str,
-        'SEX': str,
-        # 'age', deduce from DOB
-        'DEPENDENT NO': str,
-        'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': str,
-        # 'member_status', # not available
-        # 'benefit_type', # sheetname
-        'BENEFIT CODE': str, # need process
-        # 'diagnosis', # not available
-        # 'chronic', # not available
-        'CURRENCY': str,
-        'AMOUNT BILLED': float,
-        'AMOUNT PAID': float,
-        # 'panel', deduce from benefit code
-        'AFFILIATED CO': str,
-        # 'region',
+          'DATE OF BIRTH': str
+      }
+      rename_col_hosp = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          'POLICY HOLDER NO': 'policy_number',
+          # 'insurer', # AXA
+          # 'client_name', # self input
+          # 'policy_start_date', # from file name
+          # 'policy_end_date', # from file name
+          'CLAIM NUMBER': 'claim_id',
+          'DATE OF ADMISSION': 'incur_date',
+          'DATE OF DISCHARGE': 'discharge_date',
+          'DATE OF RECEIPT': 'submission_date',
+          'DATE OF PAYMENT': 'pay_date',
+          'STATUS': 'claim_status',
+          'REMARK': 'claim_remark',
+          # 'cert_true_copy', # deduce from remark code
+          'MEMBER': 'claimant',
+          'CERTICFICATE NO': 'claimant',
+          'SEX': 'gender',
+          # 'age', deduce from DOB
+          'DEPENDENT NO': 'dep_type',
+          'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': 'class',
+          # 'member_status', # not available
+          # 'benefit_type', # sheetname
+          'BENEFIT CODE': 'benefit', # need process
+          # 'diagnosis', # not available
+          # 'chronic', # not available
+          'CURRENCY': 'currency',
+          'AMOUNT BILLED': 'incurred_amount',
+          'AMOUNT PAID': 'paid_amount',
+          # 'panel', deduce from benefit code
+          'AFFILIATED CO': 'suboffice',
+          # 'region',
 
-        'DATE OF BIRTH': str
-    }
+          'DATE OF BIRTH': 'birth_date'
+      }
+      dtype_axa_hosp = {
+          # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+          'POLICY HOLDER NO': str,
+          # 'insurer', # AXA
+          # 'client_name', # self input
+          # 'policy_start_date', # from file name
+          # 'policy_end_date', # from file name
+          'CLAIM NUMBER': str,
+          'DATE OF ADMISSION': str,
+          'DATE OF DISCHARGE': str,
+          'DATE OF RECEIPT': str,
+          'DATE OF PAYMENT': str,
+          'STATUS': str,
+          'REMARK': str,
+          # 'cert_true_copy', # deduce from remark code
+          'MEMBER': str,
+          'CERTICFICATE NO': str,
+          'SEX': str,
+          # 'age', deduce from DOB
+          'DEPENDENT NO': str,
+          'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': str,
+          # 'member_status', # not available
+          # 'benefit_type', # sheetname
+          'BENEFIT CODE': str, # need process
+          # 'diagnosis', # not available
+          # 'chronic', # not available
+          'CURRENCY': str,
+          'AMOUNT BILLED': float,
+          'AMOUNT PAID': float,
+          # 'panel', deduce from benefit code
+          'AFFILIATED CO': str,
+          # 'region',
 
+          'DATE OF BIRTH': str
+      }
     date_col_clin = ['incur_date', 'submission_date', 'pay_date', 'birth_date']
-
-    rename_col_hosp = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        'POLICY HOLDER NO': 'policy_number',
-        # 'insurer', # AXA
-        # 'client_name', # self input
-        # 'policy_start_date', # from file name
-        # 'policy_end_date', # from file name
-        'CLAIM NUMBER': 'claim_id',
-        'DATE OF ADMISSION': 'incur_date',
-        'DATE OF DISCHARGE': 'discharge_date',
-        'DATE OF RECEIPT': 'submission_date',
-        'DATE OF PAYMENT': 'pay_date',
-        'STATUS': 'claim_status',
-        'REMARK': 'claim_remark',
-        # 'cert_true_copy', # deduce from remark code
-        'MEMBER': 'claimant',
-        'CERTICFICATE NO': 'claimant',
-        'SEX': 'gender',
-        # 'age', deduce from DOB
-        'DEPENDENT NO': 'dep_type',
-        'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': 'class',
-        # 'member_status', # not available
-        # 'benefit_type', # sheetname
-        'BENEFIT CODE': 'benefit', # need process
-        # 'diagnosis', # not available
-        # 'chronic', # not available
-        'CURRENCY': 'currency',
-        'AMOUNT BILLED': 'incurred_amount',
-        'AMOUNT PAID': 'paid_amount',
-        # 'panel', deduce from benefit code
-        'AFFILIATED CO': 'suboffice',
-        # 'region',
-
-        'DATE OF BIRTH': 'birth_date'
-    }
-
-    dtype_axa_hosp = {
-        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
-        'POLICY HOLDER NO': str,
-        # 'insurer', # AXA
-        # 'client_name', # self input
-        # 'policy_start_date', # from file name
-        # 'policy_end_date', # from file name
-        'CLAIM NUMBER': str,
-        'DATE OF ADMISSION': str,
-        'DATE OF DISCHARGE': str,
-        'DATE OF RECEIPT': str,
-        'DATE OF PAYMENT': str,
-        'STATUS': str,
-        'REMARK': str,
-        # 'cert_true_copy', # deduce from remark code
-        'MEMBER': str,
-        'CERTICFICATE NO': str,
-        'SEX': str,
-        # 'age', deduce from DOB
-        'DEPENDENT NO': str,
-        'HEALTH CLASS LEVEL  /OPT. HOSPITAL CLASS': str,
-        # 'member_status', # not available
-        # 'benefit_type', # sheetname
-        'BENEFIT CODE': str, # need process
-        # 'diagnosis', # not available
-        # 'chronic', # not available
-        'CURRENCY': str,
-        'AMOUNT BILLED': float,
-        'AMOUNT PAID': float,
-        # 'panel', deduce from benefit code
-        'AFFILIATED CO': str,
-        # 'region',
-
-        'DATE OF BIRTH': str
-    }
     date_col_hosp = ['incur_date', 'discharge_date', 'submission_date', 'pay_date', 'birth_date']
 
     unlocked_file = io.BytesIO()
@@ -545,8 +546,10 @@ class RawClaimData():
     return df_
 
   def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
-    aia_rename_col = self.aia_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
-    dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
+    # aia_rename_col = self.aia_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
+    aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
+    # dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
+    dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
     if col_mapper != None:
       dtype_aia = {
           # 'policy_id',
