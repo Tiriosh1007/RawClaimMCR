@@ -74,7 +74,7 @@ class RawClaimData():
     dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
     dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
 
-    if col_mapper != None:
+    if col_mapper == None:
       rename_col_clin = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           'POLICY HOLDER NO': 'policy_number',
