@@ -19,7 +19,7 @@ from ColumnNameManagement import *
 
 class RawClaimData():
 
-  def __init__(self, benefit_index_path):
+  def __init__(self):
     col_setup = [
         'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
         'policy_number',
@@ -829,6 +829,7 @@ class RawClaimData():
     self.clinet_name_list = self.df['client_name'].unique().tolist()
     self.benefit_type_list = self.df['benefit_type'].unique().tolist()
     self.benefit_list = self.df['benefit'].unique().tolist()
+    return
 
   def bupa_shortfall_supplement(self, shortfall_processed_df):
     # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']

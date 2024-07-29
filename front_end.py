@@ -219,8 +219,8 @@ if st.session_state.raw_claim == True:
     file_config = new_file_config
     st.write('---')
     st.header('MCR Data Download')
-    ben_fp = 'benefit_indexing.xlsx'
-    raw_ = RawClaimData(ben_fp)
+    # ben_fp = 'benefit_indexing.xlsx'
+    raw_ = RawClaimData()
     for n0 in range(len(file_config)):
       raw_.add_raw_data(full_file_list[n0],
                         insurer=file_config['Insurer'].iloc[n0], 
