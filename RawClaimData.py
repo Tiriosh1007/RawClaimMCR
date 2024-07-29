@@ -840,6 +840,8 @@ class RawClaimData():
     self.benefit_type_list = self.df['benefit_type'].unique().tolist()
     self.benefit_list = self.df['benefit'].unique().tolist()
 
+    return self.df
+
   def bupa_shortfall_supplement(self, shortfall_processed_df):
     # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
     print("bupa sf self.df shape:", self.df.shape)

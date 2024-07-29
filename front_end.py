@@ -222,7 +222,7 @@ if st.session_state.raw_claim == True:
     # ben_fp = 'benefit_indexing.xlsx'
     raw_ = RawClaimData()
     for n0 in range(len(file_config)):
-      raw_.add_raw_data(full_file_list[n0],
+      raw_.df = raw_.add_raw_data(full_file_list[n0],
                         insurer=file_config['Insurer'].iloc[n0], 
                         password=file_config['Password'].iloc[n0], 
                         policy_start_date=file_config['Policy start date'].iloc[n0], 
