@@ -819,6 +819,7 @@ class RawClaimData():
       temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     elif insurer == 'Bupa':
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
+      print("Bupa")
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
