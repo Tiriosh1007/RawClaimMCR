@@ -882,9 +882,11 @@ class RawClaimData():
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
       self.df.claim_remark.fillna('no_remark', inplace=True)
       print(self.df.claim_remark.value_counts())
+      
       # Bupa claim remark = Reject Code so it must be rejected
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
+      print(self.df.claim_status.value_counts())
       self.df = self.df.loc[self.df.claim_status != 'R']
       # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
 
