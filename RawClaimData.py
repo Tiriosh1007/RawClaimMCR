@@ -66,7 +66,7 @@ class RawClaimData():
     self.bupa_col_df = self.col_df.loc[self.col_df['insurer'] == 'Bupa']
 
 
-  def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+  def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
 
     axa_df = pd.DataFrame(columns=self.col_setup)
     rename_col_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
@@ -74,7 +74,7 @@ class RawClaimData():
     dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
     dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
 
-    if col_mapper != None:
+    if False:
       rename_col_clin = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           'POLICY HOLDER NO': 'policy_number',
@@ -389,12 +389,12 @@ class RawClaimData():
     # self.df = pd.concat([self.df, t_df], axis=0)
     return t_df
 
-  def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+  def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
     # bupa_rename_col = self.bupa_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
-    bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name.tolist(), self.bupa_col_df.col_name.tolist()))
+    bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
     # dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
-    dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name.tolist(), self.bupa_col_df.data_type.tolist()))
-    if col_mapper != None:
+    dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
+    if False:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           # 'policy_number', # Contract NUmber A1s
@@ -549,12 +549,12 @@ class RawClaimData():
 
     return df_
 
-  def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+  def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
     # aia_rename_col = self.aia_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
     aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
     # dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
-    if col_mapper != None:
+    if False:
       dtype_aia = {
           # 'policy_id',
           'Policy No': str,
