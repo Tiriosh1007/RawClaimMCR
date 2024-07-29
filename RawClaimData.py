@@ -814,7 +814,7 @@ class RawClaimData():
   def __other_format(self, raw_claim_path, insurer, password=None, policy_start_date=None, client_name=None, region='HK'):
     __other_ins_col_df = self.col_df.loc[self.col_df['insurer'] == insurer]
     __other_ins_rename = dict(zip(__other_ins_col_df.ins_col_name, __other_ins_col_df.col_name))
-    __other_ins_dtype = dict(zip(__other_ins_col_df.ins_col_name, __other_ins_col_df.dtype))
+    __other_ins_dtype = dict(zip(__other_ins_col_df.ins_col_name, __other_ins_col_df.data_type))
     df_ = pd.read_excel(raw_claim_path, dtype=__other_ins_dtype)
     df_.rename(columns=__other_ins_rename, inplace=True)
     df_['insurer'] = insurer
