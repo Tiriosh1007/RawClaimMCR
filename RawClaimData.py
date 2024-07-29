@@ -394,7 +394,7 @@ class RawClaimData():
     bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
     # dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
-    if col_mapper == None:
+    if col_mapper != None:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           # 'policy_number', # Contract NUmber A1s
