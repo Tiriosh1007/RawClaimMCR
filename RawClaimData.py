@@ -831,7 +831,7 @@ class RawClaimData():
     if 'suboffice' not in df_.columns.tolist():
       df_['suboffice'] = '00'
 
-    df_['benefity_type'].loc[df_['benefit_type'].str.contains('aso', case=False)] = 'ASO'
+    df_['benefit_type'].loc[df_['benefit_type'].str.contains('aso', case=False)] = 'ASO'
     df_['benefit_type'].loc[df_['benefit_type'].str.contains('hosp|inpa|ip', case=False)] = 'Hospital'
     df_['benefit_type'].loc[df_['benefit_type'].str.contains('clin|out|op', case=False)] = 'Clinic'
     df_['benefit_type'].loc[df_['benefit_type'].str.contains('dent', case=False)] = 'Dental'
