@@ -915,7 +915,7 @@ class RawClaimData():
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
       self.df.claim_status.fillna('no_status', inplace=True)
-      self.df = self.df.loc[(self.df.claim_status != 'R') | (self.df.claim_status.str.contains('reject', case=False) == False)]
+      self.df = self.df.loc[(self.df.claim_status != 'R') | ~(self.df.claim_status.str.contains('reject', case=False))]
 
 
     if smm == True:
