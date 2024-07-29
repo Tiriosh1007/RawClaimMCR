@@ -61,9 +61,9 @@ class RawClaimData():
 
     self.col_manager = ColNameMgnt()
     self.col_df = self.col_manager.col_df
-    self.aia_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AIA']
-    self.axa_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'AXA']
-    self.bupa_col_df = self.col_manager.col_df.loc[self.col_manager.col_df.insurer == 'Bupa']
+    self.aia_col_df = self.col_df.loc[self.col_df['insurer'] == 'AIA']
+    self.axa_col_df = self.col_df.loc[self.col_df['insurer'] == 'AXA']
+    self.bupa_col_df = self.col_df.loc[self.col_df['insurer'] == 'Bupa']
 
 
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
