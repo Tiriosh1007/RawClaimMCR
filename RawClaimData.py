@@ -65,14 +65,22 @@ class RawClaimData():
     self.axa_col_df = self.col_df.loc[self.col_df['insurer'] == 'AXA']
     self.bupa_col_df = self.col_df.loc[self.col_df['insurer'] == 'Bupa']
 
+    self.rename_col_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
+    self.rename_col_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
+    self.dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
+    self.dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
+
+    self.bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
+    self.dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
+
+    self.aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
+    self.dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
+
 
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
 
     axa_df = pd.DataFrame(columns=self.col_setup)
-    rename_col_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
-    rename_col_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.col_name))
-    dtype_axa_clin = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
-    dtype_axa_hosp = dict(zip(self.axa_col_df.ins_col_name, self.axa_col_df.data_type))
+    
 
     if False:
       rename_col_clin = {
@@ -239,11 +247,11 @@ class RawClaimData():
       b_type_l = wb.sheetnames
 
       if 'CLIN' in b_type_l:
-        df_c = pd.read_excel(unlocked_file, sheet_name='CLIN', dtype=dtype_axa_clin)
+        df_c = pd.read_excel(unlocked_file, sheet_name='CLIN', dtype=self.dtype_axa_clin)
 
         # length = length + len(df_c)
         # print(len(df_c))
-        df_c.rename(columns=rename_col_clin, inplace=True)
+        df_c.rename(columns=self.rename_col_clin, inplace=True)
 
 
         if len(df_c) > 0:
@@ -287,8 +295,8 @@ class RawClaimData():
 
 
       if 'DENT' in b_type_l:
-        df_d = pd.read_excel(unlocked_file, sheet_name='DENT', dtype=dtype_axa_clin)
-        df_d.rename(columns=rename_col_clin, inplace=True)
+        df_d = pd.read_excel(unlocked_file, sheet_name='DENT', dtype=self.dtype_axa_clin)
+        df_d.rename(columns=self.rename_col_clin, inplace=True)
         if len(df_d) > 0:
           for col in date_col_clin:
             if col in df_d.columns.tolist():
@@ -328,8 +336,8 @@ class RawClaimData():
 
       if 'HOSP' in b_type_l:
 
-        df_h = pd.read_excel(unlocked_file, sheet_name='HOSP', dtype=dtype_axa_hosp)
-        df_h.rename(columns=rename_col_hosp, inplace=True)
+        df_h = pd.read_excel(unlocked_file, sheet_name='HOSP', dtype=self.dtype_axa_hosp)
+        df_h.rename(columns=self.rename_col_hosp, inplace=True)
         if len(df_h) > 0:
           for col in date_col_hosp:
             if col in df_h.columns.tolist():
@@ -390,10 +398,7 @@ class RawClaimData():
     return t_df
 
   def __bupa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
-    # bupa_rename_col = self.bupa_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
-    bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
-    # dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
-    dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
+
     if False:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
@@ -497,8 +502,8 @@ class RawClaimData():
     else:
       start_d_ = pd.to_datetime(df_.iloc[1, 0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')
     end_d_ = pd.to_datetime(df_.iloc[1, 0].split(': ')[1].split(' ')[-1], format='%Y-%m-%d')
-    df_ = pd.read_excel(raw_claim_path, sheet_name='Details', skiprows=7, dtype=dtype_bupa)
-    df_.rename(columns=bupa_rename_col, inplace=True)
+    df_ = pd.read_excel(raw_claim_path, sheet_name='Details', skiprows=7, dtype=self.dtype_bupa)
+    df_.rename(columns=self.bupa_rename_col, inplace=True)
 
     for col in date_cols:
       if col in df_.columns.tolist():
@@ -550,10 +555,7 @@ class RawClaimData():
     return df_
 
   def __aia_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK'):
-    # aia_rename_col = self.aia_col_df[['ins_col_name', 'col_name']].set_index('ins_col_name').to_dict()
-    aia_rename_col = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.col_name))
-    # dtype_aia = self.aia_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
-    dtype_aia = dict(zip(self.aia_col_df.ins_col_name, self.aia_col_df.data_type))
+    
     if False:
       dtype_aia = {
           # 'policy_id',
@@ -674,7 +676,7 @@ class RawClaimData():
 
 
     if password == None:
-      t_df = pd.read_excel(raw_claim_path, dtype=dtype_aia)
+      t_df = pd.read_excel(raw_claim_path, dtype=self.dtype_aia)
     else:
       unlocked_file = io.BytesIO()
       with open(raw_claim_path, "rb") as file:
@@ -683,9 +685,9 @@ class RawClaimData():
         excel_file.decrypt(unlocked_file)
         from openpyxl import load_workbook
         wb = load_workbook(filename = unlocked_file)
-      t_df = pd.read_excel(unlocked_file, dtype=dtype_aia)
+      t_df = pd.read_excel(unlocked_file, dtype=self.dtype_aia)
 
-    t_df.rename(columns=aia_rename_col, inplace=True)
+    t_df.rename(columns=self.aia_rename_col, inplace=True)
     t_df['insurer'] = 'AIA'
 
     for col in date_cols:
