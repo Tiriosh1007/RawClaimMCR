@@ -820,6 +820,12 @@ class RawClaimData():
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
+
+    # Debug: Check if temp_df is created correctly
+    print("temp_df head:", temp_df.head())
+    print("temp_df columns:", temp_df.columns)
+    print("temp_df shape:", temp_df.shape)
+
     self.df = pd.concat([self.df, temp_df.reset_index(drop=True)], axis=0, ignore_index=True)
 
     self.policy_id_list = self.df['policy_id'].unique().tolist()
