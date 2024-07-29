@@ -874,10 +874,10 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
-    os.write("preprocessing self.df shape:", self.df.shape)
+    print("preprocessing self.df shape:", self.df.shape)
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
-    os.write("preprocessing aso self.df shape:", self.df.shape)
+    print("preprocessing aso self.df shape:", self.df.shape)
     if rejected_claim == True:
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
       self.df.claim_remark.fillna('no_remark', inplace=True)
@@ -887,7 +887,7 @@ class RawClaimData():
       self.df = self.df.loc[self.df.claim_status != 'R']
       # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
 
-    os.write("preprocessing rejected_claims self.df shape:", self.df.shape)
+    print("preprocessing rejected_claims self.df shape:", self.df.shape)
       
 
     if smm == True:
@@ -1330,7 +1330,7 @@ class RawClaimData():
     if type(by) is not list and by != None: by = [by]
 
     self.mcr_df = self.df.copy(deep=True)
-    print("mcr self.df shape:", self.df.shape)
+    os.write("mcr self.df shape:", self.df.shape)
     if type(by) is list:
       if 'dep_type' in by:
         self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
