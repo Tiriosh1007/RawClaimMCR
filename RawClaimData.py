@@ -840,6 +840,7 @@ class RawClaimData():
 
   def bupa_shortfall_supplement(self, shortfall_processed_df):
     # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
+    print("bupa sf self.df shape:", self.df.shape)
     shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Overall']
     for n00 in np.arange(len(shortfall_panel)):
       __policy_id = shortfall_panel['policy_id'].iloc[n00]
@@ -869,6 +870,7 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
+    print("preprocessing self.df shape:", self.df.shape)
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
