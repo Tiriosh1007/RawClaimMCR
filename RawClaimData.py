@@ -811,14 +811,14 @@ class RawClaimData():
     return t_df
 
 
-  def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+  def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK'):
 
     if insurer == 'AXA':
-      temp_df = self.__axa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+      temp_df = self.__axa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     elif insurer == 'AIA':
-      temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+      temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     elif insurer == 'Bupa':
-      temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+      temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
