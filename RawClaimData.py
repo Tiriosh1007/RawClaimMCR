@@ -830,7 +830,7 @@ class RawClaimData():
 
     print("self.df shape b4:", self.df.shape)
 
-    self.df = pd.concat([self.df, temp_df.reset_index(drop=True)], axis=0, ignore_index=True)
+    self.df = pd.concat([self.df, temp_df], axis=0, ignore_index=True)
 
     print("self.df shape:", self.df.shape)
 
