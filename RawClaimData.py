@@ -874,7 +874,7 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
-    print("preprocessing self.df shape:", self.df.shape)
+    os.write("preprocessing self.df shape:", self.df.shape)
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
