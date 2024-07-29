@@ -394,7 +394,7 @@ class RawClaimData():
     bupa_rename_col = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.col_name))
     # dtype_bupa = self.bupa_col_df[['ins_col_name', 'data_type']].set_index('ins_col_name').to_dict()
     dtype_bupa = dict(zip(self.bupa_col_df.ins_col_name, self.bupa_col_df.data_type))
-    if col_mapper != None:
+    if col_mapper == None:
       bupa_rename_col = {
           # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
           # 'policy_number', # Contract NUmber A1s
@@ -427,7 +427,7 @@ class RawClaimData():
           'Diagnosis description': 'diagnosis',
           'Diagnosis': 'diagnosis',
           'Chronic flag': 'chronic',
-          'Diagnosis Chronic Flag': 'cheonic',
+          'Diagnosis Chronic Flag': 'chronic',
           # 'currency',
           'Presented': 'incurred_amount',
           'Adjusted': 'paid_amount',
@@ -546,8 +546,6 @@ class RawClaimData():
         df_[col] = np.nan
 
     df_ = df_[self.col_setup]
-
-
 
     return df_
 
@@ -823,7 +821,7 @@ class RawClaimData():
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
-    self.df = pd.concat([self.df, temp_df], axis=0, ignore_index=True)
+    self.df = pd.concat([self.df, temp_df], axis=0, ignore_index=False)
 
     self.policy_id_list = self.df['policy_id'].unique().tolist()
     self.policy_list = self.df['policy_number'].unique().tolist()
