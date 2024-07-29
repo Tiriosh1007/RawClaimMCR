@@ -702,9 +702,10 @@ class RawClaimData():
     if client_name != None:
       t_df['client_name'] = client_name
 
-    __start_date = t_df['policy_start_date'].iloc[0]
-    __policy_number = t_df['policy_number'].values[0]
-    t_df['policy_id'] = f'{__policy_number}_{__start_date:%Y%m}'
+    t_df['policy_id'] = f'{t_df["policy_number"].iloc[0]}_{t_df["policy_start_date"].iloc[0]:%Y%m}'
+    # __start_date = t_df['policy_start_date'].iloc[0]
+    # __policy_number = t_df['policy_number'].values[0]
+    # t_df['policy_id'] = f'{__policy_number}_{__start_date:%Y%m}'
 
 
     t_df['claim_status'] = np.nan
@@ -809,7 +810,43 @@ class RawClaimData():
           t_df[col].loc[~(t_df[col].isna())] = pd.to_datetime(t_df[col].loc[~(t_df[col].isna())], format='%Y-%m-%d')
 
     return t_df
+  
+  def __other_format(self, raw_claim_path, insurer, password=None, policy_start_date=None, client_name=None, region='HK'):
+    __other_ins_col_df = self.col_df.loc[self.col_df['insurer'] == insurer]
+    __other_ins_rename = dict(zip(__other_ins_col_df.ins_col_name, __other_ins_col_df.col_name))
+    __other_ins_dtype = dict(zip(__other_ins_col_df.ins_col_name, __other_ins_col_df.dtype))
+    df_ = pd.read_excel(raw_claim_path, dtype=__other_ins_dtype)
+    df_.rename(columns=__other_ins_rename, inplace=True)
+    df_['insurer'] = insurer
+    if policy_start_date != None:
+      df_['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+      df_['policy_end_date'] = df_['policy_start_date'] + pd.DateOffset(years=1)
+    if client_name != None:
+      df_['client_name'] = client_name
+    if 'policy_id' not in df_.columns.tolist():
+      df_['policy_id'] = f'{df_["policy_number"].iloc[0]}_{df_["policy_start_date"].iloc[0]:%Y%m}'
+    
+    if 'region' not in df_.columns.tolist():
+      df_['region'] = region
+    if 'suboffice' not in df_.columns.tolist():
+      df_['suboffice'] = '00'
 
+    date_cols= ['incur_date', 'discharge_date', 'submission_date', 'pay_date', 'birth_date']
+    for col in date_cols:
+      if col in df_.columns.tolist():
+        df_[col] = pd.to_datetime(df_[col])
+      
+    if 'age' not in df_.columns.tolist():
+      if 'birth_date' in df_.columns.tolist():
+        df_['age'] = ((df_['policy_start_date'] - df_['birth_date']).dt.days/365.25).astype(int)
+
+    for col in self.col_setup:
+      if col not in df_.columns.tolist():
+        df_[col] = np.nan
+
+    df_ = df_[self.col_setup]
+   
+    return df_
 
   def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, client_name=None, region='HK'):
 
@@ -819,21 +856,13 @@ class RawClaimData():
       temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
     elif insurer == 'Bupa':
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region)
-    else:
+    elif insurer != None:
+      temp_df = self.__other_format(raw_claim_path, insurer, password, policy_start_date, client_name, region)
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
+    else:
       temp_df = self.__consol_raw_claim(raw_claim_path)
 
-    # Debug: Check if temp_df is created correctly
-    print("temp_df head:", temp_df.head())
-    print("temp_df columns:", temp_df.columns)
-    print("temp_df shape:", temp_df.shape)
-
-    print("self.df shape b4:", self.df.shape)
-
     self.df = pd.concat([self.df, temp_df], axis=0, ignore_index=True)
-
-    print("self.df shape:", self.df.shape)
-
     self.policy_id_list = self.df['policy_id'].unique().tolist()
     self.policy_list = self.df['policy_number'].unique().tolist()
     self.clinet_name_list = self.df['client_name'].unique().tolist()
@@ -843,7 +872,7 @@ class RawClaimData():
     return self.df
 
   def bupa_shortfall_supplement(self, shortfall_processed_df):
-    # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
+
     print("bupa sf self.df shape:", self.df.shape)
     shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Overall']
     for n00 in np.arange(len(shortfall_panel)):
@@ -874,26 +903,20 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
-    print("preprocessing self.df shape:", self.df.shape)
+
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
-    print("preprocessing aso self.df shape:", self.df.shape)
+
     if rejected_claim == True:
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
       self.df.claim_remark.fillna('no_remark', inplace=True)
-      print(self.df.claim_remark.value_counts())
-      print(self.df.claim_remark.shape)
       
       # Bupa claim remark = Reject Code so it must be rejected
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
-      print(self.df.claim_status.value_counts())
       self.df.claim_status.fillna('no_status', inplace=True)
       self.df = self.df.loc[self.df.claim_status != 'R']
-      # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
 
-    print("preprocessing rejected_claims self.df shape:", self.df.shape)
-      
 
     if smm == True:
       self.df.benefit.fillna('no_benefit', inplace=True)
@@ -1076,7 +1099,6 @@ class RawClaimData():
     p24_op_benefit_df['incurred_per_claim'] = p24_op_benefit_df['incurred_amount'] / p24_op_benefit_df['no_of_claims']
     p24_op_benefit_df['paid_per_claim'] = p24_op_benefit_df['paid_amount'] / p24_op_benefit_df['no_of_claims']
     p24_op_benefit_df['no_of_claimants'] = p24_op_claimant['no_of_claimants']
-    # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
     p24_op_benefit_df.sort_values(by=__p24_sort_col, ascending=__p24_sort_order, inplace=True)
     self.p24_op_benefit = p24_op_benefit_df
@@ -1105,7 +1127,6 @@ class RawClaimData():
     p24_op_class_benefit_df['no_of_claims'] = p24_op_class_no_claims['no_of_claims']
     p24_op_class_benefit_df['incurred_per_claim'] = p24_op_class_benefit_df['incurred_amount'] / p24_op_class_benefit_df['no_of_claims']
     p24_op_class_benefit_df['paid_per_claim'] = p24_op_class_benefit_df['paid_amount'] / p24_op_class_benefit_df['no_of_claims']
-    # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_class_benefit_df = p24_op_class_benefit_df.unstack().stack(dropna=False)
     p24_op_class_benefit_df.sort_values(by=__p24a_sort_col, ascending=__p24a_sort_order, inplace=True)
     self.p24a_op_class_benefit = p24_op_class_benefit_df
@@ -1134,8 +1155,6 @@ class RawClaimData():
     p24_dent_benefit_df['no_of_claims'] = p24_dent_no_claims['no_of_claims']
     p24_dent_benefit_df['incurred_per_claim'] = p24_dent_benefit_df['incurred_amount'] / p24_dent_benefit_df['no_of_claims']
     p24_dent_benefit_df['paid_per_claim'] = p24_dent_benefit_df['paid_amount'] / p24_dent_benefit_df['no_of_claims']
-    # p24_dent_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
-    # print(p24_dent_benefit_df)
     p24_dent_benefit_df = p24_dent_benefit_df.unstack().stack(dropna=False)
     if len(p24_dent_benefit_df) > 0:
       p24_dent_benefit_df.sort_values(by=__p24d_sort_col, ascending=__p24d_sort_order, inplace=True)
@@ -1164,8 +1183,6 @@ class RawClaimData():
     p24_wellness_benefit_df['no_of_claims'] = p24_wellness_no_claims['no_of_claims']
     p24_wellness_benefit_df['incurred_per_claim'] = p24_wellness_benefit_df['incurred_amount'] / p24_wellness_benefit_df['no_of_claims']
     p24_wellness_benefit_df['paid_per_claim'] = p24_wellness_benefit_df['paid_amount'] / p24_wellness_benefit_df['no_of_claims']
-    # p24_dent_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
-    # print(p24_dent_benefit_df)
     p24_wellness_benefit_df = p24_wellness_benefit_df.unstack().stack(dropna=False)
     if len(p24_wellness_benefit_df) > 0:
       p24_wellness_benefit_df.sort_values(by=__p24w_sort_col, ascending=__p24w_sort_order, inplace=True)
@@ -1194,8 +1211,6 @@ class RawClaimData():
     p24_class_wellness_benefit_df['no_of_claims'] = p24_class_wellness_no_claims['no_of_claims']
     p24_class_wellness_benefit_df['incurred_per_claim'] = p24_class_wellness_benefit_df['incurred_amount'] / p24_class_wellness_benefit_df['no_of_claims']
     p24_class_wellness_benefit_df['paid_per_claim'] = p24_class_wellness_benefit_df['paid_amount'] / p24_class_wellness_benefit_df['no_of_claims']
-    # p24_dent_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
-    # print(p24_dent_benefit_df)
     p24_class_wellness_benefit_df = p24_class_wellness_benefit_df.unstack().stack(dropna=False)
     if len(p24_class_wellness_benefit_df) > 0:
       p24_class_wellness_benefit_df.sort_values(by=__p24wc_sort_col, ascending=__p24wc_sort_order, inplace=True)
@@ -1246,58 +1261,6 @@ class RawClaimData():
     self.p26_op_panel = p26_op_panel_df
     self.p26 = p26_op_panel_df
     return p26_op_panel_df
-
-  # def mcr_p27_class_dep_op_benefit(self, by=None):
-  #   if by == None:
-  #     __p27_df_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']
-  #     __p27_group_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit']
-  #     __p27_claims_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']
-  #     __p27_sort_col = ['policy_number', 'year', 'class', 'dep_type', 'paid_amount']
-  #     __p27_sort_order = [True, True, True, True, False]
-  #   else: 
-  #     __p27_df_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']
-  #     __p27_group_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit']
-  #     __p27_claims_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit', 'incur_date']
-  #     __p27_sort_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'paid_amount']
-  #     __p27_sort_order = [True, True] + len(by) * [True] + [True, True, False]
-
-  #   self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-  #   p27_df = self.mcr_df[__p27_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic') & (self.mcr_df['benefit'].str.contains('DX|PM', case=True) == False)].groupby(by=__p27_group_col).sum()
-  #   p27_df['usage_ratio'] = p27_df['paid_amount'] / p27_df['incurred_amount']
-  #   p27_df_claims = self.mcr_df[__p27_claims_col].loc[(self.mcr_df['benefit_type'] == 'Clinic') & (self.mcr_df['benefit'].str.contains('DX|PM', case=True) == False)].groupby(by=__p27_group_col).count().rename(columns={'incur_date': 'no_of_claims'})
-  #   p27_df['no_of_claims'] = p27_df_claims['no_of_claims']
-  #   p27_df['incurred_per_claim'] = p27_df['incurred_amount'] / p27_df['no_of_claims']
-  #   p27_df['paid_per_claim'] = p27_df['paid_amount'] / p27_df['no_of_claims']
-  #   p27_df = p27_df.unstack().stack(dropna=False)
-  #   p27_df.sort_values(by=__p27_sort_col, ascending=__p27_sort_order, inplace=True)
-  #   self.p27 = p27_df
-  #   return p27_df
-  
-  # def mcr_p28_class_dep_ip_benefit(self, by=None):
-  #   if by == None:
-  #     __p28_df_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']
-  #     __p28_group_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit']
-  #     __p28_claims_col = ['policy_number', 'year', 'class', 'dep_type', 'benefit', 'incur_date']
-  #     __p28_sort_col = ['policy_number', 'year', 'class', 'dep_type', 'paid_amount']
-  #     __p28_sort_order = [True, True, True, True, False]
-  #   else: 
-  #     __p28_df_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit', 'incurred_amount', 'paid_amount']
-  #     __p28_group_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit']
-  #     __p28_claims_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'benefit', 'incur_date']
-  #     __p28_sort_col = ['policy_number', 'year'] + by + ['class', 'dep_type', 'paid_amount']
-  #     __p28_sort_order = [True, True] + len(by) * [True] + [True, True, False]
-
-  #   self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-  #   p28_df = self.mcr_df[__p28_df_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].groupby(by=__p28_group_col).sum()
-  #   p28_df['usage_ratio'] = p28_df['paid_amount'] / p28_df['incurred_amount']
-  #   p28_df_claims = self.mcr_df[__p28_claims_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].groupby(by=__p28_group_col).count().rename(columns={'incur_date': 'no_of_claims'})
-  #   p28_df['no_of_claims'] = p28_df_claims['no_of_claims']
-  #   p28_df['incurred_per_claim'] = p28_df['incurred_amount'] / p28_df['no_of_claims']
-  #   p28_df['paid_per_claim'] = p28_df['paid_amount'] / p28_df['no_of_claims']
-  #   p28_df = p28_df.unstack().stack(dropna=False)
-  #   p28_df.sort_values(by=__p28_sort_col, ascending=__p28_sort_order, inplace=True)
-  #   self.p28 = p28_df
-  #   return p28_df
   
   def mcr_p18a_top_diag_ip(self, by=None):
     if by == None or 'diagnosis' in by:
@@ -1335,7 +1298,6 @@ class RawClaimData():
     if type(by) is not list and by != None: by = [by]
 
     self.mcr_df = self.df.copy(deep=True)
-    #os.write("mcr self.df shape:", self.df.shape)
     if type(by) is list:
       if 'dep_type' in by:
         self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
@@ -1354,8 +1316,6 @@ class RawClaimData():
     self.mcr_p24_class_wellness_benefit(by)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
     self.mcr_p26_op_panel(by)
-    #self.mcr_p27_class_dep_op_benefit(by)
-    #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
 
     if export == True:
