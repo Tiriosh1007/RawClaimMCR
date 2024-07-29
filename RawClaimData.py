@@ -822,10 +822,15 @@ class RawClaimData():
       temp_df = self.__consol_raw_claim(raw_claim_path)
 
     # Debug: Check if temp_df is created correctly
+    print("temp_df head:", temp_df.head())
     print("temp_df columns:", temp_df.columns)
     print("temp_df shape:", temp_df.shape)
 
+    print("self.df shape b4:", self.df.shape)
+
     self.df = pd.concat([self.df, temp_df.reset_index(drop=True)], axis=0, ignore_index=True)
+
+    print("self.df shape:", self.df.shape)
 
     self.policy_id_list = self.df['policy_id'].unique().tolist()
     self.policy_list = self.df['policy_number'].unique().tolist()
