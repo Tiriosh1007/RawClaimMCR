@@ -877,7 +877,7 @@ class RawClaimData():
     os.write("preprocessing self.df shape:", self.df.shape)
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
-
+    os.write("preprocessing aso self.df shape:", self.df.shape)
     if rejected_claim == True:
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
       self.df.claim_remark.fillna('no_remark', inplace=True)
@@ -886,6 +886,8 @@ class RawClaimData():
       self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
       self.df = self.df.loc[self.df.claim_status != 'R']
       # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
+
+    os.write("preprocessing rejected_claims self.df shape:", self.df.shape)
       
 
     if smm == True:
@@ -895,7 +897,7 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
 
-    return None
+    return
 
   def mcr_p20_policy(self, by=None):
     if by == None:
