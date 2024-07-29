@@ -837,7 +837,6 @@ class RawClaimData():
     self.clinet_name_list = self.df['client_name'].unique().tolist()
     self.benefit_type_list = self.df['benefit_type'].unique().tolist()
     self.benefit_list = self.df['benefit'].unique().tolist()
-    return
 
   def bupa_shortfall_supplement(self, shortfall_processed_df):
     # shortfall_panel = shortfall_processed_df.loc[shortfall_processed_df['panel'] == 'Panel']
@@ -1323,6 +1322,7 @@ class RawClaimData():
     if type(by) is not list and by != None: by = [by]
 
     self.mcr_df = self.df.copy(deep=True)
+    print("mcr self.df shape:", self.df.shape)
     if type(by) is list:
       if 'dep_type' in by:
         self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
