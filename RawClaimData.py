@@ -847,7 +847,7 @@ class RawClaimData():
       self.df.claim_remark.fillna('no_remark', inplace=True)
       # Bupa claim remark = Reject Code so it must be rejected
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
-      self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & (self.df.paid_amount == 0)] = 'R'
+      self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & ((self.df.paid_amount == 0) | (self.df.paid_amount.isna()))] = 'R'
       self.df = self.df.loc[self.df.claim_status != 'R']
       # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
       
@@ -1421,9 +1421,6 @@ class RawClaimData():
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['class', 'dep_type', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim']]
 
-
-    
-    
     self.frequent_analysis = __freq_df
 
     def descriptive_stats(data):
@@ -1451,9 +1448,6 @@ class RawClaimData():
       __temp_df['year'] = y
       __temp_df = __temp_df[order_cols]
       __freq_stat_df = pd.concat([__freq_stat_df, __temp_df], axis=0)
-          
-
-
 
     self.frequent_analysis_stat = __freq_stat_df
 
@@ -1462,13 +1456,11 @@ class RawClaimData():
       output = BytesIO()
       # mcr_filename = 'mcr.xlsx'
       freq_claimant_file = output
-      with pd.ExcelWriter(freq_claimant_file) as writer:
-        self.frequent_analysis.to_excel(writer, sheet_name='Claimant Visits', index=True, merge_cells=False)
-        self.frequent_analysis_stat.to_excel(writer, sheet_name='Claimant Statistics', index=True, merge_cells=False)
-        writer.close()
+      with pd.ExcelWriter(freq_claimant_file) as writer_2:
+        self.frequent_analysis.to_excel(writer_2, sheet_name='Claimant Visits', index=True, merge_cells=False)
+        self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
+        writer_2.close()
       return output.getvalue()
-
-    return __freq_df
 
   def fair_ibnr_estimation(self, months=9):
     __fair_ibnr_df = self.df.copy(deep=True)
