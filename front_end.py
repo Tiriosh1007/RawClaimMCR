@@ -43,7 +43,6 @@ with function_col1:
     st.session_state.dep_type_paid_class = False
     st.session_state.pygwalker = False
     st.session_state.mcr_data = False
-    st.session_state.frequent_claimant = False
     st.session_state.col_management = False
 
 with function_col2:
@@ -271,17 +270,10 @@ if st.session_state.raw_claim == True:
     #                     mime="application/vnd.ms-excel")
     st.write('---')
     st.header('Frequent Claimant Analysis')
-    if 'frequent_claimant' not in st.session_state:
-      st.session_state.frequent_claimant = False
-
-    if st.button('Frequent Claimant Analysis'):
-      st.session_state.frequent_claimant = True
-
-    if st.session_state.frequent_claimant == True:
-      st.download_button('Frequent Claimant Analysis', 
-                          data=raw_.frequent_claimant_analysis(),
-                          file_name="freq_claimant.xlsx",
-                          mime="application/vnd.ms-excel")
+    st.download_button('Frequent Claimant Analysis', 
+                        data=raw_.frequent_claimant_analysis(),
+                        file_name="freq_claimant.xlsx",
+                        mime="application/vnd.ms-excel")
 
     st.write('---')
     st.header('Fair IBNR estimation based on historical data')
