@@ -242,12 +242,6 @@ if st.session_state.raw_claim == True:
     # Write files to in-memory strings using BytesIO
     # See: https://xlsxwriter.readthedocs.io/workbook.html?highlight=BytesIO#constructor
 
-    if 'mcr_data' not in st.session_state:
-      st.session_state.mcr_data = False
-
-    if st.button('MCR and Raw Claim Generate'):
-      st.session_state.mcr_data = True
-
    
 
     data_download_col1, data_download_col2, data_download_col3 = st.columns([1,1,1])
