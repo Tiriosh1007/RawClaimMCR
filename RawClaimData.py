@@ -1203,6 +1203,34 @@ class RawClaimData():
     self.p26_op_panel = p26_op_panel_df
     self.p26 = p26_op_panel_df
     return p26_op_panel_df
+  
+  def mcr_p26_op_class_panel(self, by=None):
+    if by == None:
+      __p26_df_col = ['policy_number', 'year', 'class', 'panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_group_col = ['policy_number', 'year', 'class', 'panel', 'benefit']
+      __p26_claims_col = ['policy_number', 'year', 'class', 'panel', 'benefit', 'incur_date']
+      __p26_sort_col = ['policy_number', 'year', 'class', 'panel', 'paid_amount']
+      __p26_sort_order = [True, True, True, True, False]
+    else: 
+      __p26_df_col = ['policy_number', 'year', 'class'] + by + ['panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_group_col = ['policy_number', 'year', 'class'] + by + ['panel', 'benefit']
+      __p26_claims_col = ['policy_number', 'year', 'class'] + by + ['panel', 'benefit', 'incur_date']
+      __p26_sort_col = ['policy_number', 'year', 'class'] + by + ['panel', 'paid_amount']
+      __p26_sort_order = [True, True, True] + len(by) * [True] + [True, False]
+    
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p26_op_class_panel_df = self.mcr_df[__p26_df_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).sum()
+    p26_op_class_panel_df['usage_ratio'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['incurred_amount']
+    p26_op_class_no_claims = self.mcr_df[__p26_claims_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p26_op_class_panel_df['no_of_claims'] = p26_op_class_no_claims['no_of_claims']
+    p26_op_class_panel_df['incurred_per_claim'] = p26_op_class_panel_df['incurred_amount'] / p26_op_class_panel_df['no_of_claims']
+    p26_op_class_panel_df['paid_per_claim'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['no_of_claims']
+    p26_op_class_panel_df = p26_op_class_panel_df.unstack().stack(dropna=False)
+    if len(p26_op_class_panel_df.index) > 0:
+      p26_op_class_panel_df.sort_values(by=__p26_sort_col, ascending=__p26_sort_order, inplace=True)
+    self.p26_op_class_panel = p26_op_class_panel_df
+
+    return p26_op_class_panel_df
 
   # def mcr_p27_class_dep_op_benefit(self, by=None):
   #   if by == None:
@@ -1284,6 +1312,35 @@ class RawClaimData():
     p18a_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
     self.p18a = p18a_df
     return p18a_df
+  
+  def mcr_p18b_top_diag_op(self, by=None):
+    if by == None or 'diagnosis' in by:
+      __p18_df_col = ['policy_number', 'year', 'diagnosis', 'incurred_amount', 'paid_amount']
+      __p18_group_col = ['policy_number', 'year', 'diagnosis']
+      __p18_claimants_col = ['policy_number', 'year', 'diagnosis', 'claimant']
+      __p18_claims_col = ['policy_number', 'year', 'diagnosis', 'claim_id']
+      __p18_sort_col = ['policy_number', 'year', 'paid_amount']
+      __p18_sort_order = [True, True, False]
+    else: 
+      __p18_df_col = ['policy_number', 'year'] + by + ['diagnosis', 'incurred_amount', 'paid_amount']
+      __p18_group_col = ['policy_number', 'year'] + by + ['diagnosis']
+      __p18_claimants_col = ['policy_number', 'year'] + by + ['diagnosis', 'claimant']
+      __p18_claims_col = ['policy_number', 'year'] + by + ['diagnosis', 'claim_id']
+      __p18_sort_col = ['policy_number', 'year'] + by + ['paid_amount']
+      __p18_sort_order = [True, True] + len(by) * [True] + [False]
+
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p18b_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].groupby(by=__p18_group_col).sum()
+    p18b_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
+    p18b_df['no_of_claimants'] = p18b_df_claimant['no_of_claimants']
+    p18b_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
+    p18b_df['no_of_claims'] = p18b_df_claims['no_of_claims']
+    p18b_df = p18b_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
+    # p18a_df = p18a_df.unstack().stack(dropna=False)
+    p18b_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+    self.p18b = p18b_df
+    return p18b_df
 
 
 
@@ -1310,9 +1367,11 @@ class RawClaimData():
     self.mcr_p24_class_wellness_benefit(by)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
     self.mcr_p26_op_panel(by)
+    self.mcr_p26_op_class_panel(by)
     #self.mcr_p27_class_dep_op_benefit(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
+    self.mcr_p18b_top_diag_op(by)
 
     if export == True:
       from io import BytesIO
@@ -1334,9 +1393,11 @@ class RawClaimData():
         self.p24_class_wellness_benefit.to_excel(writer, sheet_name='P.24wc_Class_Wellness', index=True, merge_cells=False)
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
+        self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
         #self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
+        self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
         writer.close()
         # processed_data = output.getvalue()
         return output.getvalue()
