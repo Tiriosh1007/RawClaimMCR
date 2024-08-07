@@ -98,6 +98,8 @@ class RawClaimData():
         # 'panel', deduce from benefit code
         'AFFILIATED CO': 'suboffice',
         # 'region',
+        'AGE': 'age',
+        'DIAGNOSIS': 'diagnosis',
 
         'DATE OF BIRTH': 'birth_date'
     }
@@ -134,6 +136,8 @@ class RawClaimData():
         # 'panel', deduce from benefit code
         'AFFILIATED CO': str,
         # 'region',
+        'AGE': 'age',
+        'DIAGNOSIS': 'diagnosis',
 
         'DATE OF BIRTH': str
     }
@@ -172,6 +176,8 @@ class RawClaimData():
         # 'panel', deduce from benefit code
         'AFFILIATED CO': 'suboffice',
         # 'region',
+        'AGE': 'age',
+        'DIAGNOSIS': 'diagnosis',
 
         'DATE OF BIRTH': 'birth_date'
     }
