@@ -136,8 +136,8 @@ class RawClaimData():
         # 'panel', deduce from benefit code
         'AFFILIATED CO': str,
         # 'region',
-        'AGE': 'age',
-        'DIAGNOSIS': 'diagnosis',
+        'AGE': int,
+        'DIAGNOSIS': str,
 
         'DATE OF BIRTH': str
     }
@@ -214,6 +214,8 @@ class RawClaimData():
         # 'panel', deduce from benefit code
         'AFFILIATED CO': str,
         # 'region',
+        'AGE': int,
+        'DIAGNOSIS': str,
 
         'DATE OF BIRTH': str
     }
@@ -272,7 +274,7 @@ class RawClaimData():
           df_c['cert_true_copy'] = np.nan
           if 'birth_date' in df_c.columns.tolist() and df_c['birth_date'].values[0] != np.nan:
             df_c['age'] = ((df_c['policy_start_date'] - df_c['birth_date']).dt.days/365.25).astype(int)
-          else:
+          elif df_c['age'].values[0] == np.nan:
             df_c['age'] = np.nan
           df_c['member_status'] = np.nan
           df_c['benefit_type'] = 'Clinic'
@@ -312,7 +314,7 @@ class RawClaimData():
           df_d['cert_true_copy'] = np.nan
           if 'birth_date' in df_d.columns.tolist() and df_d['birth_date'].values[0] != np.nan:
             df_d['age'] = ((df_d['policy_start_date'] - df_d['birth_date']).dt.days/365.25).astype(int)
-          else:
+          elif df_d['age'].values[0] == np.nan:
             df_d['age'] = np.nan
           df_d['member_status'] = np.nan
           df_d['benefit_type'] = 'Dental'
@@ -353,7 +355,7 @@ class RawClaimData():
           df_h['cert_true_copy'] = np.nan
           if 'birth_date' in df_h.columns.tolist() and df_h['birth_date'].values[0] != np.nan:
             df_h['age'] = ((df_h['policy_start_date'] - df_h['birth_date']).dt.days/365.25).astype(int)
-          else:
+          elif df_h['age'].values[0] == np.nan:
             df_d['age'] = np.nan
           df_h['member_status'] = np.nan
           df_h['benefit_type'] = 'Hospital'
