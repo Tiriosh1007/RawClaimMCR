@@ -272,7 +272,9 @@ class RawClaimData():
           df_c['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           df_c['discharge_date'] = df_c['incur_date']
           df_c['cert_true_copy'] = np.nan
-          if 'birth_date' in df_c.columns.tolist() and df_c['birth_date'].values[0] != np.nan:
+          if 'age' in df_c.columns.tolist() and df_c['age'].values[0] != np.nan:
+            df_c['age'] = df_c['age'].astype(str)
+          elif 'birth_date' in df_c.columns.tolist() and df_c['birth_date'].values[0] != np.nan:
             df_c['age'] = ((df_c['policy_start_date'] - df_c['birth_date']).dt.days/365.25).astype(int)
           elif df_c['age'].values[0] == np.nan:
             df_c['age'] = np.nan
