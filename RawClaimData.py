@@ -678,7 +678,13 @@ class RawClaimData():
 
     for col in date_cols:
       if col in t_df.columns.tolist():
-        t_df[col] = pd.to_datetime(t_df[col], format='ISO8601')
+        try:
+          t_df[col] = pd.to_datetime(t_df[col], format='ISO8601')
+        except:
+          try:
+            t_df[col] = pd.to_datetime(t_df[col], format='%Y%m%d')
+          except:
+            t_df[col] = pd.to_datetime(t_df[col])
       else:
         t_df[col] = np.nan
 
