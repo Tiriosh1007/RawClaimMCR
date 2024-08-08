@@ -684,7 +684,10 @@ class RawClaimData():
           try:
             t_df[col] = pd.to_datetime(t_df[col], format='%Y%m%d')
           except:
-            t_df[col] = pd.to_datetime(t_df[col])
+            try:
+              t_df[col] = pd.to_datetime(t_df[col], format='%y-%b')
+            except:
+              t_df[col] = pd.to_datetime(t_df[col])
       else:
         t_df[col] = np.nan
 
