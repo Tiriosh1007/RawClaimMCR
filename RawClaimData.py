@@ -687,6 +687,7 @@ class RawClaimData():
           except:
             try:
               t_df[col] = pd.to_datetime(t_df[col], format='%y-%b')
+            except:
               try:
                 t_df[col] = pd.to_datetime(t_df[col], format='%Y-%m-%d')
               except:
