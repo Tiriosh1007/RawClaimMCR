@@ -678,6 +678,7 @@ class RawClaimData():
 
     for col in date_cols:
       if col in t_df.columns.tolist():
+        print(t_df[col].values[0])
         try:
           t_df[col] = pd.to_datetime(t_df[col], format='ISO8601')
         except:
