@@ -853,9 +853,9 @@ class RawClaimData():
     t_df['region'] = region
     t_df['class'] = t_df['level_code'].str.split(' ').str[-1]
     t_df['benefit_type'] = t_df['level_code'].str.split(' ').str[0]
-    t_df['benefit_type'] = t_df['benefit_type'].str.replace('H', 'Hospital')
-    t_df['benefit_type'] = t_df['benefit_type'].str.replace('O', 'Clinic')
-    t_df['benefit_type'] = t_df['benefit_type'].str.replace('D', 'Dental')
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('H')] ='Hospital'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('O')] = 'Clinic'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('D')] = 'Dental'
     t_df['suboffice'] = "00"
     t_df['dep_type'].fillna('EE', inplace=True)
     t_df['dep_type'].loc[t_df['dep_type'].str.contains('C', case=False)] = 'CH'
