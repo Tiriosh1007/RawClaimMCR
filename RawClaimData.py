@@ -845,7 +845,8 @@ class RawClaimData():
     t_df['insurer'] = 'Blue Cross'
     t_df['client_name'] = client_name
     t_df['policy_start_date'] = pd.to_datetime(t_df['policy_start_date'])
-    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{pd.to_datetime(policy_start_date, format='%Y%m%d'):%Y%m}'
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
     t_df['claim_status'] = np.nan
     t_df['claim_status'].loc['claim_remark' != ''] = 'Rejected'
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
