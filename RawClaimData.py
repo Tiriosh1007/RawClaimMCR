@@ -848,7 +848,7 @@ class RawClaimData():
     _start_date = t_df['policy_start_date'].iloc[0]
     t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
     t_df['claim_status'] = np.nan
-    t_df['claim_status'].loc[t_df['claim_remark'] != ''] = 'Rejected'
+    t_df['claim_status'].loc[t_df['claim_remark'].isna()] = 'Rejected'
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
     t_df['region'] = region
     t_df['class'] = t_df['level_code'].str.split(' ').str[-1]
