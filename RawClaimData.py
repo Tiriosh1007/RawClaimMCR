@@ -864,7 +864,11 @@ class RawClaimData():
     bluecross_benefit = self.benefit_index[['gum_benefit', 'blue_cross_benefit']]
     t_df = pd.merge(left=t_df, right=bluecross_benefit, left_on='benefit', right_on='blue_cross_benefit', how='left')
     t_df.benefit = t_df.gum_benefit
-    t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+
 
 
     for col in self.col_setup:
