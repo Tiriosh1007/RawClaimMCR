@@ -774,6 +774,111 @@ class RawClaimData():
 
     return t_df
   
+  def blue_cross_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_bluecross_raw = {
+          'INPUT CLAIM TYPE': str,
+          'POLICY NO.': str,
+          'MEMBER': str,
+          'DEPENDANT CODE': str,
+          'LEVEL CODE': str,
+          'BENEFIT NAME': str,
+          'CLAIM DATE': str,
+          'CLAIM AMOUNT': float,
+          'PAID AMOUNT': float,
+          'REJECT REASON': str,
+      }
+      bluecross_rename_col = {
+        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+        'POLICY NO.': 'policy_number',
+        # 'insurer',
+        # 'client_name',
+        # 'policy_start_date',
+        # 'policy_end_date',
+        # 'claim_id',
+        'CLAIM DATE': 'incur_date',
+        # 'discharge_date',
+        # 'submission_date',
+        # 'pay_date',
+        # 'claim_status',
+        'REJECT REASON': 'claim_remark',
+        # 'cert_true_copy',
+        'MEMBER': 'claimant',
+        # 'gender',
+        # 'age',
+        'DEPENDANT CODE': 'dep_type',
+        #'class',
+        # 'member_status',
+        # 'benefit_type',
+        'BENEFIT NAME': 'benefit',
+        # 'diagnosis',
+        # 'procedure',
+        # 'hospital_name',
+        # 'chronic',
+        # 'currency',
+        'CLAIM AMOUNT': 'incurred_amount',
+        'PAID AMOUNT': 'paid_amount',
+        'INPUT CLAIM TYPE': 'panel',
+        # 'suboffice',
+        # 'region',
+
+        'LEVEL CODE': 'level_code',
+      }
+      date_cols = ['incur_date']
+    
+    
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_bluecross_raw)
+    t_df.rename(columns=bluecross_rename_col, inplace=True)
+
+    for date_col in date_cols:
+      if date_col in t_df.columns.tolist():
+        t_df[date_col] = pd.to_datetime(t_df[date_col], format='%Y%m%d')
+      else:
+        t_df[date_col] = np.nan
+
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'Blue Cross'
+    t_df['client_name'] = client_name
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{t_df.policy_start_date.values[0]:%Y%m}'
+    t_df['claim_status'] = np.nan
+    t_df['claim_status'].loc['claim_remark' != ''] = 'Rejected'
+    t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
+    t_df['region'] = region
+    t_df['class'] = t_df['level_code'].str.split(' ')[-1]
+    t_df['benefit_type'] = t_df['level_code'].str.split(' ')[0]
+    t_df['benefit_type'] = t_df['benefit_type'].str.replace('H', 'Hospital')
+    t_df['benefit_type'] = t_df['benefit_type'].str.replace('O', 'Clinic')
+    t_df['benefit_type'] = t_df['benefit_type'].str.replace('D', 'Dental')
+    t_df['suboffice'] = "00"
+    t_df['dep_type'].fillna('EE', inplace=True)
+    t_df['dep_type'].loc[t_df['dep_type'].str.contains('C', case=False)] = 'CH'
+    t_df['dep_type'].loc[t_df['dep_type'].str.contains('H|W', case=False)] = 'SP'
+
+    bluecross_benefit = self.benefit_index[['gum_benefit', 'blue_cross_benefit']]
+    t_df = pd.merge(left=t_df, right=bluecross_benefit, left_on='benefit', right_on='blue_cross_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
+    t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
+    
+
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+
+    return t_df
+      
+
+
+
+
+
+
+
 
   def __consol_raw_claim(self, raw_claim_path):
     dtype_con_raw = {
