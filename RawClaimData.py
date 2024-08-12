@@ -1704,11 +1704,10 @@ class RawClaimData():
     __freq_df = __freq_df.unstack()
     __dep.index = __dep['claimant'].values.tolist()
     __freq_df.columns = __freq_df.columns.droplevel()
-    t_l = []
+
     for col in total_visit_col:
-      if col in __freq_df.columns:
-        t_l.append(col)
-    total_visit_col = t_l
+      if col not in __freq_df.columns:
+        __freq_df[col] = np.nan
     __freq_df['total_claims'] = __freq_df[total_visit_col].sum(axis=1)
     # __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=False)
     # print(__dep)
