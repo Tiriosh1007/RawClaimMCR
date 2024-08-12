@@ -851,8 +851,8 @@ class RawClaimData():
     t_df['claim_status'].loc[t_df['claim_remark'] != ''] = 'Rejected'
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
     t_df['region'] = region
-    t_df['class'] = t_df['level_code'].str.split(' ')[-1]
-    t_df['benefit_type'] = t_df['level_code'].str.split(' ')[0]
+    t_df['class'] = t_df['level_code'].str.split(' ').str[-1]
+    t_df['benefit_type'] = t_df['level_code'].str.split(' ').str[0]
     t_df['benefit_type'] = t_df['benefit_type'].str.replace('H', 'Hospital')
     t_df['benefit_type'] = t_df['benefit_type'].str.replace('O', 'Clinic')
     t_df['benefit_type'] = t_df['benefit_type'].str.replace('D', 'Dental')
