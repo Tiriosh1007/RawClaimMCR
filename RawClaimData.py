@@ -1184,6 +1184,7 @@ class RawClaimData():
     p24_op_benefit_df['no_of_claimants'] = p24_op_claimant['no_of_claimants']
     # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
+    print(p24_op_benefit_df.paid_amount.head(10))
     p24_op_benefit_df.sort_values(by=__p24_sort_col, ascending=__p24_sort_order, inplace=True)
     self.p24_op_benefit = p24_op_benefit_df
     self.p24 = p24_op_benefit_df
