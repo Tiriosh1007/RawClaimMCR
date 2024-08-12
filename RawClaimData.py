@@ -44,6 +44,8 @@ class RawClaimData():
         'benefit_type',
         'benefit',
         'diagnosis',
+        'procedure',
+        'hospital_name',
         'chronic',
         'currency',
         'incurred_amount',
@@ -426,6 +428,8 @@ class RawClaimData():
           'Benefit Code Description': 'benefit',
           'Diagnosis description': 'diagnosis',
           'Diagnosis': 'diagnosis',
+          'Procedure Description': 'procedure',
+          'Hospital Name': 'hospital_name',
           'Chronic flag': 'chronic',
           'Diagnosis Chronic Flag': 'cheonic',
           # 'currency',
@@ -433,6 +437,7 @@ class RawClaimData():
           'Adjusted': 'paid_amount',
           'Network Category': 'panel',
           'Network': 'panel',
+          
           # 'suboffice', # deduced from contract number columns last 2 digits
           # 'region',
 
@@ -472,6 +477,8 @@ class RawClaimData():
           'Benefit Code Description': str,
           'Diagnosis description': str,
           'Diagnosis': str,
+          'Procedure Description': str,
+          'Hospital Name': str,
           'Chronic flag': str,
           'Diagnosis Chronic Flag': str,
           # 'currency',
