@@ -863,7 +863,7 @@ class RawClaimData():
     t_df = pd.merge(left=t_df, right=bluecross_benefit, left_on='benefit', right_on='blue_cross_benefit', how='left')
     t_df.benefit = t_df.gum_benefit
     t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
-    
+
 
     for col in self.col_setup:
       if col not in t_df.columns.tolist():
@@ -938,6 +938,8 @@ class RawClaimData():
       temp_df = self.__aia_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'Bupa':
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'Blue Cross':
+      temp_df = self.blue_cross_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
