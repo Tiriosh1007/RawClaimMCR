@@ -1548,6 +1548,11 @@ class RawClaimData():
 
     self.frequent_analysis_stat = __freq_stat_df
 
+
+    self.ip_usage = self.df[['policy_id', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'paid_amount']] \
+    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .groupby(by=['policy_id', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack().stack(dropna=False)
+
     if export == True:
       from io import BytesIO
       output = BytesIO()
@@ -1556,6 +1561,7 @@ class RawClaimData():
       with pd.ExcelWriter(freq_claimant_file) as writer_2:
         self.frequent_analysis.to_excel(writer_2, sheet_name='Claimant Visits', index=True, merge_cells=False)
         self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
+        self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=False, merge_cells=False)
         writer_2.close()
       return output.getvalue()
 
