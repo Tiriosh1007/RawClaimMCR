@@ -131,7 +131,7 @@ if st.session_state.raw_claim == True:
   st.write("""
   Please input the configurations:
 
-  1. Insurers: Bupa/ AIA/ AXA. If it is consolidated raw claim please leave blank.
+  1. Insurers: Bupa/ AIA/ AXA/ Blue Cross/ AXA Single. If it is consolidated raw claim please leave blank.
 
   2. Password: If no password please leave blank.
 

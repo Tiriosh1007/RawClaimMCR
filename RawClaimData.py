@@ -877,9 +877,102 @@ class RawClaimData():
     t_df = t_df[self.col_setup]
 
     return t_df
-      
+  
+  def axa_raw_single(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_axa_raw = {
+          'POLICY_HOLDER_NO': str,
+          'CERT_NO': str,
+          'PATIENT': str,
+          'DEP_NO': str,
+          'ROLE': str,
+          'AGE': int,
+          'GENDER': str,
+          'CLAIM_NO': str,
+          'ADMISSION/CONSULTATION_DATE': str,
+          'DISCHARGE_DATE': str,
+          'PAYMENT_DATE': str,
+          'HOSPITAL': str,
+          'DIAGNOSIS': str,
+          'PROCEDURE': str,
+          'STATUS': str,
+          'NETWORK': str,
+          'BENEFIT_CODE': str,
+          'CURRENCY': str,
+          'CLAIMS_AMOUNT(HKD)': float,
+          'CLAIM_PAID_AMOUNT(HKD)': float,
+          'CLASS': str,
+          'AFFILIATED_CODE': str,
+          'REMARK_1': str,
+          'CLAIM_TYPE': str,
+      }
+      axa_rename_col = {
+        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+        'POLICY_HOLDER_NO': 'policy_number',
+        # 'insurer',
+        # 'client_name',
+        # 'policy_start_date',
+        # 'policy_end_date',
+        'CLAIM_NO': 'claim_id',
+        'ADMISSION/CONSULTATION_DATE': 'incur_date',
+        'DISCHARGE_DATE': 'discharge_date',
+        # 'submission_date',
+        'PAYMENT_DATE': 'pay_date',
+        'STATUS': 'claim_status',
+        'REMARK_1': 'claim_remark',
+        # 'cert_true_copy',
+        'CERT_NO': 'claimant',
+        'GENDER': 'gender',
+        'AGE': 'age',
+        'ROLE': 'dep_type',
+        'CLASS': 'class',
+        # 'member_status',
+        'CLAIM_TYPE': 'benefit_type',
+        'BENEFIT_CODE': 'benefit',
+        'DIAGNOSIS': 'diagnosis',
+        'PROCEDURE': 'procedure',
+        'HOSPITAL': 'hospital_name',
+        # 'chronic',
+        'CURRENCY': 'currency',
+        'CLAIMS_AMOUNT(HKD)': 'incurred_amount',
+        'CLAIM_PAID_AMOUNT(HKD)': 'paid_amount',
+        'NETWORK': 'panel',
+        'AFFILIATED_CODE': 'suboffice',
+        # 'region',
+      }
+    date_cols = ['incur_date', 'discharge_date', 'pay_date']
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_axa_raw)
+    t_df.rename(columns=axa_rename_col, inplace=True)
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = pd.to_datetime(t_df[col])
+      else:
+        t_df[col] = np.nan
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'AXA'
+    t_df['client_name'] = client_name
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
+    t_df['dep_type'].replace({'EMPLOYEE': 'EE', 'SPOUSE': 'SP', 'CHILD': 'CH'}, inplace=True)
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('inp', case=False)] = 'Hospital'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('out', case=False)] = 'Clinic'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('den', case=False)] = 'Dental'
 
+    axa_benefit = self.benefit_index[['gum_benefit', 'axa_benefit_code']]
+    t_df = pd.merge(left=t_df, right=axa_benefit, left_on='benefit', right_on='axa_benefit_code', how='left')
+    t_df.benefit = t_df.gum_benefit
+    t_df['region'] = region
 
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+
+    return t_df
 
 
 
@@ -946,6 +1039,8 @@ class RawClaimData():
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'Blue Cross':
       temp_df = self.blue_cross_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'AXA Single':
+      temp_df = self.axa_raw_single(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
