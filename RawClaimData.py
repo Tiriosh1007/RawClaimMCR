@@ -271,7 +271,8 @@ class RawClaimData():
           df_c['insurer'] = 'AXA'
           df_c['client_name'] = client_name
           df_c['policy_start_date'] = start_d_
-          df_c['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
+          df_c['policy_end_date'] = start_d_ + pd.DateOffset(years=1)
+          # df_c['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           df_c['discharge_date'] = df_c['incur_date']
           df_c['cert_true_copy'] = np.nan
           if df_c['age'].values[0] != np.nan:
@@ -313,7 +314,8 @@ class RawClaimData():
           df_d['insurer'] = 'AXA'
           df_d['client_name'] = client_name
           df_d['policy_start_date'] = start_d_
-          df_d['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
+          df_d['policy_end_date'] = start_d_ + pd.DateOffset(years=1)
+          #df_d['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           df_d['discharge_date'] = df_d['incur_date']
           df_d['cert_true_copy'] = np.nan
           if df_d['age'].values[0] != np.nan:
@@ -356,7 +358,8 @@ class RawClaimData():
           df_h['insurer'] = 'AXA'
           df_h['client_name'] = client_name
           df_h['policy_start_date'] = start_d_
-          df_h['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
+          df_h['policy_end_date'] = start_d_ + pd.DateOffset(years=1)
+          # df_h['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           # df_h['discharge_date'] = df_h['incur_date']
           df_h['cert_true_copy'] = np.nan
 
@@ -974,6 +977,83 @@ class RawClaimData():
 
     return t_df
 
+
+  def lfh_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_lfh_raw = {
+          'policy_number': str,
+          # 'Policy Holder': str,
+          # 'Dependant': str,
+          # 'Relationship
+          'Claim no': str,
+          'Cert no': str,
+          'Benefit code': str,
+          'Benefit Name': str,
+          'Plan': str,
+          'Claim date': str,
+          'Claim amt': float,
+          'Paid date': str,
+          'Paid amt': float,
+      }
+      lfh_rename_col = {
+        # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
+        #'Claim no': 'policy_number',
+        #'insurer',
+        #'client_name',
+        #'policy_start_date',
+        #'policy_end_date',
+        'Claim no': 'claim_id',
+        'Claim date': 'incur_date',
+        # 'discharge_date',
+        # 'submission_date',
+        'Paid date': 'pay_date',
+        #'claim_status',
+        #'claim_remark',
+        #'cert_true_copy',
+        'Cert no': 'claimant',
+        #'gender',
+        #'age',
+        #'dep_type',
+        'Plan': 'class',
+        #'member_status',
+        'Benefit Name': 'benefit_type',
+        #'benefit',
+        #'diagnosis',
+        #'procedure',
+        #'hospital_name',
+        #'chronic',
+        #'currency',
+        'Claim amt': 'incurred_amount',
+        'Paid amt': 'paid_amount',
+        # 'panel',
+        # 'suboffice',
+        # 'region',
+      }
+    date_cols = ['incur_date', 'pay_date']
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_lfh_raw)
+    t_df.rename(columns=lfh_rename_col, inplace=True)
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = pd.to_datetime(t_df[col])
+      else:
+        t_df[col] = np.nan
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'LFH'
+    t_df['client_name'] = client_name
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
+    ##############################################################################################################
+    # Since LFH does not have the dep_type, we will assume that all the claims are EE
+    # LFH does not have the benefit, we will assume that all the benefits are the same as the benefit_type
+    ##############################################################################################################
+    t_df['dep_type'] = 'EE'
+    t_df['benefit'] = t_df['benefit_type']
+    t_df['region'] = region
+    t_df['suboffice'] = '00'
 
 
 
