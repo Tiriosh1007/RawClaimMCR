@@ -856,13 +856,14 @@ class RawClaimData():
     t_df['region'] = region
     t_df['class'] = t_df['level_code'].str.split(' ').str[-1]
     t_df['benefit_type'] = t_df['level_code'].str.split(' ').str[0]
-    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('H', case=False)] = 'Hospital'
-    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('O', case=False)] = 'Clinic'
-    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('D', case=False)] = 'Dental'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HS', case=True)] = 'Hospital'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('OP', case=True)] = 'Clinic'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('DENT', case=True)] = 'Dental'
     t_df['suboffice'] = "00"
     t_df['dep_type'].fillna('EE', inplace=True)
-    t_df['dep_type'].loc[t_df['dep_type'].str.contains('C', case=False)] = 'CH'
     t_df['dep_type'].loc[t_df['dep_type'].str.contains('H|W', case=False)] = 'SP'
+    t_df['dep_type'].loc[t_df['dep_type'].str.contains('C', case=False)] = 'CH'
+    
 
     bluecross_benefit = self.benefit_index[['gum_benefit', 'blue_cross_benefit']]
     t_df = pd.merge(left=t_df, right=bluecross_benefit, left_on='benefit', right_on='blue_cross_benefit', how='left')
