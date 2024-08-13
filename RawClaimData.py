@@ -854,7 +854,7 @@ class RawClaimData():
     t_df['claim_status'].loc[t_df['claim_remark'].isna() == False] = 'R'
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
     t_df['region'] = region
-    t_df['class'] = t_df['level_code'].str.split(' ').str[-1]
+    t_df['class'] = t_df['level_code'].str.split(' ').str[-1].str[0]
     t_df['benefit_type'] = t_df['level_code'].str.split(' ').str[0]
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HS', case=True)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('OP', case=True)] = 'Clinic'
