@@ -1372,7 +1372,8 @@ class RawClaimData():
     p24_op_benefit_df['no_of_claimants'] = p24_op_claimant['no_of_claimants']
     # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
-    p24_op_benefit_df.sort_values(by=__p24_sort_col, ascending=__p24_sort_order, inplace=True)
+    if len(p24_op_benefit_df) > 0:
+      p24_op_benefit_df.sort_values(by=__p24_sort_col, ascending=__p24_sort_order, inplace=True)
     self.p24_op_benefit = p24_op_benefit_df
     self.p24 = p24_op_benefit_df
     return p24_op_benefit_df
@@ -1401,7 +1402,8 @@ class RawClaimData():
     p24_op_class_benefit_df['paid_per_claim'] = p24_op_class_benefit_df['paid_amount'] / p24_op_class_benefit_df['no_of_claims']
     # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_class_benefit_df = p24_op_class_benefit_df.unstack().stack(dropna=False)
-    p24_op_class_benefit_df.sort_values(by=__p24a_sort_col, ascending=__p24a_sort_order, inplace=True)
+    if len(p24_op_class_benefit_df) > 0:
+      p24_op_class_benefit_df.sort_values(by=__p24a_sort_col, ascending=__p24a_sort_order, inplace=True)
     self.p24a_op_class_benefit = p24_op_class_benefit_df
     self.p24a = p24_op_class_benefit_df
     return p24_op_class_benefit_df
@@ -1646,7 +1648,8 @@ class RawClaimData():
     p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
     p18a_df = p18a_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
     # p18a_df = p18a_df.unstack().stack(dropna=False)
-    p18a_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+    if len(p18a_df) > 0:
+      p18a_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
     self.p18a = p18a_df
     return p18a_df
   
@@ -1675,7 +1678,8 @@ class RawClaimData():
     p18b_df['no_of_claims'] = p18b_df_claims['no_of_claims']
     p18b_df = p18b_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
     # p18a_df = p18a_df.unstack().stack(dropna=False)
-    p18b_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+    if len(p18b_df) > 0:
+      p18b_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
     self.p18b = p18b_df
     return p18b_df
 
