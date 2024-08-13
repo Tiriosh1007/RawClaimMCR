@@ -1796,7 +1796,7 @@ class RawClaimData():
     __dep = self.df
     # __dep.claimant = __dep.policy_number.str.cat(__dep.year.astype(str), sep='_').str.cat(__dep.claimant, sep='_')
     __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice']]
-    __dep.drop_duplicates(subset=['claimant', 'dep_type', 'class', 'suboffice'], keep='first', inplace=True)
+    __dep.drop_duplicates(subset=['claimant', 'suboffice'], keep='first', inplace=True)
     __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date']].dropna()
     __freq_df = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
     # print(__freq_df)
