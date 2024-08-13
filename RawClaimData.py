@@ -275,11 +275,11 @@ class RawClaimData():
           # df_c['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           df_c['discharge_date'] = df_c['incur_date']
           df_c['cert_true_copy'] = np.nan
-          if df_c['age'].values[0] != np.nan:
+          if 'age' in df_c.columns.tolist() and df_c['age'].values[0] != np.nan:
             df_c['age'] = df_c['age'].astype(int)
           elif 'birth_date' in df_c.columns.tolist() and df_c['birth_date'].values[0] != np.nan:
             df_c['age'] = ((df_c['policy_start_date'] - df_c['birth_date']).dt.days/365.25).astype(int)
-          elif df_c['age'].values[0] == np.nan:
+          else:
             df_c['age'] = np.nan
           df_c['member_status'] = np.nan
           df_c['benefit_type'] = 'Clinic'
@@ -318,11 +318,11 @@ class RawClaimData():
           #df_d['policy_end_date'] = pd.to_datetime(_policy_end, format='%Y%m%d')
           df_d['discharge_date'] = df_d['incur_date']
           df_d['cert_true_copy'] = np.nan
-          if df_d['age'].values[0] != np.nan:
+          if 'age' in df_d.columns.to_list() and df_d['age'].values[0] != np.nan:
             df_d['age'] = df_d['age'].astype(int)
           elif 'birth_date' in df_d.columns.tolist() and df_d['birth_date'].values[0] != np.nan:
             df_d['age'] = ((df_d['policy_start_date'] - df_d['birth_date']).dt.days/365.25).astype(int)
-          elif df_d['age'].values[0] == np.nan:
+          else:
             df_d['age'] = np.nan
           df_d['member_status'] = np.nan
           df_d['benefit_type'] = 'Dental'
@@ -363,11 +363,11 @@ class RawClaimData():
           # df_h['discharge_date'] = df_h['incur_date']
           df_h['cert_true_copy'] = np.nan
 
-          if df_h['age'].values[0] != np.nan:
+          if 'age' in df_h.columns.to_list() and df_h['age'].values[0] != np.nan:
             df_h['age'] = df_h['age'].astype(int)
           elif 'birth_date' in df_h.columns.tolist() and df_h['birth_date'].values[0] != np.nan:
             df_h['age'] = ((df_h['policy_start_date'] - df_h['birth_date']).dt.days/365.25).astype(int)
-          elif df_h['age'].values[0] == np.nan:
+          else:
             df_h['age'] = np.nan
 
           df_h['member_status'] = np.nan
