@@ -1054,6 +1054,17 @@ class RawClaimData():
     t_df['benefit'] = t_df['benefit_type']
     t_df['region'] = region
     t_df['suboffice'] = '00'
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+
+    return t_df
 
 
 
@@ -1121,6 +1132,8 @@ class RawClaimData():
       temp_df = self.blue_cross_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'AXA Single':
       temp_df = self.axa_raw_single(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'LFH':
+      temp_df = self.lfh_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
