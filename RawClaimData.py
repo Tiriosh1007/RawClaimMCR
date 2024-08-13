@@ -1776,8 +1776,8 @@ class RawClaimData():
     self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
     __dep = self.df
     # __dep.claimant = __dep.policy_number.str.cat(__dep.year.astype(str), sep='_').str.cat(__dep.claimant, sep='_')
-    __dep = __dep[['claimant', 'dep_type', 'class']]
-    __dep.drop_duplicates(subset=['claimant', 'dep_type', 'class'], keep='first', inplace=True)
+    __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice']]
+    __dep.drop_duplicates(subset=['claimant', 'dep_type', 'class', 'suboffice'], keep='first', inplace=True)
     __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date']].dropna()
     __freq_df = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
     # print(__freq_df)
@@ -1808,7 +1808,7 @@ class RawClaimData():
     __freq_df['DX_paid_per_claim'] = __freq_df['DX_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'claimant'])
     # __freq_df.reset_index(inplace=True)
-    __freq_df = __freq_df[['class', 'dep_type', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim']]
+    __freq_df = __freq_df[['class', 'dep_type', 'suboffice', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim']]
 
     self.frequent_analysis = __freq_df
 
@@ -1841,7 +1841,7 @@ class RawClaimData():
     self.frequent_analysis_stat = __freq_stat_df
 
 
-    self.ip_usage = self.df[['policy_id', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'paid_amount']] \
+    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_id', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack()
 
