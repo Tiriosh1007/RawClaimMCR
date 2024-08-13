@@ -1843,7 +1843,7 @@ class RawClaimData():
 
     self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_id', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack()
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack()
 
     if export == True:
       from io import BytesIO
