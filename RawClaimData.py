@@ -924,7 +924,7 @@ class RawClaimData():
         'STATUS': 'claim_status',
         'REMARK_1': 'claim_remark',
         # 'cert_true_copy',
-        'CERT_NO': 'claimant',
+        'PATIENT': 'claimant',
         'GENDER': 'gender',
         'AGE': 'age',
         'ROLE': 'dep_type',
