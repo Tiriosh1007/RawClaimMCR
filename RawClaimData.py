@@ -1865,6 +1865,10 @@ class RawClaimData():
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
 
+    self.ip_usage_incurred = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount']] \
+    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
+
     if export == True:
       from io import BytesIO
       output = BytesIO()
@@ -1874,6 +1878,7 @@ class RawClaimData():
         self.frequent_analysis.to_excel(writer_2, sheet_name='Claimant Visits', index=True, merge_cells=False)
         self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
         self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=True, merge_cells=False)
+        self.ip_usage_incurred.to_excel(writer_2, sheet_name='Claimant IP Usage Incurred', index=True, merge_cells=False)
         writer_2.close()
       return output.getvalue()
 
