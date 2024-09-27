@@ -1861,7 +1861,7 @@ class RawClaimData():
     self.frequent_analysis_stat = __freq_stat_df
 
 
-    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'paid_amount']] \
+    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
 
