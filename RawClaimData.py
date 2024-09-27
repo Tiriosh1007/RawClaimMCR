@@ -1869,7 +1869,7 @@ class RawClaimData():
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis']).sum()
 
 
-    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
+    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
 
@@ -1881,6 +1881,18 @@ class RawClaimData():
 
     self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
 
+    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'days_cover']] \
+    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
+
+    self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
+    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
+
+    self.ip_usage_for_cal = pd.concat([self.ip_usage_for_cal, days_cover], axis=1, ignore_index=False)
+
+    
+
     if export == True:
       from io import BytesIO
       output = BytesIO()
@@ -1891,6 +1903,7 @@ class RawClaimData():
         self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
         self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=True, merge_cells=False)
         self.ip_usage_incurred.to_excel(writer_2, sheet_name='Claimant IP Usage Incurred', index=True, merge_cells=False)
+        self.ip_usage_for_cal.to_excel(writer_2, sheet_name='Claimant IP Usage for Calculation', index=True, merge_cells=False)
         writer_2.close()
       return output.getvalue()
 
