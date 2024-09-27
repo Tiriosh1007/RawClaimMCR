@@ -1792,6 +1792,7 @@ class RawClaimData():
   def frequent_claimant_analysis(self, export=True, sub_policy=None):
     freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)']
     total_visit_col = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+    self.policy_start_date = pd.to_datetime(self.df.policy_start_date)
     self.df['year'] = self.df.policy_start_date.dt.year
     self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
     __dep = self.df
@@ -2061,7 +2062,7 @@ class RawClaimData():
   
 
   def paid_amount_by_dep_type_policy_year(self):
-    self.policy_start_date = pd.to_datetime(self.df.policy_start_date)
+    
     self.df['year'] = self.df.policy_start_date.dt.year
 
     __temp_df = self.df[['policy_id','dep_type','paid_amount']].replace({'CH': 'DEP', 'SP': 'DEP'})
