@@ -1878,7 +1878,7 @@ class RawClaimData():
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
 
-    self.ip_usage = pd.merge(left=self.ip_usage, right=days_cover, left_index=True, right_index=True, how='left')
+    self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
 
     if export == True:
       from io import BytesIO
