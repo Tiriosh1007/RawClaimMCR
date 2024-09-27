@@ -1885,7 +1885,7 @@ class RawClaimData():
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
 
-    self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'incurred_amount']] \
+    self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
 
