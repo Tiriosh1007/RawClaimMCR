@@ -288,9 +288,9 @@ class RawClaimData():
           df_c['panel'] = 'Non-Panel'
           df_c['panel'].loc[df_c.benefit.str.contains('1')] = 'Panel'
 
-          for col in self.col_setup:
-            if col not in df_c.columns.tolist():
-              df_c[col] = np.nan
+        for col in self.col_setup:
+          if col not in df_c.columns.tolist():
+            df_c[col] = np.nan
 
 
       if 'DENT' in b_type_l:
@@ -331,9 +331,9 @@ class RawClaimData():
           df_d['panel'] = 'Non-Panel'
           df_d['panel'].loc[df_d.benefit.str.contains('1')] = 'Panel'
 
-          for col in self.col_setup:
-            if col not in df_d.columns.tolist():
-              df_d[col] = np.nan
+        for col in self.col_setup:
+          if col not in df_d.columns.tolist():
+            df_d[col] = np.nan
 
 
       if 'HOSP' in b_type_l:
@@ -377,12 +377,12 @@ class RawClaimData():
           df_h['panel'] = 'Non-Panel'
           df_h['panel'].loc[df_h.benefit.str.contains('1')] = 'Panel'
 
-          for col in self.col_setup:
-            if col not in df_h.columns.tolist():
-              df_h[col] = np.nan
+        for col in self.col_setup:
+          if col not in df_h.columns.tolist():
+            df_h[col] = np.nan
 
       axa_index = self.benefit_index[['gum_benefit', 'axa_benefit_code']]
-      print(df_d.columns)
+      # print(df_d.columns)
       t_df = pd.concat([df_c[self.col_setup], df_h[self.col_setup], df_d[self.col_setup]], axis=0, ignore_index=True)
       t_df = pd.merge(left=t_df, right=axa_index, left_on='benefit', right_on='axa_benefit_code', how='left')
       t_df.benefit = t_df.gum_benefit
