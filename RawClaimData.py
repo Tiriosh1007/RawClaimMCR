@@ -1881,11 +1881,11 @@ class RawClaimData():
 
     self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
 
-    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'days_cover']] \
+    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'days_cover']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
 
-    self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
+    self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'incurred_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
 
