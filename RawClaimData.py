@@ -1861,7 +1861,7 @@ class RawClaimData():
     self.frequent_analysis_stat = __freq_stat_df
 
     days = self.df.copy(deep=True)
-    days['days_cover'] = (days['discharge_date'] - days['incur_date']).dt.days
+    days['days_cover'] = (days['discharge_date'] - days['incur_date']).dt.days + 1
 
     days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'days_cover']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
