@@ -2061,6 +2061,7 @@ class RawClaimData():
   
 
   def paid_amount_by_dep_type_policy_year(self):
+    self.policy_start_date = pd.to_datetime(self.df.policy_start_date)
     self.df['year'] = self.df.policy_start_date.dt.year
 
     __temp_df = self.df[['policy_id','dep_type','paid_amount']].replace({'CH': 'DEP', 'SP': 'DEP'})
