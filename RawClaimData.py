@@ -1860,14 +1860,25 @@ class RawClaimData():
 
     self.frequent_analysis_stat = __freq_stat_df
 
+    days = self.df.copy(deep=True)
+    days['days_cover'] = (days['discharge_date'] - days['admission_date']).dt.days
+
+    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'days_cover']] \
+    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis']).sum()
+
 
     self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
 
+   
+
     self.ip_usage_incurred = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
+
+    self.ip_usage = pd.merge(left=self.ip_usage, right=days_cover, left_index=True, right_index=True, how='left')
 
     if export == True:
       from io import BytesIO
