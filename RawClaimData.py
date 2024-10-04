@@ -1242,7 +1242,7 @@ class RawClaimData():
           # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
 
     p20_no_claims = self.mcr_df[__p20_benefit_claims_col].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
-    p20_ip_no_claims = self.mcr_df[__p20_benefit_claims_col].loc[self.mcr_df['benefit'].str.contains('DayCentre|Surgeon', case=False) == True].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p20_ip_no_claims = self.mcr_df[__p20_benefit_claims_col].loc[self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False) == True].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
     p20_no_claims['no_of_claims'].loc[p20_no_claims.index.get_level_values(len(__p20_benefit_group_col)-1) == 'Hospital'] = p20_ip_no_claims['no_of_claims']
 
     p20_benefit_df['usage_ratio'] = p20_benefit_df['paid_amount'] / p20_benefit_df['incurred_amount']
