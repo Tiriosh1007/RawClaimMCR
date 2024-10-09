@@ -1648,7 +1648,7 @@ class RawClaimData():
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).apply({'paid_amount': 'sum', 'claim_id': 'count'}).rename(columns={'claim_id': 'no_of_claims'})
+    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'paid_amount': 'sum', 'claim_id': 'nunique'}).rename(columns={'claim_id': 'no_of_claims'})
 
     p27_df = p27_df.unstack()
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
