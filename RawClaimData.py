@@ -1824,6 +1824,7 @@ class RawClaimData():
     __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack()
     __freq_sum_benefit_df.columns = [f'{b} paid per claim' for b in total_visit_col]
     __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
+    print(__freq_sum_benefit_df.columns)
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
     __freq_dx_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'DX_paid'})
