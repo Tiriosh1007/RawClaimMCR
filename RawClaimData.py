@@ -1821,10 +1821,9 @@ class RawClaimData():
     __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
 
     __freq_df = __freq_df.reset_index()
-    __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().reset_index()
-    __freq_sum_benefit_df.columns = ['claimant'] + [f'{b} paid per claim' for b in total_visit_col]
+    __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack()
+    __freq_sum_benefit_df.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
     __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
-    print(__freq_sum_benefit_df.columns)
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
     __freq_dx_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'DX_paid'})
@@ -1833,7 +1832,10 @@ class RawClaimData():
     __freq_df['DX_paid_per_claim'] = __freq_df['DX_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'claimant'])
     # __freq_df.reset_index(inplace=True)
-    __freq_df = __freq_df[['class', 'dep_type', 'suboffice', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim']]
+    __freq_df = __freq_df[['class', 'dep_type', 'suboffice', 'General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+                            'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim',
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
 
     self.frequent_analysis = __freq_df
 
