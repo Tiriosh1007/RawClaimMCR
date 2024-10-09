@@ -1652,7 +1652,7 @@ class RawClaimData():
 
     p27_df = p27_df.unstack()
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
-    self.p27_df = p27_df
+    self.p27 = p27_df
     return p27_df
 
 
@@ -1707,7 +1707,7 @@ class RawClaimData():
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
         self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
-        self.p27_df.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
+        self.p27.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
