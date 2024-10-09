@@ -1636,7 +1636,7 @@ class RawClaimData():
   
   def mcr_p27_ts(self, by=None):
     if by == None:
-      __p27_df_col = ['policy_number', 'year', 'incur_date', 'benefit_type', 'claim_id' 'paid_amount']
+      __p27_df_col = ['policy_number', 'year', 'incur_date', 'benefit_type', 'claim_id', 'paid_amount']
       __p27_group_col = ['policy_number', 'year', pd.Grouper(key='incur_date', freq='MS'), 'benefit_type']
 
       __p27_sort_order = [True, True, True]
