@@ -5,9 +5,9 @@ import datetime as dt
 
 class BenefitAdjustmentPricing():
     def __init__(self):
-        self.ip_incurred_df = pd.DataFrame()
-        self.ip_paid_df_original = pd.DataFrame()
-        self.original_op_df = pd.DataFrame()
+        # self.ip_incurred_df = pd.DataFrame()
+        # self.ip_paid_df_original = pd.DataFrame()
+        # self.original_op_df = pd.DataFrame()
         self.claimant_info_col = ['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age']
         self.op_visit_cols = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)', 'Prescribed Medicine (PM)']
         self.total_visit_cols = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
