@@ -17,16 +17,19 @@ class BenefitAdjustmentPricing():
     def read_data(self, freq_analysis_fp):
         self.ip_incurred_df = pd.read_excel(freq_analysis_fp, 
                                             sheet_name='Claimant IP Usage Incurred',
-                                            index_col=self.claimant_info_col 
+                                            # index_col=self.claimant_info_col 
                                             )
+        self.ip_incurred_df.set_index(self.claimant_info_col, inplace=True)
         self.ip_paid_df_original = pd.read_excel(freq_analysis_fp,
                                                  sheet_name='Claimant IP Usage',
-                                                 index_col=self.claimant_info_col
+                                                 # index_col=self.claimant_info_col
                                                  )
+        self.ip_paid_df_original.set_index(self.claimant_info_col, inplace=True)
         self.original_op_df = pd.read_excel(freq_analysis_fp,
                                             sheet_name='Claimant Visits',
-                                            index_col=self.claimant_info_col
+                                            # index_col=self.claimant_info_col
                                             )
+        self.original_op_df.set_index(self.claimant_info_col, inplace=True)
         
     def ip_used_benefits(self):
         self.ip_used_benefits_cols = self.ip_incurred_df.columns.tolist().remove('days_cover')
