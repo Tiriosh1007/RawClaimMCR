@@ -70,7 +70,7 @@ class BenefitAdjustmentPricing():
                 self.op_adjustment_df.drop(columns=benefit_, inplace=True)
 
         for c in (self.total_visit_cols + self.total_paid_per_claim_cols):
-            self.op_adjustment_df[c].fillna(0, inplace=True)
+            self.op_adjustment_df[c] = self.op_adjustment_df[c].fillna(0)
         self.op_adjustment_df['total_claims'] = self.op_adjustment_df[self.total_visit_cols].sum(axis=1)
         self.op_adjustment_df['total_paid'] = 0
         for b_, p_ in zip(self.total_visit_cols, self.total_paid_per_claim_cols):
