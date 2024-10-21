@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import os
 import datetime as dt
+import warnings
+warnings.filterwarnings('ignore')
 
 class BenefitAdjustmentPricing():
     def __init__(self):
@@ -67,8 +69,8 @@ class BenefitAdjustmentPricing():
                     self.op_adjustment_df[s_] = self.op_adjustment_df[s_] * self.op_adjustment_df[benefit_]
                 self.op_adjustment_df.drop(columns=benefit_, inplace=True)
 
-        self.op_adjustment_df[self.op_visit_cols].fillna(0, inplace=True)
-        self.op_adjustment_df[self.op_paid_per_claim_cols].fillna(0, inplace=True)
+        self.op_adjustment_df[self.op_visit_cols] = self.op_adjustment_df[self.op_visit_cols].fillna(0, inplace=True)
+        self.op_adjustment_df[self.op_paid_per_claim_cols] = self.op_adjustment_df[self.op_paid_per_claim_cols].fillna(0, inplace=True)
         self.op_adjustment_df['total_claims'] = self.op_adjustment_df[self.total_visit_cols].sum(axis=1)
         self.op_adjustment_df['total_paid'] = 0
         for b_, p_ in zip(self.total_visit_cols, self.total_paid_per_claim_cols):
