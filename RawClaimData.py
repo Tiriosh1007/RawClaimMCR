@@ -1797,18 +1797,19 @@ class RawClaimData():
     __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
-    __freq_dx_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'DX_paid'})
+    __freq_dx_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'Diagnostic: X-Ray & Lab Test (DX)_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_dx_df, left_on='claimant', right_on='claimant', how='left')
-    __freq_pm_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('PM', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'PM_paid'})
+    __freq_pm_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('PM', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'Prescribed Medicine (PM)_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_pm_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df['paid_per_claim'] = __freq_df['total_paid'] / __freq_df['total_claims']
-    __freq_df['DX_paid_per_claim'] = __freq_df['DX_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
-    __freq_df['PM_paid_per_claim'] = __freq_df['PM_paid'] / __freq_df['Prescribed Medicine (PM)']
+    __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
+    __freq_df['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df['Prescribed Medicine (PM)_paid'] / __freq_df['Prescribed Medicine (PM)']
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age'])
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
-                            'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 'Diagnostic: X-Ray & Lab Test (DX)', 'DX_paid', 'DX_paid_per_claim',
-                            'Prescribed Medicine (PM)', 'PM_paid', 'PM_paid_per_claim',
+                            'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
+                            'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
+                            'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
                             'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
 
