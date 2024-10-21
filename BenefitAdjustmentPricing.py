@@ -49,7 +49,7 @@ class BenefitAdjustmentPricing():
         : 5. Calculate Total
         : Note!!! The benefits_l has to be itemise first, then sublimit, then total.
         """
-        self.op_adjustment_df = self.original_op_df.copy()
+        self.op_adjustment_df = self.original_op_df.copy().fillna(0)
         self.op_adjustment_df.reset_index(inplace=True)
         for class_, benefit_, visits_, amount_per_visit_ in zip(class_l, benefits_l, visits_l, amount_per_visit_l):
             if 'Total' not in benefit_ and '+' not in benefit_:
