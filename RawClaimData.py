@@ -1854,7 +1854,7 @@ class RawClaimData():
     self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
-    cols = self.ip_usage.columns.str.split('paid_amount.')[-1].tolist()
+    cols = [f.split('paid_amount.')[-1] for f in self.ip_usage.columns.tolist()]
     self.ip_usage.columns = cols
 
    
