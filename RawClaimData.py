@@ -1637,19 +1637,19 @@ class RawClaimData():
   
   def mcr_p27_ts(self, by=None):
     if by == None:
-      __p27_df_col = ['policy_number', 'year', 'incur_date', 'benefit_type', 'claim_id', 'paid_amount']
+      __p27_df_col = ['policy_number', 'year', 'incur_date', 'benefit_type', 'claim_id', 'paid_amount', 'claimant']
       __p27_group_col = ['policy_number', 'year', pd.Grouper(key='incur_date', freq='MS'), 'benefit_type']
 
       __p27_sort_order = [True, True, True]
     else: 
-      __p27_df_col = ['policy_number', 'year'] + by + ['incur_date', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount']
+      __p27_df_col = ['policy_number', 'year'] + by + ['incur_date', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
       __p27_group_col = ['policy_number', 'year'] + by + [pd.Grouper(key='incur_date', freq='MS'), 'benefit_type']
 
       __p27_sort_order = [True, True] + len(by) * [True] + [True]
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'paid_amount': 'sum', 'claim_id': 'nunique'}).rename(columns={'claim_id': 'no_of_claims'})
+    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claims', 'claimant': 'no_of_claimants'})
 
     p27_df = p27_df.unstack()
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
@@ -1854,6 +1854,8 @@ class RawClaimData():
     self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum().unstack()
+    cols = self.ip_usage.columns.str.split('paid_amount.')[-1].tolist()
+    self.ip_usage.columns = cols
 
    
 
