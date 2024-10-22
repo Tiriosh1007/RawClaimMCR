@@ -1889,7 +1889,7 @@ class RawClaimData():
         self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
         self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=True, merge_cells=False)
         self.ip_usage_incurred.to_excel(writer_2, sheet_name='Claimant IP Usage Incurred', index=True, merge_cells=False)
-        self.ip_usage_for_cal.to_excel(writer_2, sheet_name='Claimant IP Usage for Calculation', index=True, merge_cells=False)
+        # self.ip_usage_for_cal.to_excel(writer_2, sheet_name='Claimant IP Usage for Calculation', index=True, merge_cells=False)
         writer_2.close()
       return output.getvalue()
 
