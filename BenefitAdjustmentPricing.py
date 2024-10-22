@@ -49,24 +49,25 @@ class BenefitAdjustmentPricing():
         : 5. Calculate Total
         : Note!!! The benefits_l has to be itemise first, then sublimit, then total.
         """
+        self.op_adjustment_reduction = []
         self.op_adjustment_df = self.original_op_df.copy().fillna(0)
         self.op_adjustment_df.reset_index(inplace=True)
         for class_, benefit_, visits_, amount_per_visit_ in zip(class_l, benefits_l, visits_l, amount_per_visit_l):
             if 'Total' not in benefit_ and '+' not in benefit_ and 'DX' not in benefit_ and 'PM' not in benefit_:
                 if visits_ != None:
-                    if class_ != 'all' or 'All':
+                    if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[benefit_] > visits_)] = visits_
                     else:
                         self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_] = visits_
                 if amount_per_visit_ != None:
-                    if class_ != 'all' or 'All':
+                    if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_)] = amount_per_visit_
                     else:
-                        self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_] = amount_per_visit_
+                        self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[(self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_)] = amount_per_visit_
             # Please note that for DX and PM, the amount_per_visit_ is the total amount for the whole claim
             elif 'DX' in benefit_ or 'PM' in benefit_:
                 if amount_per_visit_ != None:
-                    if class_ != 'all' or 'All':
+                    if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_)] = amount_per_visit_
                     else:
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_] = amount_per_visit_
@@ -79,7 +80,7 @@ class BenefitAdjustmentPricing():
                 self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] <= visits_] = 1
                 self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_] = visits_ / self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_]
                 for s_ in sublimits_:
-                    if class_ != 'all' or 'All':
+                    if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] = self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] *\
                               self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_)]
                     else:
@@ -92,9 +93,12 @@ class BenefitAdjustmentPricing():
         self.op_adjustment_df['total_paid'] = 0
         for b_, p_ in zip(self.total_visit_cols, self.total_paid_per_claim_cols):
             self.op_adjustment_df['total_paid'] = self.op_adjustment_df['total_paid'] + (self.op_adjustment_df[b_] * self.op_adjustment_df[p_])
-
+        
+        self.op_adjustment_reduction.append(self.original_op_df['total_paid'].sum() - self.op_adjustment_df['total_paid'].sum())
 
         return self.op_adjustment_df
+    
+    
 
 
     
