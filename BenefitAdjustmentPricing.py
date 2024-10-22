@@ -54,19 +54,19 @@ class BenefitAdjustmentPricing():
         for class_, benefit_, visits_, amount_per_visit_ in zip(class_l, benefits_l, visits_l, amount_per_visit_l):
             if 'Total' not in benefit_ and '+' not in benefit_ and 'DX' not in benefit_ and 'PM' not in benefit_:
                 if visits_ != None:
-                    if class_ != 'all'|'All':
+                    if class_ != 'all' or 'All':
                         self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[benefit_] > visits_)] = visits_
                     else:
                         self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_] = visits_
                 if amount_per_visit_ != None:
-                    if class_ != 'all'|'All':
+                    if class_ != 'all' or 'All':
                         self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_)] = amount_per_visit_
                     else:
                         self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_] = amount_per_visit_
             # Please note that for DX and PM, the amount_per_visit_ is the total amount for the whole claim
             elif 'DX' in benefit_ or 'PM' in benefit_:
                 if amount_per_visit_ != None:
-                    if class_ != 'all'|'All':
+                    if class_ != 'all' or 'All':
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_)] = amount_per_visit_
                     else:
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_] = amount_per_visit_
@@ -79,7 +79,7 @@ class BenefitAdjustmentPricing():
                 self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] <= visits_] = 1
                 self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_] = visits_ / self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_]
                 for s_ in sublimits_:
-                    if class_ != 'all'|'All':
+                    if class_ != 'all' or 'All':
                         self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] = self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] *\
                               self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_)]
                     else:
