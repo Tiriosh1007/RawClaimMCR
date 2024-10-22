@@ -98,7 +98,25 @@ class BenefitAdjustmentPricing():
 
         return self.op_adjustment_df
     
-    
+    def ip_adjustment(self, class_l: list, benefits_l: list, amount_limit_l: list, rmb_l: list):
+        """
+        : 1. Adjust the itemised benefits
+        : 2. Calculate Total
+        : Note!!! The benefits_l has to be itemise first, then total.
+        """
+        
+        self.ip_adjustment_df = self.ip_paid_df_original.copy().fillna(0)
+        self.ip_cal_df = self.ip_incurred_df.copy().fillna(0)
+        self.ip_adjustment_df.reset_index(inplace=True)
+        self.ip_cal_df.reset_index(inplace=True)
+        days_related = ['Daily Room & Board', "In-hosptial Doctor's Visit", "Companion Bed", "Specialist's Fee (IP)", "Intensive Care Unit",
+                        "Special Registered Nursing", "Pre&Post Hosp Cinic Consultation", "Daily Cash Benefit (HA's Ward)", 
+                        "Secondary Claim Incentive/ Hospital Income for Coordination"]
+        for class_, benefit_, amount_limit_, rmb_ in zip(class_l, benefits_l, amount_limit_l, rmb_):
+            if 'SMM' not in benefit_:
+                if benefit_ in days_related:
+                    if class_ != 'all':
+                        self.ip_cal_df[benefit_].loc[(self.ip_adjustment_df['class'] == class_)] = amount
 
 
     
