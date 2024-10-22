@@ -98,17 +98,23 @@ class BenefitAdjustmentPricing():
 
         return self.op_adjustment_df
     
-    def ip_adjustment(self, class_l: list, benefits_l: list, amount_limit_l: list, rmb_l: list):
+    def ip_adjustment(self, class_l: list, benefits_l: list, amount_limit_l: list, rmb_l: list, policy_disability:str):
         """
         : 1. Adjust the itemised benefits
         : 2. Calculate Total
         : Note!!! The benefits_l has to be itemise first, then total.
         """
         
+
+        
         self.ip_adjustment_df = self.ip_paid_df_original.copy().fillna(0)
         self.ip_cal_df = self.ip_incurred_df.copy().fillna(0)
         self.ip_adjustment_df.reset_index(inplace=True)
         self.ip_cal_df.reset_index(inplace=True)
+        if policy_disability != 'per_dis_per_year':
+            self.ip_cal_df = self.ip_cal_df.groupby(by=self.claimant_info_col).sum().reset_index()
+            self.ip_adjustment_df = self.ip_adjustment_df.groupby(by=self.claimant_info_col).sum().reset_index()
+
         days_related = ['Daily Room & Board', "In-hosptial Doctor's Visit", "Companion Bed", "Specialist's Fee (IP)", "Intensive Care Unit",
                         "Special Registered Nursing", "Pre&Post Hosp Cinic Consultation", "Daily Cash Benefit (HA's Ward)", 
                         "Secondary Claim Incentive/ Hospital Income for Coordination"]
@@ -116,7 +122,18 @@ class BenefitAdjustmentPricing():
             if 'SMM' not in benefit_:
                 if benefit_ in days_related:
                     if class_ != 'all':
-                        self.ip_cal_df[benefit_].loc[(self.ip_adjustment_df['class'] == class_)] = amount
+                        self.ip_adjustment_df[benefit_].loc[
+                            (amount_limit_ * self.ip_cal_df['days_cover'].loc[(self.ip_cal_df['class'] == class_)] > self.ip_cal_df[benefit_].loc[(self.ip_cal_df['class'] == class_)])]\
+                                  = amount_limit_ * self.ip_cal_df['days_cover'].loc[(self.ip_cal_df['class'] == class_)]
+                    else:
+                        self.ip_adjustment_df[benefit_].loc[
+                            (amount_limit_ * self.ip_cal_df['days_cover'] > self.ip_cal_df[benefit_])]\
+                                  = amount_limit_ * self.ip_cal_df['days_cover']
+                else:
+                    if class_ != 'all':
+                        self.ip_adjustment_df[benefit_].loc[(self.ip_cal_df[benefit_] * rmb_ > amount_limit_) & (self.ip_cal_df['class'] == class_)] = amount_limit_
+                    else:
+                        self.ip_adjustment_df[benefit_].loc[(self.ip_cal_df[benefit_] * rmb_ > amount_limit_)] = amount_limit_
 
 
     
