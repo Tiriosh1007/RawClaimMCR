@@ -57,19 +57,19 @@ class BenefitAdjustmentPricing():
                 if visits_ != None:
                     if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[benefit_] > visits_)] = visits_
-                    else:
+                    elif class_ == 'all' or class_ == 'All':
                         self.op_adjustment_df[benefit_].loc[self.op_adjustment_df[benefit_] > visits_] = visits_
                 if amount_per_visit_ != None:
                     if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_)] = amount_per_visit_
-                    else:
+                    elif class_ == 'all' or class_ == 'All':
                         self.op_adjustment_df[f'{benefit_}_paid_per_claim'].loc[(self.op_adjustment_df[f'{benefit_}_paid_per_claim'] > amount_per_visit_)] = amount_per_visit_
             # Please note that for DX and PM, the amount_per_visit_ is the total amount for the whole claim
             elif 'DX' in benefit_ or 'PM' in benefit_:
                 if amount_per_visit_ != None:
                     if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[(self.op_adjustment_df['class'] == class_) & (self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_)] = amount_per_visit_
-                    else:
+                    elif class_ == 'all' or class_ == 'All':
                         self.op_adjustment_df[f'{benefit_}_paid'].loc[self.op_adjustment_df[f'{benefit_}_paid'] > amount_per_visit_] = amount_per_visit_
             else:
                 if '+' in benefit_:
@@ -83,7 +83,7 @@ class BenefitAdjustmentPricing():
                     if class_ != 'all' or class_ != 'All':
                         self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] = self.op_adjustment_df[s_].loc[(self.op_adjustment_df['class'] == class_)] *\
                               self.op_adjustment_df[benefit_].loc[(self.op_adjustment_df['class'] == class_)]
-                    else:
+                    elif class_ == 'all' or class_ == 'All':
                         self.op_adjustment_df[s_] = self.op_adjustment_df[s_] * self.op_adjustment_df[benefit_]
                 self.op_adjustment_df.drop(columns=benefit_, inplace=True)
 
