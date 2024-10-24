@@ -1794,7 +1794,11 @@ class RawClaimData():
     __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().stack(dropna=False)
     __freq_sum_benefit_df = __freq_sum_benefit_df.reindex(total_visit_col, level='benefit').unstack()
     __freq_sum_benefit_df.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
-    __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
+    __freq_inc_benefit_df = self.df[['claimant', 'benefit', 'incurred_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'incurred_amount': 'total_incurred'}).unstack().stack(dropna=False)
+    __freq_inc_benefit_df = __freq_inc_benefit_df.reindex(total_visit_col, level='benefit').unstack()
+    __freq_inc_benefit_df.columns = [f'{b}_incurred_per_claim' for b in total_visit_col]
+    __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'incurred_amount': 'total_paid'})
+    __freq_df = pd.merge(left=__freq_df, right=__freq_inc_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
     __freq_dx_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'Diagnostic: X-Ray & Lab Test (DX)_paid'})
@@ -1810,6 +1814,8 @@ class RawClaimData():
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
                             'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
                             'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
                             'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
 
