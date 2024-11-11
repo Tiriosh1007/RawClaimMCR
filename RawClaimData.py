@@ -398,8 +398,9 @@ class RawClaimData():
       t_df['region'] = region
       t_df = t_df[self.col_setup]
 
-    t_df.gender.loc[t_df.gender.str.contains('f', case=False)] = 'F'
-    t_df.gender.loc[t_df.gender.str.contains('m', case=False)] = 'M'
+    if pd.isna(t_df.gender).sum() > 0:
+      t_df.gender.loc[t_df.gender.str.contains('f', case=False)] = 'F'
+      t_df.gender.loc[t_df.gender.str.contains('m', case=False)] = 'M'
 
     axa_dep_type = {'1': 'EE', '2': 'SP', '3': 'CH', '4': 'CH', '5': 'CH', '6': 'CH', '7': 'CH', '8': 'CH'}
     t_df.dep_type.replace(axa_dep_type, inplace=True)
