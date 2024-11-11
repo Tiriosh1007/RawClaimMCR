@@ -278,7 +278,7 @@ class RawClaimData():
           print(df_c['birth_date'].values[0])
           if 'age' in df_c.columns.tolist() and df_c['age'].values[0] != np.nan:
             df_c['age'] = df_c['age'].astype(int)
-          elif df_c['birth_date'].values[0] == np.nan:
+          elif pd.isna(df_c['birth_date'].values[0]) == True:
             df_c['age'] = np.nan
           elif 'birth_date' in df_c.columns.tolist() and df_c['birth_date'].values[0] != np.nan:
             df_c['age'] = ((df_c['policy_start_date'] - df_c['birth_date']).dt.days/365.25).astype(int)
