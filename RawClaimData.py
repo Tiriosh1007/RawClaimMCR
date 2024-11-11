@@ -398,7 +398,7 @@ class RawClaimData():
       t_df['region'] = region
       t_df = t_df[self.col_setup]
 
-    if pd.isna(t_df.gender).any() == True:
+    if pd.isna(t_df.gender).any() == False:
       t_df.gender.loc[t_df.gender.str.contains('f', case=False)] = 'F'
       t_df.gender.loc[t_df.gender.str.contains('m', case=False)] = 'M'
 
