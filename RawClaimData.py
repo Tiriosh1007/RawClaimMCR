@@ -323,6 +323,8 @@ class RawClaimData():
           df_d['cert_true_copy'] = np.nan
           if 'age' in df_d.columns.to_list() and df_d['age'].values[0] != np.nan:
             df_d['age'] = df_d['age'].astype(int)
+          elif pd.isna(df_d['birth_date'].values[0]) == True:
+            df_d['age'] = np.nan
           elif 'birth_date' in df_d.columns.tolist() and df_d['birth_date'].values[0] != np.nan:
             df_d['age'] = ((df_d['policy_start_date'] - df_d['birth_date']).dt.days/365.25).astype(int)
           else:
@@ -368,7 +370,7 @@ class RawClaimData():
 
           if 'age' in df_h.columns.to_list() and df_h['age'].values[0] != np.nan:
             df_h['age'] = df_h['age'].astype(int)
-          elif df_h['birth_date'].values[0] == np.nan:
+          elif pd.isna(df_h['birth_date'].values[0]) == True:
             df_h['age'] = np.nan
           elif 'birth_date' in df_h.columns.tolist() and df_h['birth_date'].values[0] != np.nan:
             df_h['age'] = ((df_h['policy_start_date'] - df_h['birth_date']).dt.days/365.25).astype(int)
