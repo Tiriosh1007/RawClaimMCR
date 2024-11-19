@@ -162,7 +162,7 @@ class RawClaimData():
         'REMARK': 'claim_remark',
         # 'cert_true_copy', # deduce from remark code
         'MEMBER': 'claimant',
-        'CERTICFICATE NO': 'claimant',
+        'CERTIFICATE NO': 'claimant',
         'SEX': 'gender',
         # 'age', deduce from DOB
         'DEPENDENT NO': 'dep_type',
