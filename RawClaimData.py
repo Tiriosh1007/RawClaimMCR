@@ -1861,30 +1861,30 @@ class RawClaimData():
     days = self.df.loc[self.df.benefit.str.contains('room', case=False)]
     days['days_cover'] = (days['discharge_date'] - days['incur_date']).dt.days + 1
 
-    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type',  'diagnosis', 'days_cover']] \
+    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'days_cover']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'diagnosis']).sum()
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis']).sum()
 
 
-    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'paid_amount']] \
+    self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'paid_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack()
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum().unstack()
     cols = [list(f)[-1] for f in self.ip_usage.columns]
     self.ip_usage.columns = cols
 
    
 
-    self.ip_usage_incurred = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'incurred_amount']] \
+    self.ip_usage_incurred = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'incurred_amount']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum().unstack()
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum().unstack()
     cols = [list(f)[-1] for f in self.ip_usage_incurred.columns]
     self.ip_usage_incurred.columns = cols
 
     self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
 
-    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'benefit', 'diagnosis', 'days_cover']] \
+    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'days_cover']] \
     .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'diagnosis', 'benefit']).sum()
+    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum()
 
     # self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
     # .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
