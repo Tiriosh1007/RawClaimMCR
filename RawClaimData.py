@@ -1775,7 +1775,7 @@ class RawClaimData():
     self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
     __dep = self.df
     # __dep.claimant = __dep.policy_number.str.cat(__dep.year.astype(str), sep='_').str.cat(__dep.claimant, sep='_')
-    __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice', 'age']]
+    __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice', 'age', 'gender']]
     __dep.drop_duplicates(subset=['claimant', 'suboffice'], keep='first', inplace=True)
     __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date']].dropna()
     __freq_df = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
@@ -1817,7 +1817,7 @@ class RawClaimData():
     __freq_df['paid_per_claim'] = __freq_df['total_paid'] / __freq_df['total_claims']
     __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
     __freq_df['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df['Prescribed Medicine (PM)_paid'] / __freq_df['Prescribed Medicine (PM)']
-    __freq_df = __freq_df.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age'])
+    __freq_df = __freq_df.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
