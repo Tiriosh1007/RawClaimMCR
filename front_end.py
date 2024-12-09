@@ -209,6 +209,8 @@ if st.session_state.raw_claim == True:
   with mcr_by_col4:
     diagnosis_toggle = st.toggle('MCR by diagnosis')
   
+  if diagnosis_toggle:
+    diag = True
 
   by = []
   if dep_toggle:
@@ -242,7 +244,7 @@ if st.session_state.raw_claim == True:
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
     print('rej_claim_toggle')
-    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_toggle)
+    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diag)
 
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()
