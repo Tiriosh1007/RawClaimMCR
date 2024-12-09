@@ -1706,6 +1706,7 @@ class RawClaimData():
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
     self.mcr_p20_panel(by)
+    self.mcr_p20_panel_clin(by)
     self.mcr_p21_class(by)
     self.mcr_p22_class_benefit(by, benefit_type_order)
     self.mcr_p23_ip_benefit(by)
