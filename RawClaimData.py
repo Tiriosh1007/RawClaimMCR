@@ -1186,7 +1186,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False):
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
@@ -1207,6 +1207,19 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)]
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
+    if diagnosis == True:
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('acute upper respiratory infec|common cold', case=False)] = 'acute upper respiratory infection & common cold'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)] = self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)].replace(to_replace={', unspec': '', ', unspecified': ''})
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('chlamydia', case=False)] = 'viral warts'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('dermatitis|eczema', case=False)] = 'dermatitis & eczema'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('gastritis|gastroenteritis|intestinal infec', case=False)] = 'gastritis and gastroenteritis'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('benign neoplasm of colon|polyp of colon|anal and rectal polyp', case=False)] = 'benign neoplasm of colon & polyp'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('benign neoplasm of stomach|polyp of stomach and duodenum', case=False)] = 'benign neoplasm of stomach & polyp'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('influenza', case=False)] = 'influenza'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('lumbar sprain|sprain and strain of lumbar spine|backache|low back pain|sprain of unspec site of back', case=False)] = 'lumbago'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('pain in joint|pain in ankle and joints of foot|sprains and strains of ankle and foot', case=False)] = 'pain in joint and ankle'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('neck sprain|cervicalgia', case=False)] = 'cervicalgia (neck pain)'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('cataract', case=False)] = 'cataract'
 
     return None
 
@@ -1278,6 +1291,21 @@ class RawClaimData():
     p20_panel_df = p20_panel_df.unstack().stack(dropna=False)
     self.p20_panel = p20_panel_df
     return p20_panel_df
+  
+  def mcr_p20_panel_clin(self, by=None):
+    if by == None:
+      __p20_panel_df_col = ['policy_number', 'year', 'panel', 'incurred_amount', 'paid_amount', 'claim_id']
+      __p20_panel_group_col = ['policy_number', 'year', 'panel']
+    else: 
+      __p20_panel_df_col = ['policy_number', 'year'] + by + ['panel', 'incurred_amount', 'paid_amount', 'claim_id']
+      __p20_panel_group_col = ['policy_number', 'year'] + by + ['panel']
+    
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p20_panel_clin_df = self.mcr_df.loc[self.mcr_df['benefit_type'] == 'Clinic'][__p20_panel_df_col].groupby(by=__p20_panel_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count'}).rename(columns={'claim_id': 'no_of_claims'})
+    p20_panel_clin_df['usage_ratio'] = p20_panel_clin_df['paid_amount'] / p20_panel_clin_df['incurred_amount']
+    p20_panel_clin_df = p20_panel_clin_df.unstack().stack(dropna=False)
+    self.p20_panel_clin = p20_panel_clin_df
+    return p20_panel_clin_df
 
   def mcr_p21_class(self, by=None):
     if by == None:
@@ -1657,7 +1685,7 @@ class RawClaimData():
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claims', 'claimant': 'no_of_claimants'})
+    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claims', 'claimant': 'no_of_claimants'})
 
     p27_df = p27_df.unstack()
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
@@ -1704,6 +1732,7 @@ class RawClaimData():
         self.p20_policy.to_excel(writer, sheet_name='P.20_Policy', index=True, merge_cells=False)
         self.p20.to_excel(writer, sheet_name='P.20_BenefitType', index=True, merge_cells=False)
         self.p20_panel.to_excel(writer, sheet_name='P.20_Network', index=True, merge_cells=False)
+        self.p20_panel_clin.to_excel(writer, sheet_name='P.20_Network_Clinic', index=True, merge_cells=False)
         self.p21.to_excel(writer, sheet_name='P.21_Class', index=True, merge_cells=False)
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
         self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
