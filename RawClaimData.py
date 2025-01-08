@@ -1613,6 +1613,30 @@ class RawClaimData():
 
     return p26_op_class_panel_df
   
+  def mcr_p26_ip_panel(self, by=None):
+    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
+    if by == None:
+      __p26_df_col = ['policy_number', 'year', 'panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_group_col = ['policy_number', 'year', 'panel', 'benefit']
+      __p26_claims_col = ['policy_number', 'year', 'panel', 'benefit', 'incur_date', 'claimant']
+    else: 
+      __p26_df_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_group_col = ['policy_number', 'year'] + by + ['panel', 'benefit']
+      __p26_claims_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incur_date', 'claimant']
+    
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p26_ip_panel_df = self.mcr_df[__p26_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p26_group_col, dropna=False).sum()
+    p26_ip_panel_df['usage_ratio'] = p26_ip_panel_df['paid_amount'] / p26_ip_panel_df['incurred_amount']
+    p26_ip_no_claims = self.mcr_df[__p26_claims_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p26_group_col, dropna=False).agg({'incur_date': 'count', 'claimant':'nunique'}).rename(columns={'incur_date': 'no_of_claims', 'claimant': 'no_of_claimants'})
+    p26_ip_panel_df['no_of_claims'] = p26_ip_no_claims['no_of_claims']
+    p26_ip_panel_df['no_of_claimants'] = p26_ip_no_claims['no_of_claimants']
+    p26_ip_panel_df['incurred_per_claim'] = p26_ip_panel_df['incurred_amount'] / p26_ip_panel_df['no_of_claims']
+    p26_ip_panel_df['paid_per_claim'] = p26_ip_panel_df['paid_amount'] / p26_ip_panel_df['no_of_claims']
+    p26_ip_panel_df = p26_ip_panel_df.unstack().stack(dropna=False)
+    p26_ip_panel_df = p26_ip_panel_df.reindex(self.ip_order, level='benefit')
+    self.p26_ip_panel = p26_ip_panel_df
+    return p26_ip_panel_df
+  
   def mcr_p18a_top_diag_ip(self, by=None):
     if by == None or 'diagnosis' in by:
       __p18_df_col = ['policy_number', 'year', 'diagnosis', 'incurred_amount', 'paid_amount']
@@ -1721,6 +1745,7 @@ class RawClaimData():
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
     self.mcr_p26_op_panel(by)
     self.mcr_p26_op_class_panel(by)
+    self.mcr_p26_ip_panel(by)
     self.mcr_p27_ts(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
@@ -1748,6 +1773,7 @@ class RawClaimData():
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
         self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
         self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
+        self.p26_ip_panel.to_excel(writer, sheet_name='P.26b_IP_Panel_Benefit', index=True, merge_cells=False)
         self.p27.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
