@@ -1563,26 +1563,27 @@ class RawClaimData():
 
   def mcr_p26_op_panel(self, by=None):
     if by == None:
-      __p26_df_col = ['policy_number', 'year', 'panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_df_col = ['policy_number', 'year', 'panel', 'benefit', 'incurred_amount', 'paid_amount', 'incur_date', 'claimant']
       __p26_group_col = ['policy_number', 'year', 'panel', 'benefit']
-      __p26_claims_col = ['policy_number', 'year', 'panel', 'benefit', 'incur_date']
+      #__p26_claims_col = ['policy_number', 'year', 'panel', 'benefit', 'incur_date']
       __p26_sort_col = ['policy_number', 'year', 'panel', 'paid_amount']
       __p26_sort_order = [True, True, True, False]
     else: 
-      __p26_df_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incurred_amount', 'paid_amount']
+      __p26_df_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incurred_amount', 'paid_amount', 'incur_date', 'claimant']
       __p26_group_col = ['policy_number', 'year'] + by + ['panel', 'benefit']
-      __p26_claims_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incur_date']
+      #__p26_claims_col = ['policy_number', 'year'] + by + ['panel', 'benefit', 'incur_date']
       __p26_sort_col = ['policy_number', 'year'] + by + ['panel', 'paid_amount']
       __p26_sort_order = [True, True] + len(by) * [True] + [True, False]
     
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p26_op_panel_df = self.mcr_df[__p26_df_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).sum()
+    p26_op_panel_df = self.mcr_df[__p26_df_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'incur_date': 'count', 'claimant': 'nunique'}).rename(columns={'incur_date': 'no_of_claims', 'claimant': 'no_of_claimants'})
     p26_op_panel_df['usage_ratio'] = p26_op_panel_df['paid_amount'] / p26_op_panel_df['incurred_amount']
-    p26_op_no_claims = self.mcr_df[__p26_claims_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
-    p26_op_panel_df['no_of_claims'] = p26_op_no_claims['no_of_claims']
+    #p26_op_no_claims = self.mcr_df[__p26_claims_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p26_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    #p26_op_panel_df['no_of_claims'] = p26_op_no_claims['no_of_claims']
     p26_op_panel_df['incurred_per_claim'] = p26_op_panel_df['incurred_amount'] / p26_op_panel_df['no_of_claims']
     p26_op_panel_df['paid_per_claim'] = p26_op_panel_df['paid_amount'] / p26_op_panel_df['no_of_claims']
     p26_op_panel_df = p26_op_panel_df.unstack().stack(dropna=False)
+    p26_op_panel_df = p26_op_panel_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim', 'no_of_claimants']]
     if len(p26_op_panel_df.index) > 0:
       p26_op_panel_df.sort_values(by=__p26_sort_col, ascending=__p26_sort_order, inplace=True)
     self.p26_op_panel = p26_op_panel_df
