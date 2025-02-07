@@ -1719,6 +1719,26 @@ class RawClaimData():
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
     self.p27 = p27_df
     return p27_df
+  
+  def mcr_p27_ts_op(self, by=None):
+    if by == None:
+      __p27_df_col = ['policy_number', 'year', 'incur_date', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p27_group_col = ['policy_number', 'year', pd.Grouper(key='incur_date', freq='MS'), 'benefit_type']
+      __p27_sort_order = [True, True, True]
+    else: 
+      __p27_df_col = ['policy_number', 'year'] + by + ['incur_date', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p27_group_col = ['policy_number', 'year'] + by + [pd.Grouper(key='incur_date', freq='MS'), 'benefit_type']
+      __p27_sort_order = [True, True] + len(by) * [True] + [True]
+
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p27_df_op = self.mcr_df[__p27_df_col].loc[
+      (self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check|combined', case=False)) | (self.mcr_df['benefit_type'] == 'Clinic')
+      ].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_df_op = p27_df_op.unstack()
+    p27_df_op.sort_index(ascending=__p27_sort_order, inplace=True)
+    self.p27_op = p27_df_op
+    return p27_df_op
 
   def mcr_p28_hosp(self, by=None):
     if by == None:
@@ -1838,6 +1858,7 @@ class RawClaimData():
     self.mcr_p26_op_class_panel(by)
     self.mcr_p26_ip_panel(by)
     self.mcr_p27_ts(by)
+    self.mcr_p27_ts_op(by)
     self.mcr_p28_hosp(by)
     self.mcr_p28_prov(by)
     self.mcr_p28_doct(by)
@@ -1871,6 +1892,7 @@ class RawClaimData():
         self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
         self.p26_ip_panel.to_excel(writer, sheet_name='P.26b_IP_Panel_Benefit', index=True, merge_cells=False)
         self.p27.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
+        self.p27_op.to_excel(writer, sheet_name='P.27a_TimeSeries_OP', index=True, merge_cells=False)
         self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
         self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
         self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
