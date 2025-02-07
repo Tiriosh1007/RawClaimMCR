@@ -1732,9 +1732,8 @@ class RawClaimData():
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p27_df_op = self.mcr_df.loc[
-      (self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check|combined', case=False)) | (self.mcr_df['benefit_type'] == 'Clinic')
-      ][__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_df_op = self.mcr_df.loc[(self.mcr_df['benefit_type'] == 'Dental') | (self.mcr_df['benefit_type'] == 'Optical') | (self.mcr_df['benefit'].str.contains('vaccin|check|combined', case=False)) | (self.mcr_df['benefit_type'] == 'Clinic')].copy(deep=True)
+    p27_df_op = p27_df_op[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
     p27_df_op = p27_df_op.unstack()
     p27_df_op.sort_index(ascending=__p27_sort_order, inplace=True)
     self.p27_op = p27_df_op
