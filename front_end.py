@@ -647,5 +647,6 @@ if st.session_state.member_census == True:
     member_census.member_df_processing()
     member_census.get_gender_distribution()
     fig = member_census.butterfly_plot(xmax=xmax, xstep=xstep)
-    st.plotly_chart(fig, use_container_width=False)
     st.dataframe(member_census.gender_dis_df)
+    st.plotly_chart(fig, use_container_width=False)
+    
