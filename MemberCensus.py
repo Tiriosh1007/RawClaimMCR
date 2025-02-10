@@ -181,6 +181,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Men Child',
                     text=-1 * temp_df['M_CH'].astype('int'),
+                    textposition='outside',
                     marker=dict(color="#7FD9FF")
                     ),
                 go.Bar(y=y,
@@ -189,6 +190,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Men Spouse',
                     text=-1 * temp_df['M_SP'].astype('int'),
+                    textposition='outside',
                     opacity=0.5,
                     marker=dict(color="#32C2FF")
                     ),
@@ -197,6 +199,7 @@ class MemberCensus():
                     orientation='h',
                     name='Men Employee',
                     text=-1 * temp_df['M_EE'].astype('int'),
+                    textposition='outside',
                     hoverinfo='x',
                     opacity=0.5,
                     marker=dict(color="#00B2FF")
@@ -207,6 +210,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Female Child',
                     text=temp_df['F_CH'].astype('int'),
+                    textposition='outside',
                     marker=dict(color="#FFA69A")
                     ),
                 go.Bar(y=y,
@@ -215,6 +219,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Female Spouse',
                     text=temp_df['F_SP'].astype('int'),
+                    textposition='outside',
                     opacity=0.5,
                     marker=dict(color="#FF7765")
                     ),
@@ -223,6 +228,7 @@ class MemberCensus():
                     orientation='h',
                     name='Female Employee',
                     text=temp_df['F_EE'].astype('int'),
+                    textposition='outside',
                     hoverinfo='x',
                     opacity=0.5,
                     marker=dict(color="#FF4B33")
