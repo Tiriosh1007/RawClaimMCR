@@ -29,7 +29,7 @@ class MemberCensus():
         self.member_df = pd.DataFrame(columns=self.cols)
 
         self.gender = ['M', 'F']
-        self.age_range = np.arange(0, 100, 10)
+        self.age_range = np.arange(0, 90, 10)
         self.age_lbs = ['{} - <{}'.format(i, i+10) for i in self.age_range]
         self.dep_type = ['EE','SP', 'CH']
         
