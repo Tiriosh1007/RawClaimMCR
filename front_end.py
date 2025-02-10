@@ -635,7 +635,7 @@ if st.session_state.member_census == True:
   xmax = st.number_input("X-axis max value", value=1000)
   xstep = st.number_input("X-axis step value", value=100)
   if st.button("Confirm"):
-    member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
+    # member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
     member_census = MemberCensus()
     for n0 in range(len(file_config)):
       member_census.get_member_df(full_file_list[n0],
