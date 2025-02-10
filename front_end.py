@@ -14,6 +14,7 @@ plt.rcParams["axes.formatter.limits"] = (-99, 99)
 from RawClaimData import *
 from Shortfall import *
 from ColumnNameManagement import *
+from MemberCensus import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -26,8 +27,10 @@ if 'shortfall' not in st.session_state:
   st.session_state.shortfall = False
 if 'col_management' not in st.session_state:
   st.session_state.col_management = False
+if 'member_census' not in st.session_state:
+  st.session_state.member_census = False
   
-function_col1, function_col2, function_col3, function_col4 = st.columns([1,1,1, 1])
+function_col1, function_col2, function_col3, function_col4, function_col5 = st.columns([1,1,1, 1, 1])
 
 with function_col1:  
   if st.button('Reset'):
@@ -44,6 +47,7 @@ with function_col1:
     st.session_state.pygwalker = False
     st.session_state.mcr_data = False
     st.session_state.col_management = False
+    st.session_state.member_census = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -51,6 +55,7 @@ with function_col2:
     st.session_state.shortfall = False
     st.session_state.shortfall_process = False
     st.session_state.col_management = False
+    st.session_state.member_census = False
 
 with function_col3:
   if st.button('Shortfall'):
@@ -58,6 +63,7 @@ with function_col3:
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.col_management = False
+    st.session_state.member_census = False
 
 with function_col4:
   if st.button('Column Management'):
@@ -65,6 +71,15 @@ with function_col4:
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
+    st.session_state.member_census = False
+
+with function_col5:
+  if st.button('Member Census'):
+    st.session_state.col_management = False
+    st.session_state.shortfall = False
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.session_state.member_census = True
 
 
 if st.session_state.raw_claim == True:
@@ -553,4 +568,73 @@ if st.session_state.col_management == True:
     col_manage.remove_col_mapper(df_to_remove)
     st.write('Column Name Updated!')
     st.session_state.col_management = False"""
+
+
+if st.session_state.member_census == True:
+  st.write("""
+  # Gain Miles Assurance Consultancy Ltd
+
+  ### Member Census Analytic Tool
+  """)
+  st.write("---")
+  upload_file_l = []
+  insurer_l = []
+  password_l = []
+  policy_sd_l = []
   
+  uploaded_file_list = []
+  full_file_list = []
+
+  uploaded_files = st.file_uploader("Upload member census excel .xlsx files", accept_multiple_files=True)
+  for uploaded_file in uploaded_files:
+      # st.write("filename:", uploaded_file.name)
+      upload_file_l.append(uploaded_file.name)
+      uploaded_file_list.append(uploaded_file)
+
+      import tempfile
+      import os
+      temp_dir = tempfile.mkdtemp()
+      path = os.path.join(temp_dir, uploaded_file.name)
+      full_file_list.append(path)
+      with open(path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+
+  file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
+  insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
+  password_df = pd.DataFrame(password_l, columns=['Password'])
+  policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
+
+  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
+
+  file_config['Client Name'] = 'Input Client Name'
+
+  st.write('---')
+  st.header('Member Census File Configurations')
+  st.write("""
+  Please input the configurations:
+
+  1. Insurers: Bupa/ AIA/ AXA/ Blue Cross.
+
+  2. Password: If no password please leave blank.
+
+  3. Policy start date: In yyyymmdd form. Ie 1 Jul 2023 => 20230701.
+
+  4. Client Name: Free to input but good to make sure it aligns with previous used name.
+
+  """)
+  gb = GridOptionsBuilder.from_dataframe(file_config)
+  gb.configure_column('Insurer', editable=True)
+  gb.configure_column('Password', editable=True)
+  gb.configure_column('Policy start date', editable=True)
+  gb.configure_column('Client Name', editable=True)
+
+  ag = AgGrid(file_config,
+              gridOptions=gb.build(),
+              update_mode=GridUpdateMode.VALUE_CHANGED,
+              height=350,
+              weight=1200,
+              allow_insafe_jscode=True,
+              enable_enterprise_modules=False)
+  
+  new_file_config = ag['data']
+  member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
