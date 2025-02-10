@@ -206,6 +206,7 @@ class MemberCensus():
                     orientation='h',
                     hoverinfo='x',
                     name='Female Child',
+                    text=temp_df['F_CH'].astype('int'),
                     marker=dict(color="#FFA69A")
                     ),
                 go.Bar(y=y,
@@ -213,6 +214,7 @@ class MemberCensus():
                     orientation='h',
                     hoverinfo='x',
                     name='Female Spouse',
+                    text=temp_df['F_SP'].astype('int'),
                     opacity=0.5,
                     marker=dict(color="#FF7765")
                     ),
@@ -220,6 +222,7 @@ class MemberCensus():
                     x=temp_df['F_EE'],
                     orientation='h',
                     name='Female Employee',
+                    text=temp_df['F_EE'].astype('int'),
                     hoverinfo='x',
                     opacity=0.5,
                     marker=dict(color="#FF4B33")
