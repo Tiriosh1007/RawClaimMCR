@@ -647,7 +647,7 @@ if st.session_state.member_census == True:
     member_census.member_df_processing()
     member_census.get_gender_distribution()
     st.dataframe(member_census.gender_dis_df)
-    st.dataframe(pd.cut(member_census.member_df['age'].loc[member_census.member_df['gender'] == 'M'], bins=np.arange(0, 100, 10), labels=np.arange(0, 90, 10)).value_counts())
+    st.dataframe(pd.cut(member_census.member_df['age'].loc[(member_census.member_df['gender'] == 'M')&(member_census.member_df['dep_type'] == 'EE')], bins=np.arange(0, 100, 10), labels=np.arange(0, 90, 10)).value_counts().sort_index())
 
     #fig = member_census.butterfly_plot(xmax=xmax, xstep=xstep)
     #st.plotly_chart(fig, use_container_width=False)
