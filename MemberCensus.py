@@ -192,7 +192,8 @@ class MemberCensus():
                     orientation='h',
                     name='Men Employee',
                     text=-1 * temp_df['M_EE'].astype('int'),
-                    hoverinfo=0.5,
+                    hoverinfo='x',
+                    opacity=0.5,
                     marker=dict(color="#00B2FF")
                     ),
                 go.Bar(y=y,
@@ -214,7 +215,8 @@ class MemberCensus():
                     x=temp_df['F_EE'],
                     orientation='h',
                     name='Female Employee',
-                    hoverinfo=0.5,
+                    hoverinfo='x',
+                    opacity=0.5,
                     marker=dict(color="#FF4B33")
                     )
                 ]
