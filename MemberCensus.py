@@ -171,7 +171,8 @@ class MemberCensus():
                             range=[-xmax, xmax],
                             tickvals=np.arange(-tmax, tmax, xstep),
                             ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
-                            title='Number'),
+                            title='Number',
+                            showgrid=True,),
                             barmode='overlay',
                             bargap=0.1)
         data = [go.Bar(y=y,
