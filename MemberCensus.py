@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.plotly as py
 
 import os
 
@@ -140,14 +141,79 @@ class MemberCensus():
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
         return
     
-    def get_gender_distribution(self,step=10):
-        self.gender_dis_df = pd.DataFrame(columns=self.gender, index=self.age_lbs)
+    def get_gender_distribution(self):
+        self.gender_dis_df = pd.DataFrame()
         for gender in self.gender:
-            dis = pd.cut(self.member_df.loc[self.member_df['gender'] == gender], bins=self.age_range, right=False, labels=self.age_lbs)
-            self.gender_dis_df[gender] = dis.value_counts()
+            for dep in self.dep_type:
+                dis = pd.cut(self.member_df.loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
+                             bins=self.age_range, 
+                             right=False, 
+                             labels=self.age_lbs)
+                temp_df = pd.DataFrame(dis.value_counts(), columns=[f"{gender}_{dep}"])
+                self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
+        return       
 
-            
+    def butterfly_plot(self, xmax, xstep):
+        temp_df = self.gender_dis_df.copy(deep=True)
+        temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
-    def butterfly_plot(self, df, x, y, hue, title):
-        fig = px.scatter(df, x=x, y=y, color=hue, title=title)
-        fig.show()  
+        y = list(range(0, 100, 10))
+        tmax = xmax - xstep
+        layout = go.Layout(yaxis=go.layout.YAxis(title='Age'),
+                            xaxis=go.layout.XAxis(
+                            range=[-xmax, xmax],
+                            tickvals=np.arange(-tmax, tmax, xstep),
+                            ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
+                            title='Number'),
+                            barmode='overlay',
+                            bargap=0.1)
+        data = [go.Bar(y=y,
+                    x=temp_df['M_CH'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Men Child',
+                    text=-1 * temp_df['M_CH'].astype('int'),
+                    marker=dict(color="#7FD9FF")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['M_SP'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Men Spouse',
+                    text=-1 * temp_df['M_SP'].astype('int'),
+                    opacity=0.5,
+                    marker=dict(color="#32C2FF")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['M_EE'],
+                    orientation='h',
+                    name='Men Employee',
+                    text=-1 * temp_df['M_EE'].astype('int'),
+                    hoverinfo=0.5,
+                    marker=dict(color="#00B2FF")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['F_CH'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Female Child',
+                    marker=dict(color="#FFA69A")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['F_SP'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Female Spouse',
+                    opacity=0.5,
+                    marker=dict(color="#FF7765")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['F_EE'],
+                    orientation='h',
+                    name='Female Employee',
+                    hoverinfo=0.5,
+                    marker=dict(color="#FF4B33")
+                    )
+                ]
+        fig = py.iplot(dict(data=data, layout=layout), filename='gender_distribution')
+        return fig

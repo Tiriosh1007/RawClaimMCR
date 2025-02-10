@@ -602,7 +602,6 @@ if st.session_state.member_census == True:
   file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
   insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
   password_df = pd.DataFrame(password_l, columns=['Password'])
-  policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
   file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
 
@@ -625,7 +624,6 @@ if st.session_state.member_census == True:
   gb = GridOptionsBuilder.from_dataframe(file_config)
   gb.configure_column('Insurer', editable=True)
   gb.configure_column('Password', editable=True)
-  gb.configure_column('Policy start date', editable=True)
   gb.configure_column('Client Name', editable=True)
 
   ag = AgGrid(file_config,
@@ -638,3 +636,17 @@ if st.session_state.member_census == True:
   
   new_file_config = ag['data']
   member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
+  xmax = st.number_input("X-axis max value", value=1000)
+  xstep = st.number_input("X-axis step value", value=100)
+  if st.button("Confirm"):
+    member_census = MemberCensus()
+    for n0 in range(len(file_config)):
+      member_census.get_member_df(full_file_list[n0],
+                        insurer=file_config['Insurer'].iloc[n0], 
+                        password=file_config['Password'].iloc[n0], 
+                        )
+      
+    member_census.member_df_processing()
+    member_census.get_gender_distribution()
+    fig = member_census.butterfly_chart(xmax=xmax, xstep=xstep)
+    st.plotly_chart(fig, use_container_width=False)
