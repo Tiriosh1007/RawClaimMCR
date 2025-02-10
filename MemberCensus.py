@@ -146,7 +146,7 @@ class MemberCensus():
         return
     
     def get_gender_distribution(self):
-        self.gender_dis_df = pd.DataFrame()
+        self.gender_dis_df = pd.DataFrame(index=self.age_lbs)
         for gender in self.gender:
             for dep in self.dep_type:
                 dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
