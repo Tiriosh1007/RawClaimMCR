@@ -30,7 +30,7 @@ class MemberCensus():
         self.member_df = pd.DataFrame(columns=self.cols)
 
         self.gender = ['M', 'F']
-        self.age_range = np.arange(0, 90, 10)
+        self.age_range = np.arange(0, 100, 10)
         # self.age_lbs = ['{} - <{}'.format(i, i+10) for i in self.age_range]
         self.age_lbs = self.age_range[0:-1]
         self.dep_type = ['EE','SP', 'CH']
@@ -151,12 +151,11 @@ class MemberCensus():
             for dep in self.dep_type:
                 dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
                              bins=self.age_range, 
-                             right=False,
-                             labels=False
-                             )
-                # self.gender_dis_df = pd.DataFrame(dis.value_counts().sort_index(), columns=[f"{gender}_{dep}"])
-                self.gender_dis_df = dis
-                # self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
+                             labels=self.age_lbs,
+                             ).value_counts().sort_index()
+                temp_df = pd.DataFrame(dis, columns=[f"{gender}_{dep}"])
+                #self.gender_dis_df = dis
+                self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
                 print(self.gender_dis_df)
         return       
 
