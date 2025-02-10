@@ -140,6 +140,7 @@ class MemberCensus():
                        '10': 'CH',}
         self.member_df['gender'].replace(gender_mapping, inplace=True)
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
+        self.member_df['age'] = self.member_df['age'].astype('int')
         return
     
     def get_gender_distribution(self):
