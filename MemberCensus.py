@@ -152,7 +152,7 @@ class MemberCensus():
                 dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
                              bins=self.age_range, 
                              right=False, 
-                             labels=self.age_lbs)
+                             )
                 temp_df = pd.DataFrame(dis.value_counts(), columns=[f"{gender}_{dep}"])
                 self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
                 print(self.gender_dis_df)
