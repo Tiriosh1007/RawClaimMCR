@@ -590,8 +590,7 @@ if st.session_state.member_census == True:
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
       uploaded_file_list.append(uploaded_file)
-      print(uploaded_file_list)
-
+      
       import tempfile
       import os
       temp_dir = tempfile.mkdtemp()
@@ -633,6 +632,7 @@ if st.session_state.member_census == True:
               enable_enterprise_modules=False)
   
   new_file_config = ag['data']
+  print(uploaded_file_list)
   member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
   xmax = st.number_input("X-axis max value", value=1000)
   xstep = st.number_input("X-axis step value", value=100)
