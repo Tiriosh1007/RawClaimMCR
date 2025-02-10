@@ -221,5 +221,5 @@ class MemberCensus():
                     marker=dict(color="#FF4B33")
                     )
                 ]
-        fig = py.iplot(dict(data=data, layout=layout), filename='gender_distribution')
+        fig = go.Figure(data=data, layout=layout)
         return fig
