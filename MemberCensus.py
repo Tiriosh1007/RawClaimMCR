@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 import os
 
 class MemberCensus():
-    def __init__(self, data):
+    def __init__(self):
         self.cols = [
             'policy_number'
             'insurer',
