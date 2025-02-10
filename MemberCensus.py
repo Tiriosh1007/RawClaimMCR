@@ -161,8 +161,8 @@ class MemberCensus():
         temp_df = self.gender_dis_df.copy(deep=True)
         temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
-        # y = list(range(0, 100, 10))
-        y = self.age_lbs
+        y = list(range(0, 100, 10))
+        # y = self.age_lbs
         tmax = xmax - xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age'),
                             xaxis=go.layout.XAxis(
