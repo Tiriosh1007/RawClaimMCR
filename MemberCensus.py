@@ -155,6 +155,7 @@ class MemberCensus():
                              labels=self.age_lbs)
                 temp_df = pd.DataFrame(dis.value_counts(), columns=[f"{gender}_{dep}"])
                 self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
+                print(self.gender_dis_df)
         return       
 
     def butterfly_plot(self, xmax, xstep):
