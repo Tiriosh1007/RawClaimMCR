@@ -153,7 +153,7 @@ class MemberCensus():
                              bins=self.age_range, 
                              labels=self.age_lbs,
                              ).value_counts().sort_index()
-                temp_df = pd.DataFrame(dis.values, columns=[f"{gender}_{dep}"])
+                temp_df = pd.DataFrame(dis.values, columns=[f"{gender}_{dep}"], index=dis.index)
                 #self.gender_dis_df = dis
                 self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
                 print(self.gender_dis_df)
