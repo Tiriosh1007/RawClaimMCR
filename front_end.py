@@ -603,9 +603,7 @@ if st.session_state.member_census == True:
   insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
   password_df = pd.DataFrame(password_l, columns=['Password'])
 
-  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
-
-  file_config['Client Name'] = 'Input Client Name'
+  file_config = pd.concat([file_config, insurer_df, password_df], axis=1, ignore_index=False)
 
   st.write('---')
   st.header('Member Census File Configurations')
@@ -624,7 +622,6 @@ if st.session_state.member_census == True:
   gb = GridOptionsBuilder.from_dataframe(file_config)
   gb.configure_column('Insurer', editable=True)
   gb.configure_column('Password', editable=True)
-  gb.configure_column('Client Name', editable=True)
 
   ag = AgGrid(file_config,
               gridOptions=gb.build(),
