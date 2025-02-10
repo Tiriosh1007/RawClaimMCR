@@ -12,9 +12,9 @@ import os
 class MemberCensus():
     def __init__(self):
         self.cols = [
-            'policy_number'
+            'policy_number',
             'insurer',
-            'membner_id',
+            'member_id',
             'dep_type',
             'class',
             'name',
