@@ -590,6 +590,7 @@ if st.session_state.member_census == True:
       # st.write("filename:", uploaded_file.name)
       upload_file_l.append(uploaded_file.name)
       uploaded_file_list.append(uploaded_file)
+      print(uploaded_file_list)
 
       import tempfile
       import os
