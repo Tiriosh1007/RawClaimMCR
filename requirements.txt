@@ -9,4 +9,4 @@ streamlit-aggrid
 openpyxl
 pygwalker
 chart_studio
-
+xlrd
