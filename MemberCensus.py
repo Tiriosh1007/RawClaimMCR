@@ -259,13 +259,14 @@ class MemberCensus():
                             width=1000,
                             height=800)
         data = [go.Bar(y=y,
-                    x=temp_df['M_CH'],
+                    x=temp_df['M_EE'],
                     orientation='h',
-                    hoverinfo='x',
-                    name='Male Child',
-                    text=-1 * temp_df['M_CH'].astype('int'),
+                    name='Male Employee',
+                    text=-1 * temp_df['M_EE'].astype('int'),
                     textfont=dict(size=14),
-                    marker=dict(color="#ADE8F4")
+                    hoverinfo='x',
+                    #opacity=0.5,
+                    marker=dict(color="#00B4D8")
                     ),
                 go.Bar(y=y,
                     x=temp_df['M_SP'],
@@ -278,23 +279,23 @@ class MemberCensus():
                     marker=dict(color="#48CAE4")
                     ),
                 go.Bar(y=y,
-                    x=temp_df['M_EE'],
+                    x=temp_df['M_CH'],
                     orientation='h',
-                    name='Male Employee',
-                    text=-1 * temp_df['M_EE'].astype('int'),
+                    hoverinfo='x',
+                    name='Male Child',
+                    text=-1 * temp_df['M_CH'].astype('int'),
+                    textfont=dict(size=14),
+                    marker=dict(color="#ADE8F4")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['F_EE'],
+                    orientation='h',
+                    name='Female Employee',
+                    text=temp_df['F_EE'].astype('int'),
                     textfont=dict(size=14),
                     hoverinfo='x',
                     #opacity=0.5,
-                    marker=dict(color="#00B4D8")
-                    ),
-                go.Bar(y=y,
-                    x=temp_df['F_CH'],
-                    orientation='h',
-                    hoverinfo='x',
-                    name='Female Child',
-                    text=temp_df['F_CH'].astype('int'),
-                    textfont=dict(size=14),
-                    marker=dict(color="#FFCBD1")
+                    marker=dict(color="#F94449")
                     ),
                 go.Bar(y=y,
                     x=temp_df['F_SP'],
@@ -307,15 +308,14 @@ class MemberCensus():
                     marker=dict(color="#F69697")
                     ),
                 go.Bar(y=y,
-                    x=temp_df['F_EE'],
+                    x=temp_df['F_CH'],
                     orientation='h',
-                    name='Female Employee',
-                    text=temp_df['F_EE'].astype('int'),
-                    textfont=dict(size=14),
                     hoverinfo='x',
-                    #opacity=0.5,
-                    marker=dict(color="#F94449")
-                    )
+                    name='Female Child',
+                    text=temp_df['F_CH'].astype('int'),
+                    textfont=dict(size=14),
+                    marker=dict(color="#FFCBD1")
+                    ),
                 ]
         fig = go.Figure(data=data, layout=layout)
         return fig
