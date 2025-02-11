@@ -274,7 +274,7 @@ class MemberCensus():
                     name='Male Spouse',
                     text=-1 * temp_df['M_SP'].astype('int'),
                     textfont=dict(size=14),
-                    opacity=0.5,
+                    #opacity=0.5,
                     marker=dict(color="#48CAE4")
                     ),
                 go.Bar(y=y,
@@ -284,7 +284,7 @@ class MemberCensus():
                     text=-1 * temp_df['M_EE'].astype('int'),
                     textfont=dict(size=14),
                     hoverinfo='x',
-                    opacity=0.5,
+                    #opacity=0.5,
                     marker=dict(color="#00B4D8")
                     ),
                 go.Bar(y=y,
@@ -303,7 +303,7 @@ class MemberCensus():
                     name='Female Spouse',
                     text=temp_df['F_SP'].astype('int'),
                     textfont=dict(size=14),
-                    opacity=0.5,
+                    #opacity=0.5,
                     marker=dict(color="#F69697")
                     ),
                 go.Bar(y=y,
@@ -313,7 +313,7 @@ class MemberCensus():
                     text=temp_df['F_EE'].astype('int'),
                     textfont=dict(size=14),
                     hoverinfo='x',
-                    opacity=0.5,
+                    #opacity=0.5,
                     marker=dict(color="#F94449")
                     )
                 ]
