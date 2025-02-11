@@ -191,7 +191,7 @@ class MemberCensus():
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
                                                  tickvals=y,
                                                  ticktext=y_text,
-                                                 tickfont=dict(size=14),
+                                                 tickfont=dict(size=18),
                                                  ),
                            xaxis=go.layout.XAxis(
                                range=[-xmax, xmax],
@@ -241,7 +241,7 @@ class MemberCensus():
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
                                                  tickvals=y,
                                                  ticktext=y_text,
-                                                 tickfont=dict(size=14),
+                                                 tickfont=dict(size=18),
                                                  ),
                            xaxis=go.layout.XAxis(
                                range=[-xmax, xmax],
