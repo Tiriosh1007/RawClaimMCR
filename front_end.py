@@ -665,8 +665,20 @@ if st.session_state.member_census == True:
     st.plotly_chart(fig, use_container_width=False)
     st.dataframe(member_census.gender_dis_dep_df)
     st.write('---')
-    st.write('#### Class Distribution')
-    st.dataframe(member_census.dis_cls_df)
-    st.write('---')
-    st.write('#### Gender and Class Distribution')
-    st.dataframe(member_census.gender_dis_cls_df)
+    member_df_col_1, member_df_col_2, member_df_col_3, member_df_col_4, member_df_col_5, member_df_col_6 = st.columns([1,1,1,1,1,1])
+    with member_df_col_1:
+      if st.button('Age & Gender'):
+        st.dataframe(member_census.gender_dis_df)
+    with member_df_col_2:
+      if st.button('Age & Gender & Dep'):
+        st.dataframe(member_census.gender_dis_dep_df)
+    with member_df_col_3:
+      if st.button('Age & Class'):
+        st.dataframe(member_census.dis_cls_df)
+    with member_df_col_4:
+      if st.button('Age & Class & Gender'):
+        st.dataframe(member_census.gender_dis_cls_df)
+    with member_df_col_5:
+      if st.button('Class & Dep'):
+        st.dataframe(member_census.cls_dep_df)
+   

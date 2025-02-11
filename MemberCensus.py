@@ -161,7 +161,8 @@ class MemberCensus():
         return
     
     def get_gender_distribution(self):
-        self.gender_dis_df, self.gender_dis_dep_df, self.gender_dis_cls_df, self.dis_cls_df = pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs)
+        self.gender_dis_df, self.gender_dis_dep_df, self.gender_dis_cls_df, self.dis_cls_df, self.dis_cls_dep_df = pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs)
+        self.cls_df = pd.DataFrame(index=self.cls)
         for gender in self.gender:
             dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender)], 
                              bins=self.age_range,
@@ -196,6 +197,22 @@ class MemberCensus():
                             ).value_counts().sort_index()
             temp_df = pd.DataFrame(dis_cls.values, columns=[f"{cls}"], index=dis_cls.index)
             self.dis_cls_df = pd.concat([self.dis_cls_df, temp_df], axis=1, ignore_index=False)
+
+            for dep in self.dep_type:
+                dis_dep = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls) & (self.member_df['dep_type'] == dep)], 
+                             bins=self.age_range,
+                             right=False, 
+                             labels=self.age_lbs,
+                             ).value_counts().sort_index()
+                temp_df = pd.DataFrame(dis_dep.values, columns=[f"{cls}_{dep}"], index=dis_dep.index)
+                # self.gender_dis_df = dis
+                self.gender_dis_dep_df = pd.concat([self.dis_cls_dep_df, temp_df], axis=1, ignore_index=False)
+
+                # print(self.gender_dis_df)
+        for dep in self.dep_type:
+            temp_df = self.member_df['class'].loc[self.member_df['dep_type'] == dep].value_counts()
+            self.cls_df = pd.concat([self.cls_df, temp_df], axis=1, ignore_index=False)
+
         return
     
     def set_graph_layout(self, xmax, xstep, ystep, width, height):
