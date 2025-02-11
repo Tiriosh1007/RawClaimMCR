@@ -204,7 +204,7 @@ class MemberCensus():
                             ),
                             barmode='relative', #barmode='stack',
                             bargap=0.1,
-                            width=800,
+                            width=1000,
                             height=800)
         data = [go.Bar(y=y,
                     x=temp_df['M'],
@@ -250,7 +250,7 @@ class MemberCensus():
                             ),
                             barmode='relative', #barmode='stack',
                             bargap=0.1,
-                            width=800,
+                            width=1000,
                             height=800)
         data = [go.Bar(y=y,
                     x=temp_df['M_CH'],
