@@ -180,13 +180,18 @@ class MemberCensus():
         # y = self.age_lbs
         tmax = xmax - xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age'),
-                            xaxis=go.layout.XAxis(
-                            range=[-xmax, xmax],
-                            tickvals=np.arange(-tmax, tmax, xstep),
-                            ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
-                            title='Number',
-                            showgrid=True,),
-                            barmode='overlay',
+                           xaxis=go.layout.XAxis(
+                               range=[-xmax, xmax],
+                               tickvals=np.arange(-tmax, tmax, xstep),
+                               ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
+                               title='Number',
+                               showgrid=True,
+                               ),
+                            title=dict(
+                                text='Member Distribution by Dependent Type',
+                                font = dict(size=20),
+                            ),
+                            barmode='relative', #barmode='stack',
                             bargap=0.1)
         data = [go.Bar(y=y,
                     x=temp_df['M_CH'],
