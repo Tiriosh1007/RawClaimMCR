@@ -683,5 +683,5 @@ if st.session_state.member_census == True:
         st.dataframe(member_census.gender_dis_cls_df)
     with member_df_col_5:
       if st.button('Class & Dep'):
-        st.dataframe(member_census.cls_dep_df)
+        st.dataframe(member_census.cls_df)
    
