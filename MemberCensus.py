@@ -157,7 +157,7 @@ class MemberCensus():
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
         self.member_df['age'] = self.member_df['age'].astype('int')
 
-        self.cls = self.member_df['class'].unique().tolist().sort()
+        self.cls = self.member_df['class'].sort_values().unique()
         return
     
     def get_gender_distribution(self):
