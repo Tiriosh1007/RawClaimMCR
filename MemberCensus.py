@@ -159,21 +159,70 @@ class MemberCensus():
         return
     
     def get_gender_distribution(self):
-        self.gender_dis_df = pd.DataFrame(index=self.age_lbs)
+        self.gender_dis_df, self.gender_dis_dep_df = pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs)
         for gender in self.gender:
-            for dep in self.dep_type:
-                dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
+            dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender)], 
                              bins=self.age_range, 
                              labels=self.age_lbs,
                              ).value_counts().sort_index()
-                temp_df = pd.DataFrame(dis.values, columns=[f"{gender}_{dep}"], index=dis.index)
-                #self.gender_dis_df = dis
-                self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
-                print(self.gender_dis_df)
+            temp_df = pd.DataFrame(dis.values, columns=[f"{gender}"], index=dis.index)
+            self.gender_dis_df = pd.concat([self.gender_dis_df, temp_df], axis=1, ignore_index=False)
+            for dep in self.dep_type:
+                dis_dep = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender) & (self.member_df['dep_type'] == dep)], 
+                             bins=self.age_range, 
+                             labels=self.age_lbs,
+                             ).value_counts().sort_index()
+                temp_df = pd.DataFrame(dis_dep.values, columns=[f"{gender}_{dep}"], index=dis_dep.index)
+                # self.gender_dis_df = dis
+                self.gender_dis_dep_df = pd.concat([self.gender_dis_dep_df, temp_df], axis=1, ignore_index=False)
+                # print(self.gender_dis_df)
         return       
 
     def butterfly_plot(self, xmax, xstep):
         temp_df = self.gender_dis_df.copy(deep=True)
+        temp_df[['M']] = -temp_df[['M']]
+
+        y = list(range(0, 100, 10))
+        # y = self.age_lbs
+        tmax = xmax - xstep
+        layout = go.Layout(yaxis=go.layout.YAxis(title='Age'),
+                           xaxis=go.layout.XAxis(
+                               range=[-xmax, xmax],
+                               tickvals=np.arange(-tmax, tmax, xstep),
+                               ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
+                               title='Number',
+                               showgrid=True,
+                               ),
+                            title=dict(
+                                text='Member Distribution',
+                                font = dict(size=20),
+                            ),
+                            barmode='relative', #barmode='stack',
+                            bargap=0.1,
+                            width=800,
+                            height=800)
+        data = [go.Bar(y=y,
+                    x=temp_df['M'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Male',
+                    text=-1 * temp_df['M'].astype('int'),
+                    marker=dict(color="#00B4D8")
+                    ),
+                go.Bar(y=y,
+                    x=temp_df['F'],
+                    orientation='h',
+                    hoverinfo='x',
+                    name='Female',
+                    text=temp_df['F'].astype('int'),
+                    marker=dict(color="#F94449")
+                    ),
+                ]
+        fig = go.Figure(data=data, layout=layout)
+        return fig
+
+    def butterfly_plot_dep(self, xmax, xstep):
+        temp_df = self.gender_dis_dep_df.copy(deep=True)
         temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
         y = list(range(0, 100, 10))
@@ -192,12 +241,14 @@ class MemberCensus():
                                 font = dict(size=20),
                             ),
                             barmode='relative', #barmode='stack',
-                            bargap=0.1)
+                            bargap=0.1,
+                            width=800,
+                            height=800)
         data = [go.Bar(y=y,
                     x=temp_df['M_CH'],
                     orientation='h',
                     hoverinfo='x',
-                    name='Men Child',
+                    name='Male Child',
                     text=-1 * temp_df['M_CH'].astype('int'),
                     marker=dict(color="#ADE8F4")
                     ),
@@ -205,7 +256,7 @@ class MemberCensus():
                     x=temp_df['M_SP'],
                     orientation='h',
                     hoverinfo='x',
-                    name='Men Spouse',
+                    name='Male Spouse',
                     text=-1 * temp_df['M_SP'].astype('int'),
                     opacity=0.5,
                     marker=dict(color="#48CAE4")
@@ -213,7 +264,7 @@ class MemberCensus():
                 go.Bar(y=y,
                     x=temp_df['M_EE'],
                     orientation='h',
-                    name='Men Employee',
+                    name='Male Employee',
                     text=-1 * temp_df['M_EE'].astype('int'),
                     hoverinfo='x',
                     opacity=0.5,
