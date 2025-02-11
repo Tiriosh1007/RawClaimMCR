@@ -206,7 +206,7 @@ class MemberCensus():
                              ).value_counts().sort_index()
                 temp_df = pd.DataFrame(dis_dep.values, columns=[f"{cls}_{dep}"], index=dis_dep.index)
                 # self.gender_dis_df = dis
-                self.gender_dis_dep_df = pd.concat([self.dis_cls_dep_df, temp_df], axis=1, ignore_index=False)
+                self.dis_cls_dep_df = pd.concat([self.dis_cls_dep_df, temp_df], axis=1, ignore_index=False)
 
                 # print(self.gender_dis_df)
         for dep in self.dep_type:
