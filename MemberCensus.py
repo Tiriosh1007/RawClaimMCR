@@ -22,7 +22,7 @@ class MemberCensus():
             'gender',
             'age',
             'policy_start_date',
-            'staff_id',
+            # 'staff_id',
             'working_email',
             'client_name',
         ]
@@ -58,6 +58,10 @@ class MemberCensus():
             "PAY_METHOD",
             "PAY_TO",
             "CUST_NAME",
+
+            #longer version:
+            "AGE",
+            "CONT_EFF_DATE",
         ]
         self.bupa_cols_dtype = {
             'CONT_NO': str,
@@ -81,6 +85,11 @@ class MemberCensus():
             "PAY_METHOD": str,
             "PAY_TO": str,
             "CUST_NAME": str,
+
+            #longer version:
+            "AGE": int,
+            "CONT_EFF_DATE": str,
+
         }
         self.bupa_cols_mapping = {
             'CONT_NO': 'policy_number',
@@ -91,9 +100,13 @@ class MemberCensus():
             "SEX": 'gender',
             "RENEWAL_CONTRACT_AGE": 'age',
             "RENEWAL_CONT_EFF_DATE": 'policy_start_date',
-            "STAFF_NO": 'staff_id',
+            # "STAFF_NO": 'staff_id',
             "OFFICE_EMAIL": 'working_email',
             "CUST_NAME": 'client_name',
+
+            #longer version:
+            "AGE": 'age',
+            "CONT_EFF_DATE": 'policy_start_date',
         }
 
 
