@@ -180,14 +180,6 @@ class MemberCensus():
                 # self.gender_dis_df = dis
                 self.gender_dis_dep_df = pd.concat([self.gender_dis_dep_df, temp_df], axis=1, ignore_index=False)
                 # print(self.gender_dis_df)
-            for cls in self.cls:
-                dis_cls = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls)], 
-                             bins=self.age_range,
-                             right=False,
-                             labels=self.age_lbs,
-                             ).value_counts().sort_index()
-                temp_df = pd.DataFrame(dis_cls.values, columns=[f"{cls}"], index=dis_cls.index)
-                self.dis_cls_df = pd.concat([self.dis_cls_df, temp_df], axis=1, ignore_index=False)
 
                 dis_cls_gen = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls) & (self.member_df['gender'] == gender)], 
                              bins=self.age_range,
@@ -196,6 +188,14 @@ class MemberCensus():
                              ).value_counts().sort_index()
                 temp_df = pd.DataFrame(dis_cls_gen.values, columns=[f"{gender}_{cls}"], index=dis_cls_gen.index)
                 self.gender_dis_cls_df = pd.concat([self.gender_dis_cls_df, temp_df], axis=1, ignore_index=False)
+        for cls in self.cls:
+            dis_cls = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls)], 
+                            bins=self.age_range,
+                            right=False,
+                            labels=self.age_lbs,
+                            ).value_counts().sort_index()
+            temp_df = pd.DataFrame(dis_cls.values, columns=[f"{cls}"], index=dis_cls.index)
+            self.dis_cls_df = pd.concat([self.dis_cls_df, temp_df], axis=1, ignore_index=False)
         return
     
     def set_graph_layout(self, xmax, xstep, ystep, width, height):
