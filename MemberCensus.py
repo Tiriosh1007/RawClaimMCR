@@ -180,7 +180,7 @@ class MemberCensus():
                 # self.gender_dis_df = dis
                 self.gender_dis_dep_df = pd.concat([self.gender_dis_dep_df, temp_df], axis=1, ignore_index=False)
                 # print(self.gender_dis_df)
-
+            for cls in self.cls:
                 dis_cls_gen = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls) & (self.member_df['gender'] == gender)], 
                              bins=self.age_range,
                              right=False,
