@@ -48,6 +48,7 @@ with function_col1:
     st.session_state.mcr_data = False
     st.session_state.col_management = False
     st.session_state.member_census = False
+    st.session_state.member_census_proceed = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -645,7 +646,9 @@ if st.session_state.member_census == True:
     height = st.number_input("Graph height", value=600)
   
   if st.button("Confirm"):
+    st.session_state.member_census_proceed = True
     # member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
+  if st.session_state.member_census_proceed == True:
     file_config = new_file_config
     member_census = MemberCensus()
     for n0 in range(len(file_config)):
