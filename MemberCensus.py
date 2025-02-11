@@ -199,7 +199,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Men Child',
                     text=-1 * temp_df['M_CH'].astype('int'),
-                    marker=dict(color="#7FD9FF")
+                    marker=dict(color="#ADE8F4")
                     ),
                 go.Bar(y=y,
                     x=temp_df['M_SP'],
@@ -208,7 +208,7 @@ class MemberCensus():
                     name='Men Spouse',
                     text=-1 * temp_df['M_SP'].astype('int'),
                     opacity=0.5,
-                    marker=dict(color="#32C2FF")
+                    marker=dict(color="#48CAE4")
                     ),
                 go.Bar(y=y,
                     x=temp_df['M_EE'],
@@ -217,7 +217,7 @@ class MemberCensus():
                     text=-1 * temp_df['M_EE'].astype('int'),
                     hoverinfo='x',
                     opacity=0.5,
-                    marker=dict(color="#00B2FF")
+                    marker=dict(color="#00B4D8")
                     ),
                 go.Bar(y=y,
                     x=temp_df['F_CH'],
@@ -225,7 +225,7 @@ class MemberCensus():
                     hoverinfo='x',
                     name='Female Child',
                     text=temp_df['F_CH'].astype('int'),
-                    marker=dict(color="#FFA69A")
+                    marker=dict(color="#FFCBD1")
                     ),
                 go.Bar(y=y,
                     x=temp_df['F_SP'],
@@ -234,7 +234,7 @@ class MemberCensus():
                     name='Female Spouse',
                     text=temp_df['F_SP'].astype('int'),
                     opacity=0.5,
-                    marker=dict(color="#FF7765")
+                    marker=dict(color="#F69697")
                     ),
                 go.Bar(y=y,
                     x=temp_df['F_EE'],
@@ -243,7 +243,7 @@ class MemberCensus():
                     text=temp_df['F_EE'].astype('int'),
                     hoverinfo='x',
                     opacity=0.5,
-                    marker=dict(color="#FF4B33")
+                    marker=dict(color="#F94449")
                     )
                 ]
         fig = go.Figure(data=data, layout=layout)
