@@ -156,10 +156,12 @@ class MemberCensus():
         self.member_df['gender'].replace(gender_mapping, inplace=True)
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
         self.member_df['age'] = self.member_df['age'].astype('int')
+
+        self.cls = self.member_df['class'].unique()
         return
     
     def get_gender_distribution(self):
-        self.gender_dis_df, self.gender_dis_dep_df = pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs)
+        self.gender_dis_df, self.gender_dis_dep_df, self.gender_dis_cls_df, self.dis_cls_df = pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs), pd.DataFrame(index=self.age_lbs)
         for gender in self.gender:
             dis = pd.cut(self.member_df['age'].loc[(self.member_df['gender'] == gender)], 
                              bins=self.age_range,
@@ -178,7 +180,23 @@ class MemberCensus():
                 # self.gender_dis_df = dis
                 self.gender_dis_dep_df = pd.concat([self.gender_dis_dep_df, temp_df], axis=1, ignore_index=False)
                 # print(self.gender_dis_df)
-        return       
+            for cls in self.cls:
+                dis_cls = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls)], 
+                             bins=self.age_range,
+                             right=False,
+                             labels=self.age_lbs,
+                             ).value_counts().sort_index()
+                temp_df = pd.DataFrame(dis_cls.values, columns=[f"{cls}"], index=dis_cls.index)
+                self.dis_cls_df = pd.concat([self.dis_cls_df, temp_df], axis=1, ignore_index=False)
+
+                dis_cls_gen = pd.cut(self.member_df['age'].loc[(self.member_df['class'] == cls) & (self.member_df['gender'] == gender)], 
+                             bins=self.age_range,
+                             right=False,
+                             labels=self.age_lbs,
+                             ).value_counts().sort_index()
+                temp_df = pd.DataFrame(dis_cls_gen.values, columns=[f"{gender}_{cls}"], index=dis_cls_gen.index)
+                self.gender_dis_cls_df = pd.concat([self.gender_dis_cls_df, temp_df], axis=1, ignore_index=False)
+        return
 
     def butterfly_plot(self, xmax, xstep):
         temp_df = self.gender_dis_df.copy(deep=True)
