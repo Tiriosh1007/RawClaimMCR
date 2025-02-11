@@ -30,7 +30,7 @@ class MemberCensus():
         self.member_df = pd.DataFrame(columns=self.cols)
 
         self.gender = ['M', 'F']
-        self.age_range = np.arange(0, 100, 10)
+        # self.age_range = np.arange(0, 100, 10)
         # self.age_lbs = ['{} - <{}'.format(i, i+10) for i in self.age_range]
         self.age_lbs = self.age_range[0:-1]
         self.dep_type = ['EE','SP', 'CH']
@@ -197,24 +197,35 @@ class MemberCensus():
                 temp_df = pd.DataFrame(dis_cls_gen.values, columns=[f"{gender}_{cls}"], index=dis_cls_gen.index)
                 self.gender_dis_cls_df = pd.concat([self.gender_dis_cls_df, temp_df], axis=1, ignore_index=False)
         return
+    
+    def set_graph_layout(self, xmax, xstep, ystep, width, height):
+        self.xmax = xmax
+        self.xstep = xstep
+        self.ystep = ystep
+        self.width = width
+        self.height = height
+        self.age_range = np.arange(0, 100, self.ystep)
+        self.age_lbs = self.age_range[0:-1]
+        return
 
-    def butterfly_plot(self, xmax, xstep):
+
+    def butterfly_plot(self):
         temp_df = self.gender_dis_df.copy(deep=True)
         temp_df[['M']] = -temp_df[['M']]
 
-        y = list(range(0, 100, 10))
-        y_text = [f"{i} - {i+9}" for i in y]
+        y = list(range(0, 100, self.ystep))
+        y_text = [f"{i} - {i+self.ystep-1}" for i in y]
         # y = self.age_lbs
-        tmax = xmax - xstep
+        tmax = self.xmax - self.xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
                                                  tickvals=y,
                                                  ticktext=y_text,
                                                  tickfont=dict(size=18),
                                                  ),
                            xaxis=go.layout.XAxis(
-                               range=[-xmax, xmax],
-                               tickvals=np.arange(-tmax, tmax, xstep),
-                               ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
+                               range=[-self.xmax, self.xmax],
+                               tickvals=np.arange(-tmax, tmax, self.xstep),
+                               ticktext=np.abs(np.arange(-tmax, tmax, self.xstep)).tolist(),
                                title='Number',
                                showgrid=True,
                                ),
@@ -224,8 +235,8 @@ class MemberCensus():
                             ),
                             barmode='relative', #barmode='stack',
                             bargap=0.1,
-                            width=1000,
-                            height=800)
+                            width=self.width,
+                            height=self.height)
         data = [go.Bar(y=y,
                     x=temp_df['M'],
                     orientation='h',
@@ -248,23 +259,23 @@ class MemberCensus():
         fig = go.Figure(data=data, layout=layout)
         return fig
 
-    def butterfly_plot_dep(self, xmax, xstep):
+    def butterfly_plot_dep(self):
         temp_df = self.gender_dis_dep_df.copy(deep=True)
         temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
-        y = list(range(0, 100, 10))
-        y_text = [f"{i} - {i+9}" for i in y]
+        y = list(range(0, 100, self.ystep))
+        y_text = [f"{i} - {i+self.ystep-1}" for i in y]
         # y = self.age_lbs
-        tmax = xmax - xstep
+        tmax = self.xmax - self.xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
                                                  tickvals=y,
                                                  ticktext=y_text,
                                                  tickfont=dict(size=18),
                                                  ),
                            xaxis=go.layout.XAxis(
-                               range=[-xmax, xmax],
-                               tickvals=np.arange(-tmax, tmax, xstep),
-                               ticktext=np.abs(np.arange(-tmax, tmax, xstep)).tolist(),
+                               range=[-self.xmax, self.xmax],
+                               tickvals=np.arange(-tmax, tmax, self.xstep),
+                               ticktext=np.abs(np.arange(-tmax, tmax, self.xstep)).tolist(),
                                title='Number',
                                showgrid=True,
                                ),
@@ -274,8 +285,8 @@ class MemberCensus():
                             ),
                             barmode='relative', #barmode='stack',
                             bargap=0.1,
-                            width=1000,
-                            height=800)
+                            width=self.width,
+                            height=self.height)
         data = [go.Bar(y=y,
                     x=temp_df['M_EE'],
                     orientation='h',

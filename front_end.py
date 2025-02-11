@@ -632,8 +632,18 @@ if st.session_state.member_census == True:
               enable_enterprise_modules=False)
   
   new_file_config = ag['data']
-  xmax = st.number_input("X-axis max value", value=1000)
-  xstep = st.number_input("X-axis step value", value=100)
+  chart_input_col1, chart_input_col2, chart_input_col3, chart_input_col_4, chart_input_col_5, chart_input_col_6 = st.columns([1,1,1,1,1,1])
+  with chart_input_col1:
+    xmax = st.number_input("X-axis max value", value=1000)
+  with chart_input_col2:
+    xstep = st.number_input("X-axis step value", value=50)
+  with chart_input_col3:
+    ystep = st.number_input("Age step value", value=10)
+  with chart_input_col_4:
+    width = st.number_input("Graph width", value=800)
+  with chart_input_col_5:
+    height = st.number_input("Graph height", value=600)
+  
   if st.button("Confirm"):
     # member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
     file_config = new_file_config
@@ -645,6 +655,7 @@ if st.session_state.member_census == True:
                         )
       
     member_census.member_df_processing()
+    member_census.set_graph_layout(xmax, xstep, ystep, width, height)
     member_census.get_gender_distribution()
     fig = member_census.butterfly_plot(xmax=xmax, xstep=xstep)
     st.plotly_chart(fig, use_container_width=False)
