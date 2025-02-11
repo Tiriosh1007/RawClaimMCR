@@ -664,4 +664,9 @@ if st.session_state.member_census == True:
     fig = member_census.butterfly_plot_dep(xmax=xmax, xstep=xstep)
     st.plotly_chart(fig, use_container_width=False)
     st.dataframe(member_census.gender_dis_dep_df)
-    
+    st.write('---')
+    st.write('#### Class Distribution')
+    st.dataframe(member_census.dis_cls_df)
+    st.write('---')
+    st.write('#### Gender and Class Distribution')
+    st.dataframe(member_census.gender_dis_cls_df)
