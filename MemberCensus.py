@@ -210,7 +210,7 @@ class MemberCensus():
 
                 # print(self.gender_dis_df)
         for dep in self.dep_type:
-            temp_df = self.member_df['class'].loc[self.member_df['dep_type'] == dep].value_counts()
+            temp_df = self.member_df['class'].loc[self.member_df['dep_type'] == dep].value_counts().rename(f"{dep}").to_frame()
             self.cls_df = pd.concat([self.cls_df, temp_df], axis=1, ignore_index=False)
 
         return
