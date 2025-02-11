@@ -185,7 +185,7 @@ class MemberCensus():
         temp_df[['M']] = -temp_df[['M']]
 
         y = list(range(0, 100, 10))
-        y_text = [f"{i} - <{i+10}" for i in y]
+        y_text = [f"{i} - {i+9}" for i in y]
         # y = self.age_lbs
         tmax = xmax - xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
@@ -235,7 +235,7 @@ class MemberCensus():
         temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
         y = list(range(0, 100, 10))
-        y_text = [f"{i} - <{i+10}" for i in y]
+        y_text = [f"{i} - {i+9}" for i in y]
         # y = self.age_lbs
         tmax = xmax - xstep
         layout = go.Layout(yaxis=go.layout.YAxis(title='Age',
