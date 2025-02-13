@@ -213,6 +213,13 @@ class MemberCensus():
             temp_df = self.member_df['class'].loc[self.member_df['dep_type'] == dep].value_counts().rename(f"{dep}").to_frame()
             self.cls_df = pd.concat([self.cls_df, temp_df], axis=1, ignore_index=False)
         
+        
+        self.gender_dis_df['total'] = self.gender_dis_df.sum(axis=1)
+        self.gender_dis_df.loc['total'] = self.gender_dis_df.sum(axis=0)
+        self.gender_dis_dep_df['EE_total'] = self.gender_dis_dep_df[['M_EE', 'F_EE']].sum(axis=1)
+        self.gender_dis_dep_df['SP_total'] = self.gender_dis_dep_df[['M_SP', 'F_SP']].sum(axis=1)
+        self.gender_dis_dep_df['CH_total'] = self.gender_dis_dep_df[['M_CH', 'F_CH']].sum(axis=1)
+        self.gender_dis_dep_df.loc['total'] = self.gender_dis_dep_df.sum(axis=0)
         self.cls_df['total'] = self.cls_df.sum(axis=1)
         self.cls_df.loc['total'] = self.cls_df.sum(axis=0)
 
