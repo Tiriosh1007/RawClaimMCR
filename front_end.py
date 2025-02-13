@@ -658,6 +658,23 @@ if st.session_state.member_census == True:
                         )
       
     member_census.member_df_processing()
+    member_census.get_general_info()
+    st.write('---')
+    st.write('### General Information')
+    gen_info_col1, gen_info_col2, gen_info_col3 = st.columns([1,1,1])
+    with gen_info_col1:
+      st.write('Total Member:', member_census.total_member)
+      st.write('Employee Average Age:', member_census.ee_age)
+      st.write('Employee Mix - Male:Female', member_census.ee_mix_ratio)
+      st.write('Dependent Ratio:', member_census.dep_ratio)
+    with gen_info_col2:
+      st.write('Dependent Mix:')
+      st.dataframe(member_census.dep_mix_df)
+    with gen_info_col3:
+      st.write('Employee Mix:')
+      st.dataframe(member_census.ee_mix_df)
+    st.write('---')
+      
     member_census.set_graph_layout(xmax, xstep, ystep, width, height)
     member_census.get_gender_distribution()
     fig = member_census.butterfly_plot()

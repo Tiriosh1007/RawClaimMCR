@@ -215,6 +215,16 @@ class MemberCensus():
 
         return
     
+    def get_general_info(self):
+        self.ee_age = self.member_df['age'].loc[self.member_df['dep_type'] == 'EE'].mean()
+        self.ee_mix_df = self.member_df['gender'].loc[self.member_df['dep_type'] == 'EE'].value_counts()
+        self.ee_mix_ratio = self.ee_mix_df['F'] / self.ee_mix_df['M']
+        self.total_mix_df = self.member_df['gender'].value_counts()
+        self.dep_ratio_df = self.member_df['dep_type'].value_counts()
+        self.dep_ratio = self.dep_ratio_df / self.dep_ratio_df.sum()
+        self.total_member = self.member_df.shape[0]
+        return
+
     def set_graph_layout(self, xmax, xstep, ystep, width, height):
         self.xmax = xmax
         self.xstep = xstep
