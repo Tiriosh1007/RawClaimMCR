@@ -214,6 +214,7 @@ class MemberCensus():
             self.cls_df = pd.concat([self.cls_df, temp_df], axis=1, ignore_index=False)
         
         self.cls_df['total'] = self.cls_df.sum(axis=1)
+        self.cls_df.loc['total'] = self.cls_df.sum(axis=0)
 
         return
     
