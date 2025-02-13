@@ -248,6 +248,7 @@ class MemberCensus():
 
     def butterfly_plot(self):
         temp_df = self.gender_dis_df.copy(deep=True)
+        temp_df.drop('total', axis=0, inplace=True)
         temp_df[['M']] = -temp_df[['M']]
 
         y = list(range(0, 100, self.ystep))
@@ -298,6 +299,7 @@ class MemberCensus():
 
     def butterfly_plot_dep(self):
         temp_df = self.gender_dis_dep_df.copy(deep=True)
+        temp_df.drop('total', axis=0, inplace=True)
         temp_df[['M_EE', 'M_SP', 'M_CH']] = -temp_df[['M_EE', 'M_SP', 'M_CH']]
 
         y = list(range(0, 100, self.ystep))
