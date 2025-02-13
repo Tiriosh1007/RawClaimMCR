@@ -669,7 +669,7 @@ if st.session_state.member_census == True:
       st.write('Dependent Ratio:', member_census.dep_ratio)
     with gen_info_col2:
       st.write('Dependent Mix:')
-      st.dataframe(member_census.dep_mix_df)
+      st.dataframe(member_census.dep_ratio_df)
     with gen_info_col3:
       st.write('Employee Mix:')
       st.dataframe(member_census.ee_mix_df)
