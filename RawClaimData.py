@@ -1144,7 +1144,7 @@ class RawClaimData():
     t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
     
     t_df['dep_type'].replace({"1": "EE", "2": "SP"}, inplace=True)
-    t_df['dep_type'].loc[pd.isin(t_df['dep_type'], ["EE", "SP"]) == False] = "CH"
+    t_df['dep_type'].loc[t_df['dep_type'].isin(["EE", "SP"]) == False] = "CH"
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HOSP', case=False)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('CLIN', case=False)] = 'Clinic'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('SMM', case=False)] = 'Hospital'
