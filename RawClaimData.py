@@ -1142,16 +1142,15 @@ class RawClaimData():
     t_df['client_name'] = client_name
     _start_date = t_df['policy_start_date'].iloc[0]
     t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
-    ##############################################################################################################
-    # Since LFH does not have the dep_type, we will assume that all the claims are EE
-    # LFH does not have the benefit, we will assume that all the benefits are the same as the benefit_type
-    ##############################################################################################################
+    
     t_df['dep_type'].replace({"1": "EE", "2": "SP"}, inplace=True)
     t_df['dep_type'].loc[pd.isin(t_df['dep_type'], ["EE", "SP"]) == False] = "CH"
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HOSP', case=False)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('CLIN', case=False)] = 'Clinic'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('SMM', case=False)] = 'Hospital'
-    # t_df['benefit]
+    hsbc_index = self.benefit_index[['gum_benefit', 'hsbc_benefit']]
+    t_df = pd.merge(left=t_df, right=hsbc_index, left_on='benefit', right_on='hsbc_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
     t_df['region'] = region
     t_df['suboffice'] = '00'
     if 'diagnosis' not in t_df.columns.tolist():
