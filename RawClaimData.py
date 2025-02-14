@@ -1081,7 +1081,89 @@ class RawClaimData():
 
     return t_df
 
-
+  def hsbc_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_hsbc_raw = {
+          "POLICY NO.": str,
+          'Masked ID': str,
+          'DEPENDANT CODE': str,
+          'Next Anniversary Date': str,
+          'Gender': str,
+          'Medical Tier': str,
+          'Termination Date': str,
+          'Effective Date': str,
+          'Claim Type': str,
+          'BENEFIT DESCRIPTION': str,
+          'CLAIM STATUS': str,
+          'CLAIM INCURRED DATE': str,
+          'CLAIM INCURRED AMOUNT': float,
+          'CLAIM PROCESSED DATE': str,
+          'CLAIM PAID AMOUNT': float,
+          'Claim Pay': str,
+          'Payment method': str,
+          'Currency': str,
+          'REMARK DESCRIPTION': str,
+      }
+      hsbc_rename_col = {
+        "POLICY NO.": "policy_number",
+        "Masked ID": "claimant",
+        "DEPENDANT CODE": "dep_type",
+        "Next Anniversary Date": "policy_start_date",
+        "Gender": "gender",
+        "Medical Tier": "class",
+        # "Termination Date"	
+        # "Effective Date" 
+        "Claim Type": "benefit_type",
+        "BENEFIT DESCRIPTION": "benefit",
+        "CLAIM STATUS": "claim_status",	
+        "CLAIM INCURRED DATE": "incur_date",	
+        "CLAIM INCURRED AMOUNT": "incurred_amount",	
+        "CLAIM PROCESSED DATE": "pay_date",	
+        "CLAIM PAID AMOUNT": "paid_amount",
+        # "Claim Pay": 	
+        # "Payment method"	
+        "Currency": "currency",
+        "REMARK DESCRIPTION": "claim_remark",}
+    # 'policy_id', # This is the policy_id for future
+    date_cols = ['incur_date', 'pay_date']
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_hsbc_raw)
+    t_df.rename(columns=hsbc_rename_col, inplace=True)
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = pd.to_datetime(t_df[col])
+      else:
+        t_df[col] = np.nan
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'HSBC'
+    t_df['client_name'] = client_name
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
+    ##############################################################################################################
+    # Since LFH does not have the dep_type, we will assume that all the claims are EE
+    # LFH does not have the benefit, we will assume that all the benefits are the same as the benefit_type
+    ##############################################################################################################
+    t_df['dep_type'].replace({"1": "EE", "2": "SP"}, inplace=True)
+    t_df['dep_type'].loc[pd.isin(t_df['dep_type'], ["EE", "SP"]) == False] = "CH"
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HOSP', case=False)] = 'Hospital'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('CLIN', case=False)] = 'Clinic'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('SMM', case=False)] = 'Hospital'
+    # t_df['benefit]
+    t_df['region'] = region
+    t_df['suboffice'] = '00'
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+    return t_df
 
 
 
@@ -1149,6 +1231,8 @@ class RawClaimData():
       temp_df = self.axa_raw_single(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'LFH':
       temp_df = self.lfh_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'HSBC':
+      temp_df = self.hsbc_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
