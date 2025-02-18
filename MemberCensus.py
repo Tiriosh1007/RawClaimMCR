@@ -230,7 +230,7 @@ class MemberCensus():
         self.ee_mix_df = self.member_df['gender'].loc[self.member_df['dep_type'] == 'EE'].value_counts()
         self.ee_mix_ratio = self.ee_mix_df['F'] / self.ee_mix_df['M']
         self.total_mix_df = self.member_df['gender'].value_counts()
-        self.dep_ratio_df = self.member_df['dep_type'].value_counts()
+        self.dep_ratio_df = self.member_df['dep_type'].value_counts().reindex(self.dep_type)
         self.dep_ratio = 1/ (self.dep_ratio_df.loc['EE'] / self.dep_ratio_df.loc[['SP', 'CH']].sum())
         self.total_member = self.member_df.shape[0]
         return
