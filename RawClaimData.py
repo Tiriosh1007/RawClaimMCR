@@ -1317,16 +1317,16 @@ class RawClaimData():
 
   def mcr_p20_policy(self, by=None):
     if by == None:
-      __p20_policy_df_col = ['policy_number', 'year', 'incurred_amount', 'paid_amount']
+      __p20_policy_df_col = ['policy_number', 'year', 'incurred_amount', 'paid_amount', 'claimant']
       __p20_policy_group_col = ['policy_number', 'year']
     else: 
 
-      __p20_policy_df_col = ['policy_number', 'year'] + by + ['incurred_amount', 'paid_amount']
+      __p20_policy_df_col = ['policy_number', 'year'] + by + ['incurred_amount', 'paid_amount', 'claimant']
       __p20_policy_group_col = ['policy_number', 'year'] + by
     
     self.mcr_df.policy_start_date = pd.to_datetime(self.mcr_df.policy_start_date)
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p20_policy_df = self.mcr_df[__p20_policy_df_col].groupby(by=__p20_policy_group_col, dropna=False).sum()
+    p20_policy_df = self.mcr_df[__p20_policy_df_col].groupby(by=__p20_policy_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     p20_policy_df['usage_ratio'] = p20_policy_df['paid_amount'] / p20_policy_df['incurred_amount']
     p20_policy_df = p20_policy_df.unstack().stack(dropna=False)
     self.p20_policy = p20_policy_df
@@ -1350,7 +1350,6 @@ class RawClaimData():
       for __year in p20_benefit_df.index.get_level_values(1).unique():
           if by == None:
             p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
-            p20_benefit_df['no_of_claimants'].loc[__policy_number, __year, 'Total'] = p20_benefit_df['no_of_claimants'].loc[__policy_number, __year, :].nunique()
           else:
             for __l3 in p20_benefit_df.index.get_level_values(2).unique():
               p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
