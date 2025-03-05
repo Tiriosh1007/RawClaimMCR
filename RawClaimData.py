@@ -1334,18 +1334,18 @@ class RawClaimData():
 
   def mcr_p20_benefit(self, by=None, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     if by == None:
-      __p20_benefit_df_col = ['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount']
+      __p20_benefit_df_col = ['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount', 'claimant']
       __p20_benefit_group_col = ['policy_number', 'year', 'benefit_type']
       __p20_benefit_claims_col = ['policy_number', 'year', 'benefit_type', 'incur_date']
     else: 
 
-      __p20_benefit_df_col = ['policy_number', 'year'] + by + ['benefit_type', 'incurred_amount', 'paid_amount']
+      __p20_benefit_df_col = ['policy_number', 'year'] + by + ['benefit_type', 'incurred_amount', 'paid_amount', 'claimant']
       __p20_benefit_group_col = ['policy_number', 'year'] + by + ['benefit_type']
       __p20_benefit_claims_col = ['policy_number', 'year'] + by + ['benefit_type', 'incur_date']
     
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p20_benefit_df = self.mcr_df[__p20_benefit_df_col].groupby(by=__p20_benefit_group_col, dropna=False).sum()
+    p20_benefit_df = self.mcr_df[__p20_benefit_df_col].groupby(by=__p20_benefit_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
       for __year in p20_benefit_df.index.get_level_values(1).unique():
           if by == None:
@@ -1365,6 +1365,9 @@ class RawClaimData():
     p20_benefit_df['paid_per_claim'] = p20_benefit_df['paid_amount'] / p20_benefit_df['no_of_claims']
     p20_benefit_df = p20_benefit_df.unstack().stack(dropna=False)
     p20_benefit_df = p20_benefit_df.reindex(benefit_type_order, level='benefit_type')
+
+    p20_benefit_df = p20_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim', 'no_of_claimants']]
+
     self.p20_benefit = p20_benefit_df
     self.p20 = p20_benefit_df
     return p20_benefit_df
@@ -1401,14 +1404,14 @@ class RawClaimData():
 
   def mcr_p21_class(self, by=None):
     if by == None:
-      __p21_df_col = ['policy_number', 'year', 'class', 'incurred_amount', 'paid_amount']
+      __p21_df_col = ['policy_number', 'year', 'class', 'incurred_amount', 'paid_amount', 'claimant']
       __p21_group_col = ['policy_number', 'year', 'class']
     else: 
-      __p21_df_col = ['policy_number', 'year'] + by + ['class', 'incurred_amount', 'paid_amount']
+      __p21_df_col = ['policy_number', 'year'] + by + ['class', 'incurred_amount', 'paid_amount', 'claimant']
       __p21_group_col = ['policy_number', 'year'] + by + ['class']
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p21_class_df = self.mcr_df[__p21_df_col].groupby(by=__p21_group_col, dropna=False).sum()
+    p21_class_df = self.mcr_df[__p21_df_col].groupby(by=__p21_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     p21_class_df['usage_ratio'] = p21_class_df['paid_amount'] / p21_class_df['incurred_amount']
     p21_class_df = p21_class_df.unstack().stack(dropna=False)
     self.p21_class = p21_class_df
