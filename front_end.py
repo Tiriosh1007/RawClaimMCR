@@ -136,8 +136,11 @@ if st.session_state.raw_claim == True:
   password_df = pd.DataFrame(password_l, columns=['Password'])
   policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
+  
+
   file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
   file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
+  st.dataframe(file_config)
 
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
