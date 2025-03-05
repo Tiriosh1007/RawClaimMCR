@@ -1350,6 +1350,7 @@ class RawClaimData():
       for __year in p20_benefit_df.index.get_level_values(1).unique():
           if by == None:
             p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
+            p20_benefit_df['no_of_claimants'].loc[__policy_number, __year, 'Total'] = p20_benefit_df['no_of_claimants'].loc[__policy_number, __year, :].nunique()
           else:
             for __l3 in p20_benefit_df.index.get_level_values(2).unique():
               p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
