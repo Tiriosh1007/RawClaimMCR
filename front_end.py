@@ -160,23 +160,25 @@ if st.session_state.raw_claim == True:
 
   5. Region: HK/ MO.
   """)
-  gb = GridOptionsBuilder.from_dataframe(file_config)
-  gb.configure_column('Insurer', editable=True)
-  gb.configure_column('Password', editable=True)
-  gb.configure_column('Policy start date', editable=True)
-  gb.configure_column('Client Name', editable=True)
-  gb.configure_column('Region', editable=True)
+  if len(file_config) > 0:
+    gb = GridOptionsBuilder.from_dataframe(file_config)
+    gb.configure_column('Insurer', editable=True)
+    gb.configure_column('Password', editable=True)
+    gb.configure_column('Policy start date', editable=True)
+    gb.configure_column('Client Name', editable=True)
+    gb.configure_column('Region', editable=True)
 
-  ag = AgGrid(file_config,
-              gridOptions=gb.build(),
-              update_mode=GridUpdateMode.VALUE_CHANGED,
-              height=350,
-              weight=1200,
-              allow_insafe_jscode=True,
-              enable_enterprise_modules=False)
-  st.dataframe(file_config)
+    ag = AgGrid(file_config,
+                gridOptions=gb.build(),
+                update_mode=GridUpdateMode.VALUE_CHANGED,
+                height=350,
+                weight=1200,
+                allow_insafe_jscode=True,
+                enable_enterprise_modules=False)
+    
+    # st.dataframe(file_config)
 
-  new_file_config = ag['data']
+    new_file_config = ag['data']
   # st.write('### updated data')
   # st.dataframe(new_file_config)
   st.write('---')
