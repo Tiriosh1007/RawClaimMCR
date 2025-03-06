@@ -1881,6 +1881,24 @@ class RawClaimData():
     p28_df_doct.sort_index(ascending=__p28_sort_order, inplace=True)
     self.p28_doct = p28_df_doct
     return p28_df_doct
+  
+  def mcr_p28a_doct(self, by=None):
+    if by == None:
+      __p28a_df_doct_col = ['policy_number', 'year', 'physician', 'benefit_type', 'benefit', 'incurred_amount', 'paid_amount', 'claim_id', 'claimant']
+      __p28a_group_col = ['policy_number', 'year', 'physician', 'benefit_type', 'benefit']
+      __p28a_sort_order = [True, True, True]
+    else: 
+      __p28a_df_doct_col = ['policy_number', 'year'] + by + ['physician', 'benefit_type', 'benefit', 'incurred_amount', 'paid_amount', 'claim_id', 'claimant']
+      __p28a_group_col = ['policy_number', 'year'] + by + ['physician', 'benefit_type', 'benefit']
+      __p28a_sort_order = [True, True] + len(by) * [True] + [True]
+
+    p28a_df_doct = self.mcr_df[__p28a_df_doct_col].copy(deep=True)
+    p28a_df_doct['physician'].fillna('No Physician Name', inplace=True)
+    p28a_df_doct = p28a_df_doct.groupby(by=__p28a_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    
+    p28a_df_doct.sort_index(ascending=__p28a_sort_order, inplace=True)
+    self.p28a_doct = p28a_df_doct
+    return p28a_df_doct
 
   def mcr_p28_proce(self, by=None):
     if by == None:
@@ -1950,6 +1968,7 @@ class RawClaimData():
     self.mcr_p28_hosp(by)
     self.mcr_p28_prov(by)
     self.mcr_p28_doct(by)
+    self.mcr_p28a_doct(by)
     self.mcr_p28_proce(by)
     self.mcr_p28_proce_diagnosis(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
@@ -1984,6 +2003,7 @@ class RawClaimData():
         self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
         self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
         self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
+        self.p28a_doct.to_excel(writer, sheet_name='P.28a_Physician_Benefit', index=True, merge_cells=False)
         self.p28_proce.to_excel(writer, sheet_name='P.28_Procedures', index=True, merge_cells=False)
         self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
