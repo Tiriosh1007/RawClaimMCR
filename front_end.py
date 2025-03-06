@@ -178,7 +178,7 @@ if st.session_state.raw_claim == True:
     
     # st.dataframe(file_config)
 
-    new_file_config = ag['data']
+  new_file_config = ag['data']
   # st.write('### updated data')
   # st.dataframe(new_file_config)
   st.write('---')
