@@ -1895,8 +1895,8 @@ class RawClaimData():
     p28a_df_doct = self.mcr_df[__p28a_df_doct_col].copy(deep=True)
     p28a_df_doct['physician'].fillna('No Physician Name', inplace=True)
     p28a_df_doct = p28a_df_doct.groupby(by=__p28a_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
-    p28a_df_doct = p28a_df_doct['incurred_amount_per_claim'] = p28a_df_doct['incurred_amount'] / p28a_df_doct['no_of_claim_id']
-    p28a_df_doct = p28a_df_doct['paid_amount_per_claim'] = p28a_df_doct['paid_amount'] / p28a_df_doct['no_of_claim_id']
+    p28a_df_doct['incurred_amount_per_claim'] = p28a_df_doct['incurred_amount'] / p28a_df_doct['no_of_claim_id']
+    p28a_df_doct['paid_amount_per_claim'] = p28a_df_doct['paid_amount'] / p28a_df_doct['no_of_claim_id']
     p28a_df_doct.sort_index(ascending=__p28a_sort_order, inplace=True)
     self.p28a_doct = p28a_df_doct
     return p28a_df_doct
