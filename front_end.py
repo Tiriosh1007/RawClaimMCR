@@ -140,7 +140,7 @@ if st.session_state.raw_claim == True:
 
   file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
   file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
-  st.dataframe(file_config)
+  
 
   file_config['Client Name'] = 'Input Client Name'
   file_config['Region'] = 'HK'
@@ -174,6 +174,7 @@ if st.session_state.raw_claim == True:
               weight=1200,
               allow_insafe_jscode=True,
               enable_enterprise_modules=False)
+  st.dataframe(file_config)
 
   new_file_config = ag['data']
   # st.write('### updated data')
