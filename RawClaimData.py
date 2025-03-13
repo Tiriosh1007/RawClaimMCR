@@ -236,7 +236,7 @@ class RawClaimData():
     print(_policy_start)
 
     with open(raw_claim_path, "rb") as file:
-      if password != "" or "2" not in password:
+      if "2" in password:
         excel_file = msoffcrypto.OfficeFile(file)
         excel_file.load_key(password = password)
         excel_file.decrypt(unlocked_file)
