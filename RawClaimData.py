@@ -243,7 +243,9 @@ class RawClaimData():
         from openpyxl import load_workbook
         wb = load_workbook(filename = unlocked_file)
 
-      b_type_l = wb.sheetnames
+        b_type_l = wb.sheetnames
+      
+      b_type_l = ['CLIN', 'DENT', 'HOSP']
 
       if 'CLIN' in b_type_l:
         df_c = pd.read_excel(unlocked_file, sheet_name='CLIN', dtype=dtype_axa_clin)
