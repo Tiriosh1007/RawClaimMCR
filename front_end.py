@@ -123,7 +123,7 @@ if st.session_state.raw_claim == True:
         policy_sd_l.append(uploaded_file.name.split('_')[-1].split(' to ')[0])
         password_l.append("")
       elif 'AXA_single' in uploaded_file.name:
-        insurer_l.append('AXA_single')
+        insurer_l.append('AXA single')
         policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
         password_l.append("")
 
