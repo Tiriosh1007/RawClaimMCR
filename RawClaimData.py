@@ -240,8 +240,8 @@ class RawClaimData():
         excel_file = msoffcrypto.OfficeFile(file)
         excel_file.load_key(password = password)
         excel_file.decrypt(unlocked_file)
-      from openpyxl import load_workbook
-      wb = load_workbook(filename = unlocked_file)
+        from openpyxl import load_workbook
+        wb = load_workbook(filename = unlocked_file)
 
       b_type_l = wb.sheetnames
 
