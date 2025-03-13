@@ -987,10 +987,14 @@ class RawClaimData():
     t_df = pd.merge(left=t_df, right=axa_benefit, left_on='benefit', right_on='axa_benefit_code', how='left')
     t_df.benefit = t_df.gum_benefit
     t_df['region'] = region
+    
 
     for col in self.col_setup:
       if col not in t_df.columns.tolist():
         t_df[col] = np.nan
+
+
+    t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
     t_df = t_df[self.col_setup]
 
     return t_df
