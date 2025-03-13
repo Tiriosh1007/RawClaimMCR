@@ -236,16 +236,14 @@ class RawClaimData():
     print(_policy_start)
 
     with open(raw_claim_path, "rb") as file:
-      if password != None:
-        excel_file = msoffcrypto.OfficeFile(file)
-        excel_file.load_key(password = password)
-        excel_file.decrypt(unlocked_file)
-        from openpyxl import load_workbook
-        wb = load_workbook(filename = unlocked_file)
+      excel_file = msoffcrypto.OfficeFile(file)
+      excel_file.load_key(password = password)
+      excel_file.decrypt(unlocked_file)
+      from openpyxl import load_workbook
+      wb = load_workbook(filename = unlocked_file)
 
-        b_type_l = wb.sheetnames
-      
-      b_type_l = ['CLIN', 'DENT', 'HOSP']
+      b_type_l = wb.sheetnames
+
 
       if 'CLIN' in b_type_l:
         df_c = pd.read_excel(unlocked_file, sheet_name='CLIN', dtype=dtype_axa_clin)
