@@ -122,6 +122,10 @@ if st.session_state.raw_claim == True:
         insurer_l.append('Blue Cross')
         policy_sd_l.append(uploaded_file.name.split('_')[-1].split(' to ')[0])
         password_l.append("")
+      elif 'AXA_Single' in uploaded_file.name:
+        insurer_l.append('AXA_Single')
+        policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
+        password_l.append("")
 
       import tempfile
       import os

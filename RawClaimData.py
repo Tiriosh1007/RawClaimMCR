@@ -1228,7 +1228,7 @@ class RawClaimData():
       temp_df = self.__bupa_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'Blue Cross':
       temp_df = self.blue_cross_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
-    elif insurer == 'AXA Single':
+    elif insurer == 'AXA single':
       temp_df = self.axa_raw_single(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'LFH':
       temp_df = self.lfh_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)

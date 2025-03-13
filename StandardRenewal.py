@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import xlsx
 
 from RawClaimData import *
 class StandarRenewal():
@@ -9,7 +10,7 @@ class StandarRenewal():
             'P.20_BenefitType',
             'P.20_Network',
             'P.21_Class',
-            'P.22_Class_BenefitType
+            'P.22_Class_BenefitType',
             'P.23_IP_Benefit',
             'P.24_OP_Benefit',
             'P.25_Class_Panel_BenefitType',
@@ -17,3 +18,4 @@ class StandarRenewal():
         ]
         self.mcr_fp = mcr_fp
         self.worksheet_list = [pd.read_excel(self.mcr_fp, sheet_name=worksheet) for worksheet in self.mcr_pages_name]
+        self.font
