@@ -2123,9 +2123,22 @@ class RawClaimData():
     __freq_pm_df = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[self.df.benefit.str.contains('PM', case=False)].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Prescribed Medicine (PM)_incurred', 'paid_amount': 'Prescribed Medicine (PM)_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_pm_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df['paid_per_claim'] = __freq_df['total_paid'] / __freq_df['total_claims']
-    __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
-    __freq_df['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df['Prescribed Medicine (PM)_paid'] / __freq_df['Prescribed Medicine (PM)']
+
+    if 'Diagnostic: X-Ray & Lab Test (DX)' in __freq_df.columns.to_list():
+      __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
+    else:
+      __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = np.nan
+      __freq_df['Diagnostic: X-Ray & Lab Test (DX)'] = np.nan
+      __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] = np.nan
+    
+    if 'Prescribed Medicine (PM)' in __freq_df.columns.to_list():
+      __freq_df['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df['Prescribed Medicine (PM)_paid'] / __freq_df['Prescribed Medicine (PM)']
+    else:
+      __freq_df['Prescribed Medicine (PM)_paid_per_claim'] = np.nan
+      __freq_df['Prescribed Medicine (PM)'] = np.nan
+      __freq_df['Prescribed Medicine (PM)_paid'] = np.nan
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
+
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
