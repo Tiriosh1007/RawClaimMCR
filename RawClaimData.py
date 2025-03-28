@@ -2097,6 +2097,11 @@ class RawClaimData():
     __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().stack(dropna=False)
     __freq_sum_benefit_df = __freq_sum_benefit_df.reindex(total_visit_col, level='benefit').unstack()
     print(__freq_sum_benefit_df.columns.get_level_values(1).to_list())
+    __freq_sum_benefit_df.columns = __freq_sum_benefit_df.columns.get_level_values(1).to_list()
+    for col in total_visit_col:
+      if col not in __freq_sum_benefit_df.columns:
+        __freq_sum_benefit_df[col] = np.nan
+    __freq_sum_benefit_df = __freq_sum_benefit_df[total_visit_col]
 
     __freq_sum_benefit_df.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
     __freq_inc_benefit_df = self.df[['claimant', 'benefit', 'incurred_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'incurred_amount': 'total_incurred'}).unstack().stack(dropna=False)
