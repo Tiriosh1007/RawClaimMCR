@@ -1832,6 +1832,25 @@ class RawClaimData():
     p27_df_op.sort_index(ascending=__p27_sort_order, inplace=True)
     self.p27_op = p27_df_op
     return p27_df_op
+  
+  def mcr_p27_ts_ip(self, by=None):
+    if by == None:
+      __p27_df_col = ['policy_number', 'year', 'pay_date', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p27_group_col = ['policy_number', 'year', pd.Grouper(key='pay_date', freq='MS'), 'benefit']
+      __p27_sort_order = [True, True, True]
+    else: 
+      __p27_df_col = ['policy_number', 'year'] + by + ['pay_date', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p27_group_col = ['policy_number', 'year'] + by + [pd.Grouper(key='pay_date', freq='MS'), 'benefit']
+      __p27_sort_order = [True, True] + len(by) * [True] + [True]
+
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p27_df_ip = self.mcr_df.loc[(self.mcr_df['benefit_type'] == 'Hospital')].copy(deep=True)
+    p27_df_ip = p27_df_ip[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_df_ip = p27_df_ip.unstack()
+    p27_df_ip.sort_index(ascending=__p27_sort_order, inplace=True)
+    self.p27_op = p27_df_ip
+    return p27_df_ip
 
   def mcr_p28_hosp(self, by=None):
     if by == None:
@@ -1970,6 +1989,7 @@ class RawClaimData():
     self.mcr_p26_op_class_panel(by)
     self.mcr_p26_ip_panel(by)
     self.mcr_p27_ts(by)
+    self.mcr_p27_ts_ip(by)
     self.mcr_p27_ts_op(by)
     self.mcr_p28_hosp(by)
     self.mcr_p28_prov(by)
@@ -2005,7 +2025,8 @@ class RawClaimData():
         self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
         self.p26_ip_panel.to_excel(writer, sheet_name='P.26b_IP_Panel_Benefit', index=True, merge_cells=False)
         self.p27.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
-        self.p27_op.to_excel(writer, sheet_name='P.27a_TimeSeries_OP', index=True, merge_cells=False)
+        self.p27_ip.to_excel(writer, sheet_name='P.27a_TimeSeries_IP', index=True, merge_cells=False)
+        self.p27_op.to_excel(writer, sheet_name='P.27b_TimeSeries_OP', index=True, merge_cells=False)
         self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
         self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
         self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
