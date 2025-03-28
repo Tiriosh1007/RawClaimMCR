@@ -1849,7 +1849,7 @@ class RawClaimData():
     p27_df_ip = p27_df_ip[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
     p27_df_ip = p27_df_ip.unstack()
     p27_df_ip.sort_index(ascending=__p27_sort_order, inplace=True)
-    self.p27_op = p27_df_ip
+    self.p27_ip = p27_df_ip
     return p27_df_ip
 
   def mcr_p28_hosp(self, by=None):
