@@ -55,6 +55,7 @@ class RawClaimData():
         'panel',
         'suboffice',
         'region',
+        'common_disease_flag',
     ]
 
     self.col_setup = col_setup
@@ -1280,7 +1281,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True):
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
@@ -1317,6 +1318,11 @@ class RawClaimData():
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('neck sprain|cervicalgia', case=False)] = 'cervicalgia (neck pain)'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('cataract', case=False)] = 'cataract'
       print('changed')
+    
+    if common_diagnosis == True:
+      self.df['common_diagnosis_flag'].loc[self.df.diagnosis.str.contains('viral warts', case=False)] = 'viral_warts'
+      self.df['common_diagnosis_flag'].loc[self.df.procedures.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False)] = 'endoscopy'
+      self.df['common_diagnosis_flag'].fillna("others", inplace=True)
 
     return None
 
@@ -1443,21 +1449,27 @@ class RawClaimData():
   def mcr_p23_ip_benefit(self, by=None):
     self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
     if by == None:
-      __p23_df_col = ['policy_number', 'year', 'benefit', 'incurred_amount', 'paid_amount']
+      __p23_df_col = ['policy_number', 'year', 'benefit', 'incurred_amount', 'paid_amount', 'claimant']
       __p23_group_col = ['policy_number', 'year', 'benefit']
       __p23_claims_col = ['policy_number', 'year', 'benefit', 'incur_date']
     else: 
-      __p23_df_col = ['policy_number', 'year'] + by + ['benefit', 'incurred_amount', 'paid_amount']
+      __p23_df_col = ['policy_number', 'year'] + by + ['benefit', 'incurred_amount', 'paid_amount', 'claimant']
       __p23_group_col = ['policy_number', 'year'] + by + ['benefit']
       __p23_claims_col = ['policy_number', 'year'] + by + ['benefit', 'incur_date']
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p23_ip_benefit_df = self.mcr_df[__p23_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23_group_col, dropna=False).sum()
+    p23_ip_benefit_df = self.mcr_df[__p23_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     p23_ip_benefit_df['usage_ratio'] = p23_ip_benefit_df['paid_amount'] / p23_ip_benefit_df['incurred_amount']
     p23_ip_no_claims = self.mcr_df[__p23_claims_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
     p23_ip_benefit_df['no_of_claims'] = p23_ip_no_claims['no_of_claims']
+    p23_ip_benefit_df['incurred_per_case'] = p23_ip_benefit_df['incurred_amount'] / p23_ip_benefit_df['no_of_claims']
+    p23_ip_benefit_df['paid_per_case'] = p23_ip_benefit_df['paid_amount'] / p23_ip_benefit_df['no_of_claims']
+    p23_ip_benefit_df['incurred_per_claimant'] = p23_ip_benefit_df['incurred_amount'] / p23_ip_benefit_df['no_of_claimants']
+    p23_ip_benefit_df['paid_per_claimant'] = p23_ip_benefit_df['paid_amount'] / p23_ip_benefit_df['no_of_claimants']
+    p23_ip_benefit_df['claim_frequency'] = p23_ip_benefit_df['no_of_claims'] / p23_ip_benefit_df['no_of_claimants']
     p23_ip_benefit_df = p23_ip_benefit_df.unstack().stack(dropna=False)
     p23_ip_benefit_df = p23_ip_benefit_df.reindex(self.ip_order, level='benefit')
+    p23_ip_benefit_df = p23_ip_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
     self.p23_ip_benefit = p23_ip_benefit_df
     self.p23 = p23_ip_benefit_df
     return p23_ip_benefit_df
@@ -1465,24 +1477,57 @@ class RawClaimData():
   def mcr_p23a_class_ip_benefit(self, by=None):
     self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
     if by == None:
-      __p23a_df_col = ['policy_number', 'year', 'class', 'benefit', 'incurred_amount', 'paid_amount']
+      __p23a_df_col = ['policy_number', 'year', 'class', 'benefit', 'incurred_amount', 'paid_amount', 'claimant']
       __p23a_group_col = ['policy_number', 'year', 'class', 'benefit']
       __p23a_claims_col = ['policy_number', 'year', 'class', 'benefit', 'incur_date']
     else: 
-      __p23a_df_col = ['policy_number', 'year'] + by + ['class', 'benefit', 'incurred_amount', 'paid_amount']
+      __p23a_df_col = ['policy_number', 'year'] + by + ['class', 'benefit', 'incurred_amount', 'paid_amount', 'claimant']
       __p23a_group_col = ['policy_number', 'year'] + by + ['class', 'benefit']
       __p23a_claims_col = ['policy_number', 'year'] + by + ['class', 'benefit', 'incur_date']
     
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p23_ip_class_benefit_df = self.mcr_df[__p23a_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23a_group_col, dropna=False).sum()
+    p23_ip_class_benefit_df = self.mcr_df[__p23a_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23a_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     p23_ip_class_benefit_df['usage_ratio'] = p23_ip_class_benefit_df['paid_amount'] / p23_ip_class_benefit_df['incurred_amount']
     p23_ip_class_no_claims = self.mcr_df[__p23a_claims_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23a_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
     p23_ip_class_benefit_df['no_of_claims'] = p23_ip_class_no_claims['no_of_claims']
+    p23_ip_class_benefit_df['incurred_per_case'] = p23_ip_class_benefit_df['incurred_amount'] / p23_ip_class_benefit_df['no_of_claims']
+    p23_ip_class_benefit_df['paid_per_case'] = p23_ip_class_benefit_df['paid_amount'] / p23_ip_class_benefit_df['no_of_claims']
+    p23_ip_class_benefit_df['incurred_per_claimant'] = p23_ip_class_benefit_df['incurred_amount'] / p23_ip_class_benefit_df['no_of_claimants']
+    p23_ip_class_benefit_df['paid_per_claimant'] = p23_ip_class_benefit_df['paid_amount'] / p23_ip_class_benefit_df['no_of_claimants']
+    p23_ip_class_benefit_df['claim_frequency'] = p23_ip_class_benefit_df['no_of_claims'] / p23_ip_class_benefit_df['no_of_claimants']
     p23_ip_class_benefit_df = p23_ip_class_benefit_df.unstack().stack(dropna=False)
     p23_ip_class_benefit_df = p23_ip_class_benefit_df.reindex(self.ip_order, level='benefit')
+    p23_ip_class_benefit_df = p23_ip_class_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
     self.p23a_ip_class_benefit = p23_ip_class_benefit_df
     self.p23a = p23_ip_class_benefit_df
     return p23_ip_class_benefit_df
+  
+  def mcr_p23b_ip_common_diagnosis(self, by=None):
+    self.ip_order = self.benefit_index.gum_benefit.loc[(self.benefit_index.gum_benefit_type == 'INPATIENT BENEFITS /HOSPITALIZATION') | (self.benefit_index.gum_benefit_type == 'MATERNITY') | (self.benefit_index.gum_benefit_type == 'SUPPLEMENTARY MAJOR MEDICAL')].drop_duplicates(keep='last').values.tolist()
+    if by == None:
+      __p23b_df_col = ['policy_number', 'year', 'common_diagnosis_flag', 'benefit', 'incurred_amount', 'paid_amount', 'claimant']
+      __p23b_group_col = ['policy_number', 'year', 'common_diagnosis_flag', 'benefit']
+      __p23b_claims_col = ['policy_number', 'year', 'common_diagnosis_flag', 'benefit', 'incur_date']
+    else: 
+      __p23b_df_col = ['policy_number', 'year'] + by + ['common_diagnosis_flag', 'benefit', 'incurred_amount', 'paid_amount', 'claimant']
+      __p23b_group_col = ['policy_number', 'year'] + by + ['common_diagnosis_flag', 'benefit']
+      __p23b_claims_col = ['policy_number', 'year'] + by + ['common_diagnosis_flag', 'benefit', 'incur_date']
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p23b_ip_benefit_df = self.mcr_df[__p23b_df_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23b_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
+    p23b_ip_benefit_df['usage_ratio'] = p23b_ip_benefit_df['paid_amount'] / p23b_ip_benefit_df['incurred_amount']
+    p23b_ip_no_claims = self.mcr_df[__p23b_claims_col].loc[self.mcr_df['benefit_type'] == 'Hospital'].groupby(by=__p23b_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    p23b_ip_benefit_df['no_of_claims'] = p23b_ip_no_claims['no_of_claims']
+    p23b_ip_benefit_df['incurred_per_case'] = p23b_ip_benefit_df['incurred_amount'] / p23b_ip_benefit_df['no_of_claims']
+    p23b_ip_benefit_df['paid_per_case'] = p23b_ip_benefit_df['paid_amount'] / p23b_ip_benefit_df['no_of_claims']
+    p23b_ip_benefit_df['incurred_per_claimant'] = p23b_ip_benefit_df['incurred_amount'] / p23b_ip_benefit_df['no_of_claimants']
+    p23b_ip_benefit_df['paid_per_claimant'] = p23b_ip_benefit_df['paid_amount'] / p23b_ip_benefit_df['no_of_claimants']
+    p23b_ip_benefit_df['claim_frequency'] = p23b_ip_benefit_df['no_of_claims'] / p23b_ip_benefit_df['no_of_claimants']
+    p23b_ip_benefit_df = p23b_ip_benefit_df.unstack().stack(dropna=False)
+    p23b_ip_benefit_df = p23b_ip_benefit_df.reindex(self.ip_order, level='benefit')
+    p23b_ip_benefit_df = p23b_ip_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
+    self.p23b_ip_common_diagnosis = p23b_ip_benefit_df
+    return p23b_ip_benefit_df
 
   def mcr_p24_op_benefit(self, by=None):
     if by == None:
@@ -1979,6 +2024,7 @@ class RawClaimData():
     self.mcr_p22_class_benefit(by, benefit_type_order)
     self.mcr_p23_ip_benefit(by)
     self.mcr_p23a_class_ip_benefit(by)
+    self.mcr_p23b_ip_common_diagnosis(by)
     self.mcr_p24_op_benefit(by)
     self.mcr_p24a_op_class_benefit(by)
     self.mcr_p24_dent_benefit(by)
@@ -2015,6 +2061,7 @@ class RawClaimData():
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
         self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
         self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
+        self.p23b_ip_common_diagnosis(writer, sheet_name='P.23b_Common_Diagnosis_IP', index=True, merge_cells=False)
         self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
         self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
         self.p24_dent_benefit.to_excel(writer, sheet_name='P.24d_Dental', index=True, merge_cells=False)
