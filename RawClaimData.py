@@ -55,7 +55,7 @@ class RawClaimData():
         'panel',
         'suboffice',
         'region',
-        'common_disease_flag',
+        'common_diagnosis_flag',
     ]
 
     self.col_setup = col_setup
