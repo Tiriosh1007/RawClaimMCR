@@ -2065,7 +2065,7 @@ class RawClaimData():
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
         self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
         self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
-        self.p23b_ip_common_diagnosis(writer, sheet_name='P.23b_Common_Diagnosis_IP', index=True, merge_cells=False)
+        self.p23b_ip_common_diagnosis.to_excel(writer, sheet_name='P.23b_Common_Diagnosis_IP', index=True, merge_cells=False)
         self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
         self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
         self.p24_dent_benefit.to_excel(writer, sheet_name='P.24d_Dental', index=True, merge_cells=False)
