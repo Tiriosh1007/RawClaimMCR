@@ -1473,7 +1473,7 @@ class RawClaimData():
     p23_ip_benefit_df['claim_frequency'] = p23_ip_benefit_df['no_of_claims'] / p23_ip_benefit_df['no_of_claimants']
     p23_ip_benefit_df = p23_ip_benefit_df.unstack().stack(dropna=False)
     p23_ip_benefit_df = p23_ip_benefit_df.reindex(self.ip_order, level='benefit')
-    p23_ip_benefit_df = p23_ip_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
+    p23_ip_benefit_df = p23_ip_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']]
     self.p23_ip_benefit = p23_ip_benefit_df
     self.p23 = p23_ip_benefit_df
     return p23_ip_benefit_df
@@ -1501,7 +1501,7 @@ class RawClaimData():
     p23_ip_class_benefit_df['claim_frequency'] = p23_ip_class_benefit_df['no_of_claims'] / p23_ip_class_benefit_df['no_of_claimants']
     p23_ip_class_benefit_df = p23_ip_class_benefit_df.unstack().stack(dropna=False)
     p23_ip_class_benefit_df = p23_ip_class_benefit_df.reindex(self.ip_order, level='benefit')
-    p23_ip_class_benefit_df = p23_ip_class_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
+    p23_ip_class_benefit_df = p23_ip_class_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']]
     self.p23a_ip_class_benefit = p23_ip_class_benefit_df
     self.p23a = p23_ip_class_benefit_df
     return p23_ip_class_benefit_df
@@ -1529,7 +1529,7 @@ class RawClaimData():
     p23b_ip_benefit_df['claim_frequency'] = p23b_ip_benefit_df['no_of_claims'] / p23b_ip_benefit_df['no_of_claimants']
     p23b_ip_benefit_df = p23b_ip_benefit_df.unstack().stack(dropna=False)
     p23b_ip_benefit_df = p23b_ip_benefit_df.reindex(self.ip_order, level='benefit')
-    p23b_ip_benefit_df = p23b_ip_benefit_df['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']
+    p23b_ip_benefit_df = p23b_ip_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_case', 'paid_per_case', 'incurred_per_claimant', 'paid_per_claimant', 'claim_frequency']]
     self.p23b_ip_common_diagnosis = p23b_ip_benefit_df
     return p23b_ip_benefit_df
 
