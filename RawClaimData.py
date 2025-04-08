@@ -996,6 +996,7 @@ class RawClaimData():
 
 
     t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
+    t_df.suboffice.fillna('00', inplace=True)
     t_df = t_df[self.col_setup]
 
     return t_df
