@@ -1321,6 +1321,7 @@ class RawClaimData():
     
     if common_diagnosis == True:
       self.df['common_diagnosis_flag'].fillna("others", inplace=True)
+      self.df['procedure'].fillna("no procedures provided", inplace=True)
       self.df['common_diagnosis_flag'].loc[self.df.diagnosis.str.contains('viral warts', case=False)] = 'viral_warts'
       self.df['common_diagnosis_flag'].loc[self.df.procedure.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False)] = 'endoscopy'
       
