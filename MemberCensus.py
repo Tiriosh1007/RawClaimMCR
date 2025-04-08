@@ -112,19 +112,19 @@ class MemberCensus():
 
     def get_member_df(self, fp, insurer, password=None):
 
-        if password is not None:
-            import msoffcrypto
-            import io
-            unlocked = io.BytesIO()
-            with open(fp, "rb") as file:
-                excel_file = msoffcrypto.OfficeFile(file)
-                excel_file.load_key(password = password)
-                excel_file.decrypt(unlocked)
-                from openpyxl import load_workbook
-                wb = load_workbook(filename = unlocked)
-            temp_df = pd.read_excel(unlocked, dtype=self.bupa_cols_dtype)
-        else:
-            temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
+        # if password is not None:
+        #     import msoffcrypto
+        #     import io
+        #     unlocked = io.BytesIO()
+        #     with open(fp, "rb") as file:
+        #         excel_file = msoffcrypto.OfficeFile(file)
+        #         excel_file.load_key(password = password)
+        #         excel_file.decrypt(unlocked)
+        #         from openpyxl import load_workbook
+        #         wb = load_workbook(filename = unlocked)
+        #     temp_df = pd.read_excel(unlocked, dtype=self.bupa_cols_dtype)
+        # else:
+        temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
         
         if insurer == 'Bupa':
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
