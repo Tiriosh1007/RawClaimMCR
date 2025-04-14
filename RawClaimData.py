@@ -1308,7 +1308,7 @@ class RawClaimData():
       self.df.diagnosis = self.df.diagnosis.str.lower()
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('acute upper respiratory infec|common cold', case=False)] = 'acute upper respiratory infection & common cold'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)] = self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)].replace(to_replace={', unspec': '', ', unspecified': ''})
-      self.df.diagnosis.loc[self.df.diagnosis.str.contains('chlamydia', case=False)] = 'viral warts'
+      self.df.diagnosis.loc[(self.df.diagnosis.str.contains('chlamydia', case=False)) & (self.df.insurer == 'AIA') ] = 'viral warts'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('dermatitis|eczema', case=False)] = 'dermatitis & eczema'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('gastritis|gastroenteritis|intestinal infec', case=False)] = 'gastritis and gastroenteritis'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('benign neoplasm of colon|polyp of colon|anal and rectal polyp', case=False)] = 'benign neoplasm of colon & polyp'
@@ -1318,12 +1318,13 @@ class RawClaimData():
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('pain in joint|pain in ankle and joints of foot|sprains and strains of ankle and foot', case=False)] = 'pain in joint and ankle'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('neck sprain|cervicalgia', case=False)] = 'cervicalgia (neck pain)'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('cataract', case=False)] = 'cataract'
+      self.df.diagnosis.loc[self.df.diagnosis.str.contains('bronchitis|bronchiolitis', case=False)] = 'bronchitis and bronchiolitis'
       print('changed')
     
     if common_diagnosis == True:
       self.df['common_diagnosis_flag'].fillna("others", inplace=True)
       self.df['procedure'].fillna("no procedures provided", inplace=True)
-      self.df['common_diagnosis_flag'].loc[self.df.diagnosis.str.contains('viral warts', case=False)] = 'viral_warts'
+      self.df['common_diagnosis_flag'].loc[(self.df.diagnosis.str.contains('viral warts', case=False))|self.df.procedure.str.contains('warts', case=False)] = 'viral_warts'
       self.df['common_diagnosis_flag'].loc[self.df.procedure.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False)] = 'endoscopy'
     
     self.df.suboffice.fillna('00', inplace=True)
