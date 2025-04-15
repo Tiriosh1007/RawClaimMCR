@@ -1319,6 +1319,7 @@ class RawClaimData():
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('neck sprain|cervicalgia', case=False)] = 'cervicalgia (neck pain)'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('cataract', case=False)] = 'cataract'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('bronchitis|bronchiolitis', case=False)] = 'bronchitis and bronchiolitis'
+      self.df.diagnosis.loc[((self.df.diagnosis.str.contains('hypertension', case=False)) & (self.df.diagnosis.str.contains('ocular', case=False) == False))|(self.df.diagnosis.str.contains('hypertensive', case=False))] = 'hypertension & hypertensive rentinopathy'
       print('changed')
     
     if common_diagnosis == True:
@@ -1326,7 +1327,8 @@ class RawClaimData():
       self.df['procedure'].fillna("no procedures provided", inplace=True)
       self.df['common_diagnosis_flag'].loc[(self.df.diagnosis.str.contains('viral warts', case=False))|self.df.procedure.str.contains('warts', case=False)] = 'viral_warts'
       self.df['common_diagnosis_flag'].loc[self.df.procedure.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False)] = 'endoscopy'
-    
+      
+
     self.df.suboffice.fillna('00', inplace=True)
 
     return None
