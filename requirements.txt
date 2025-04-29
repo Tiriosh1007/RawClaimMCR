@@ -10,3 +10,5 @@ openpyxl
 pygwalker
 chart_studio
 xlrd
+ollama 
+pillow
