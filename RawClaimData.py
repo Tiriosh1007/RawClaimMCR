@@ -1102,6 +1102,7 @@ class RawClaimData():
           'Termination Date': str,
           'Effective Date': str,
           'Claim Type': str,
+          'Benefit Type': str,
           'BENEFIT DESCRIPTION': str,
           'CLAIM STATUS': str,
           'CLAIM INCURRED DATE': str,
@@ -1123,6 +1124,7 @@ class RawClaimData():
         # "Termination Date"	
         # "Effective Date" 
         "Claim Type": "benefit_type",
+        "Benefit Type": "benefit_type",
         "BENEFIT DESCRIPTION": "benefit",
         "CLAIM STATUS": "claim_status",	
         "CLAIM INCURRED DATE": "incur_date",	
