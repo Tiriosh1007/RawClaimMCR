@@ -229,7 +229,11 @@ class MemberCensus():
                        '7': 'CH',
                        '8': 'CH',
                        '9': 'CH',
-                       '10': 'CH',}
+                       '10': 'CH',
+                       'Husband': 'SP',
+                       'Wife': 'SP',
+                       'Son': 'CH',
+                       'Daughter': 'CH',}
         self.member_df['gender'].replace(gender_mapping, inplace=True)
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
         self.member_df['age'] = self.member_df['age'].astype('int')
