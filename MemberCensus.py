@@ -192,19 +192,21 @@ class MemberCensus():
         #         wb = load_workbook(filename = unlocked)
         #     temp_df = pd.read_excel(unlocked, dtype=self.bupa_cols_dtype)
         # else:
-        temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
+        
         
         if insurer == 'Bupa':
+            temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
             temp_df['insurer'] = insurer
             temp_df = temp_df[self.cols]
         elif insurer == 'HSBC':
+            temp_df = pd.read_excel(fp, dtype=self.hsbc_cols_dtype)
             temp_df.rename(columns=self.hsbc_cols_mapping, inplace=True)
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
             temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
-            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']) / 365.25
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
                 if col not in self.hsbc_cols_mapping.values():
