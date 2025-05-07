@@ -109,6 +109,71 @@ class MemberCensus():
             "CONT_EFF_DATE": 'policy_start_date',
         }
 
+        self.hsbc_cols = [
+            'Scheme No',
+            'Membership Number',
+            "Staff ID",
+            "Person First Name",
+            "Person Last Name",
+            "relationship (for dependent)",
+            "ID No",
+            "Birth Date",
+            "Gender",
+            "SUB OFFICE",
+            "DEPARTMENT",
+            "Medical Tier",
+            "BANK CODE",
+            "BRANCH CODE",
+            "Bank Account",
+            "Mobile",
+            "Email Address",
+
+        ]
+        self.hsbc_cols_dtype = {
+            'Scheme No': str,
+            'Membership Number': str,
+            "Staff ID": str,
+            "Person First Name": str,
+            "Person Last Name": str,
+            "relationship (for dependent)": str,
+            "ID No": str,
+            "Birth Date": str,
+            "Gender": str,
+            "SUB OFFICE": str,
+            "DEPARTMENT": str,
+            "Medical Tier": str,
+            "BANK CODE": str,
+            "BRANCH CODE": str,
+            "Bank Account": str,
+            "Mobile": str,
+            "Email Address": str,
+
+        }
+        self.hsbc_cols_mapping = {
+            'Scheme No': 'policy_number',
+            # 'insurer'
+            'Membership Number': 'member_id',
+            "Staff ID": 'staff_id',
+            "Person First Name": 'name',
+            #"Person Last Name": str,
+            "relationship (for dependent)": 'dep_type',
+            #"ID No": str,
+            "Birth Date": 'age',
+            "Gender": 'gender',
+            #"SUB OFFICE": str,
+            #"DEPARTMENT": str,
+            "Medical Tier": 'class',
+            #"BANK CODE": str,
+            #"BRANCH CODE": str,
+            #"Bank Account": str,
+            #"Mobile": str,
+            #"Email Address": str,
+
+            #'policy_start_date'
+            #'working_email',
+            #'client_name',
+        }
+
 
     def get_member_df(self, fp, insurer, password=None):
 
@@ -129,6 +194,13 @@ class MemberCensus():
         if insurer == 'Bupa':
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
             temp_df['insurer'] = insurer
+            temp_df = temp_df[self.cols]
+        elif insurer == 'HSBC':
+            temp_df.rename(columns=self.hsbc_cols_mapping, inplace=True)
+            temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            temp_df['age'] = pd.to_datetime(temp_df['age']).dt.year.astype(int)
+            
             temp_df = temp_df[self.cols]
 
         self.member_df = pd.concat([self.member_df, temp_df], axis=0)
