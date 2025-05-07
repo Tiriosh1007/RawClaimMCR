@@ -204,7 +204,8 @@ class MemberCensus():
             temp_df['insurer'] = insurer
             temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
-            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).astype("<m8[Y]")
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']) / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
             
             temp_df = temp_df[self.cols]
 
