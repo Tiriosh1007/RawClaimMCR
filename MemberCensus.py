@@ -170,10 +170,10 @@ class MemberCensus():
             #"BRANCH CODE": str,
             #"Bank Account": str,
             #"Mobile": str,
-            #"Email Address": str,
+            "Email Address": 'working_email',
 
             #'policy_start_date'
-            #'working_email',
+            
             #'client_name',
         }
 
@@ -206,6 +206,9 @@ class MemberCensus():
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
             temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']) / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
+            for col in self.cols:
+                if col not in self.hsbc_cols_mapping.values():
+                    temp_df[col] = None
             
             temp_df = temp_df[self.cols]
 
