@@ -6,6 +6,7 @@ import seaborn as sns
 import plotly.offline as py
 import plotly.express as px
 import plotly.graph_objects as go
+import datetime
 
 
 import os
@@ -148,6 +149,8 @@ class MemberCensus():
             "Mobile": str,
             "Email Address": str,
 
+            "policy_start_date": str,
+
         }
         self.hsbc_cols_mapping = {
             'Scheme No': 'policy_number',
@@ -197,9 +200,11 @@ class MemberCensus():
             temp_df = temp_df[self.cols]
         elif insurer == 'HSBC':
             temp_df.rename(columns=self.hsbc_cols_mapping, inplace=True)
-            temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
-            temp_df['age'] = pd.to_datetime(temp_df['age']).dt.year.astype(int)
+            temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
+            temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%M%D")
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).astype("<m8[Y]")
             
             temp_df = temp_df[self.cols]
 
