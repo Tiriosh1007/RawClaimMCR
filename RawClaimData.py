@@ -1106,9 +1106,9 @@ class RawClaimData():
           'BENEFIT DESCRIPTION': str,
           'CLAIM STATUS': str,
           'CLAIM INCURRED DATE': str,
-          'CLAIM INCURRED AMOUNT': float,
+          'CLAIM INCURRED AMOUNT': str,
           'CLAIM PROCESSED DATE': str,
-          'CLAIM PAID AMOUNT': float,
+          'CLAIM PAID AMOUNT': str,
           'Claim Pay': str,
           'Payment method': str,
           'Currency': str,
@@ -1139,6 +1139,8 @@ class RawClaimData():
     date_cols = ['incur_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_hsbc_raw)
     t_df.rename(columns=hsbc_rename_col, inplace=True)
+    t_df['paid_amount'] = t_df.astype('float')
+    t_df['incurred_amount'] = t_df.astype('float')
     for col in date_cols:
       if col in t_df.columns.tolist():
         t_df[col] = pd.to_datetime(t_df[col])
