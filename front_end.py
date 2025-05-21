@@ -7,6 +7,9 @@ import seaborn as sns
 import datetime as dt
 from datetime import timedelta
 import warnings
+import ollama
+import base64
+from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
@@ -29,8 +32,10 @@ if 'col_management' not in st.session_state:
   st.session_state.col_management = False
 if 'member_census' not in st.session_state:
   st.session_state.member_census = False
+if 'ocr' not in st.session_state:
+  st.session_state.ocr = False
   
-function_col1, function_col2, function_col3, function_col4, function_col5 = st.columns([1,1,1, 1, 1])
+function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8= st.columns([1,1,1, 1, 1,1,1,1])
 
 with function_col1:  
   if st.button('Reset'):
@@ -49,6 +54,7 @@ with function_col1:
     st.session_state.col_management = False
     st.session_state.member_census = False
     st.session_state.member_census_proceed = False
+    st.session_state.ocr = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -57,6 +63,7 @@ with function_col2:
     st.session_state.shortfall_process = False
     st.session_state.col_management = False
     st.session_state.member_census = False
+    st.session_state.ocr = False
 
 with function_col3:
   if st.button('Shortfall'):
@@ -65,6 +72,7 @@ with function_col3:
     st.session_state.raw_process = False
     st.session_state.col_management = False
     st.session_state.member_census = False
+    st.session_state.ocr = False
 
 with function_col4:
   if st.button('Column Management'):
@@ -73,6 +81,7 @@ with function_col4:
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.member_census = False
+    st.session_state.ocr = False
 
 with function_col5:
   if st.button('Member Census'):
@@ -81,6 +90,16 @@ with function_col5:
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.member_census = True
+    st.session_state.ocr = False
+
+with function_col6:
+  if st.button('OCR'):
+    st.session_state.col_management = False
+    st.session_state.shortfall = False
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.session_state.member_census = False
+    st.session_state.ocr = True
 
 
 if st.session_state.raw_claim == True:
@@ -712,3 +731,101 @@ if st.session_state.member_census == True:
       if st.button('Class & Dep'):
         st.dataframe(member_census.cls_df)
    
+
+if st.session_state.ocr == True:
+  # Title and description in main area
+  st.markdown("""
+      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemma-3 OCR
+  """.format(base64.b64encode(open("./assets/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
+
+  # Add clear button to top right
+  col1, col2 = st.columns([6,1])
+  with col2:
+    if st.button("Clear 🗑️"):
+      if 'ocr_result' in st.session_state:
+        del st.session_state['ocr_result']
+        st.rerun()
+
+  st.markdown('<p style="margin-top: -20px;">Extract structured text from images using Gemma-3 Vision!</p>', unsafe_allow_html=True)
+  st.markdown("---")
+
+  # Move upload controls to sidebar
+  with st.sidebar:
+    st.header("Upload Image")
+    uploaded_file = st.file_uploader("Choose pdf...",
+                                    type=['pdf']) #type=['png', 'jpg', 'jpeg'])
+      
+    if uploaded_file is not None:
+      # Display the uploaded image
+      
+      binary_data = uploaded_file.getvalue()
+      pdf_viewer(input=binary_data, width=700)
+      
+      if st.button("Extract Text 🔍", type="primary"):
+        with st.spinner("Processing image..."):
+          try:
+            response = ollama.chat(
+                model='gemma3:12b',
+                messages=[{
+                    'role': 'user',
+                    'content': """You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
+
+                    1. A header section with these fields:
+                    Customer Name
+                    Contract Number
+                    Period (start date and end date)
+                    Annualised to (number of months)
+                    IBNR
+                    Data as of
+
+                    2. A table listing each benefit line, with columns:
+                    Benefit
+                    Actual Subscription
+                    Actual Claims with IBNR
+                    Actual Loss Ratio
+
+                    Your task:
+                    1. Extract header values and assign to variables:
+                    client_name ← Customer Name
+                    policy_number ← Contract Number
+                    policy_start_date ← the Period start date
+                    policy_end_date ← one year after the Period start date
+                    duration ← Annualised to
+                    ibnr ← IBNR
+                    data_as_of ← Data as of
+
+                    2. For each row in the benefit table:
+                    benefit_type ← Benefit
+                    actual_premium ← Actual Subscription (numeric)
+                    actual_paid_w_ibnr ← Actual Claims with IBNR (numeric)
+                    loss_ratio ← Actual Loss Ratio (string with percent)
+
+                    3. Build
+                    policy_id by concatenating policy_number, an underscore, and the year+month of policy_start_date (formatted YYYYMM).
+
+                    4. Assemble all rows into an Excel sheet with these columns (in order):`
+
+                    policy_id,
+                    policy_number,
+                    insurer,        ← leave blank
+                    client_name,
+                    policy_start_date,   ← YYYY-MM-DD
+                    policy_end_date,     ← YYYY-MM-DD
+                    duration,            ← integer months
+                    ibnr,                ← percent string
+                    data_as_of,          ← YYYY-MM-DD
+                    benefit_type,
+                    actual_premium,      ← numeric
+                    actual_paid_w_ibnr,  ← numeric
+                    loss_ratio           ← percent string
+                    
+                    5. Write the result to a .xlsx file.
+                    Produce only the final Excel file (or code to generate it)—do not include any example values.""",
+                    'pdf': [uploaded_file.getvalue()]
+                }]
+            )
+            st.session_state['ocr_result'] = response.message.content
+          except Exception as e:
+            st.error(f"Error processing image: {str(e)}")
+
+
