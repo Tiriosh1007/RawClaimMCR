@@ -13,4 +13,3 @@ xlrd
 ollama 
 pillow
 streamlit_pdf_viewer
-base64
