@@ -736,7 +736,7 @@ if st.session_state.ocr == True:
   # Title and description in main area
   st.markdown("""
       # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemma-3 OCR
-  """.format(base64.b64encode(open("./assets/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
+  """.format(base64.b64encode(open("/assets/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
 
   # Add clear button to top right
   col1, col2 = st.columns([6,1])
