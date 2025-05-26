@@ -824,10 +824,11 @@ if st.session_state.ocr == True:
                 st.success("File processed successfully!")
             except ValueError:
                 st.error("Invalid response from API. Could not parse JSON.")
+                st.button("response text", response.text)
                 st.write("Response content:", response.text)
 
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
-  print(response.text)
+  
 
