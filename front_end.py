@@ -790,7 +790,7 @@ if st.session_state.ocr == True:
       
       
       binary_data = uploaded_file.getvalue()
-      pdf_viewer(input=f.name, width=700)
+      pdf_viewer(input=base64_pdf, width=700)
       
       if st.button("Extract Text 🔍", type="primary"):
         with st.spinner("Processing image..."):
