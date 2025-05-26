@@ -800,10 +800,9 @@ if st.session_state.ocr == True:
                 "role": "user",
                 "content": [
                   {"type": "text",
-                   "text":"""You are an AI assistant that converts a loss ratio report PDF into text.
-                          Desired Output: a markdown output of the pdf in json file."""},
-                  {"type": "file",
-                    "file": {"filename": uploaded_file.name, "file_data": data_url}}
+                   "text":"""Hi, Can you also say hi to me?"""},
+                  # {"type": "file",
+                  #   "file": {"filename": uploaded_file.name, "file_data": data_url}}
                 ]
               }
             ]
