@@ -779,7 +779,11 @@ if st.session_state.ocr == True:
 
       #Encode into base64 for data URL input into the AI
       pdf_path = uploaded_file.name
-      base64_pdf = encode_pdf_to_base64(pdf_path)
+      import tempfile
+      import os
+      temp_dir = tempfile.mkdtemp()
+      pdf_path_full = os.path.join(temp_dir, pdf_path)
+      base64_pdf = encode_pdf_to_base64(pdf_path_full)
       data_url = f"data:application/pdf;base64,{base64_pdf}"
       
       binary_data = uploaded_file.getvalue()
