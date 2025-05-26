@@ -8,7 +8,9 @@ import datetime as dt
 from datetime import timedelta
 import warnings
 # import ollama
-from openai import OpenAI
+# from openai import OpenAI
+import requests, json
+from pathlib import Path
 import base64
 from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
@@ -738,12 +740,22 @@ if st.session_state.ocr == True:
   st.markdown("""
       # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemma-3 OCR
       """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
+  
+  def encode_pdf_to_base64(pdf_path):
+    with open(pdf_path, "rb") as pdf_file:
+        return base64.b64encode(pdf_file.read()).decode('utf-8')
+    
+  url = "https://openrouter.ai/google/gemini-2.5-flash-preview-05-20"
+  headers = {
+    "Authorization": "Bearer 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",
+    "Content-Type": "application/json"
+  }
 
-  from openai import OpenAI
-  client = OpenAI(
-    base_url="https://openrouter.ai/google/gemini-2.5-flash-preview-05-20",
-    api_key="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",
-  )
+  # from openai import OpenAI
+  # client = OpenAI(
+  #   base_url="https://openrouter.ai/google/gemini-2.5-flash-preview-05-20",
+  #   api_key="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",
+  # )
 
   # Add clear button to top right
   col1, col2 = st.columns([6,1])
@@ -764,6 +776,11 @@ if st.session_state.ocr == True:
       
     if uploaded_file is not None:
       # Display the uploaded image
+
+      #Encode into base64 for data URL input into the AI
+      pdf_path = uploaded_file.name
+      base64_pdf = encode_pdf_to_base64(pdf_path)
+      data_url = f"data:application/pdf;base64,{base64_pdf}"
       
       binary_data = uploaded_file.getvalue()
       pdf_viewer(input=binary_data, width=700)
@@ -771,80 +788,77 @@ if st.session_state.ocr == True:
       if st.button("Extract Text 🔍", type="primary"):
         with st.spinner("Processing image..."):
           try:
-            completion = client.chat.completions.create(
-              model="google/gemini-2.5-flash-preview-05-20",
-              messages=[
-                {
-                  "role": "user",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": """You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
+            messages = [
+              {
+                "role": "user",
+                "content": [
+                  {"type": "text",
+                   "text":"""You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
 
-                    1. A header section with these fields:
-                    Customer Name
-                    Contract Number
-                    Period (start date and end date)
-                    Annualised to (number of months)
-                    IBNR
-                    Data as of
+                          1. A header section with these fields:
+                          Customer Name
+                          Contract Number
+                          Period (start date and end date)
+                          Annualised to (number of months)
+                          IBNR
+                          Data as of
 
-                    2. A table listing each benefit line, with columns:
-                    Benefit
-                    Actual Subscription
-                    Actual Claims with IBNR
-                    Actual Loss Ratio
+                          2. A table listing each benefit line, with columns:
+                          Benefit
+                          Actual Subscription
+                          Actual Claims with IBNR
+                          Actual Loss Ratio
 
-                    Your task:
-                    1. Extract header values and assign to variables:
-                    client_name ← Customer Name
-                    policy_number ← Contract Number
-                    policy_start_date ← the Period start date
-                    policy_end_date ← one year after the Period start date
-                    duration ← Annualised to
-                    ibnr ← IBNR
-                    data_as_of ← Data as of
+                          Your task:
+                          1. Extract header values and assign to variables:
+                          client_name ← Customer Name
+                          policy_number ← Contract Number
+                          policy_start_date ← the Period start date
+                          policy_end_date ← one year after the Period start date
+                          duration ← Annualised to
+                          ibnr ← IBNR
+                          data_as_of ← Data as of
 
-                    2. For each row in the benefit table:
-                    benefit_type ← Benefit
-                    actual_premium ← Actual Subscription (numeric)
-                    actual_paid_w_ibnr ← Actual Claims with IBNR (numeric)
-                    loss_ratio ← Actual Loss Ratio (string with percent)
+                          2. For each row in the benefit table:
+                          benefit_type ← Benefit
+                          actual_premium ← Actual Subscription (numeric)
+                          actual_paid_w_ibnr ← Actual Claims with IBNR (numeric)
+                          loss_ratio ← Actual Loss Ratio (string with percent)
 
-                    3. Build
-                    policy_id by concatenating policy_number, an underscore, and the year+month of policy_start_date (formatted YYYYMM).
+                          3. Build
+                          policy_id by concatenating policy_number, an underscore, and the year+month of policy_start_date (formatted YYYYMM).
 
-                    4. Assemble all rows into an Excel sheet with these columns (in order):`
+                          4. Assemble all rows into an Excel sheet with these columns (in order):`
 
-                    policy_id,
-                    policy_number,
-                    insurer,        ← leave blank
-                    client_name,
-                    policy_start_date,   ← YYYY-MM-DD
-                    policy_end_date,     ← YYYY-MM-DD
-                    duration,            ← integer months
-                    ibnr,                ← percent string
-                    data_as_of,          ← YYYY-MM-DD
-                    benefit_type,
-                    actual_premium,      ← numeric
-                    actual_paid_w_ibnr,  ← numeric
-                    loss_ratio           ← percent string
-                    
-                    5. Write the result to a .xlsx file.
-                    Produce only the final Excel file (or code to generate it)—do not include any example values."""
-                    },
-                    {
-                      "type": "file",
-                      "file": {
-                        "filename": "loss_ratio_report.pdf",
-                        "content": binary_data
-                      }
-                    }
-                  ]
-                }
-              ]
-            )
-            st.session_state['ocr_result'] = print(completion.choices[0].message.content)
+                          policy_id,
+                          policy_number,
+                          insurer,        ← leave blank
+                          client_name,
+                          policy_start_date,   ← YYYY-MM-DD
+                          policy_end_date,     ← YYYY-MM-DD
+                          duration,            ← integer months
+                          ibnr,                ← percent string
+                          data_as_of,          ← YYYY-MM-DD
+                          benefit_type,
+                          actual_premium,      ← numeric
+                          actual_paid_w_ibnr,  ← numeric
+                          loss_ratio           ← percent string
+                          
+                          5. Write the result to a .xlsx file.
+                          Produce only the final Excel file (or code to generate it)—do not include any example values."""},
+                          {"type": "file",
+                           "file": {"filename": uploaded_file.name, "file_data": data_url}}
+                ]
+              }
+            ]
+            payload = {
+              "model": "google/gemini-2.5-flash-preview-05-20",
+              "messages": messages,
+              # "plugins": plugins
+            }
+            response = requests.post(url, headers=headers, json=payload)
+            
+            st.session_state['ocr_result'] = print(response.json())
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
