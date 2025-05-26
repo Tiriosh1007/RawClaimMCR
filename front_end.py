@@ -802,7 +802,7 @@ if st.session_state.ocr == True:
                   {"type": "text",
                    "text":"""You are an AI assistant that converts a loss ratio report PDF into text. The PDF always has:
                           Role: Data Input Officer
-                          Desired Output: a markdown output of the pdf."""},
+                          Desired Output: a markdown output of the pdf in json format."""},
                           {"type": "file",
                            "file": {"filename": uploaded_file.name, "file_data": data_url}}
                 ]
