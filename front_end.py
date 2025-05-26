@@ -806,18 +806,18 @@ if st.session_state.ocr == True:
                 ]
               }
             ]
-            plugins = [
-                {
-                    "id": "file-parser",
-                    "pdf": {
-                        "engine": "pdf-text"  # defaults to "mistral-ocr". See Pricing below
-                    }
-                }
-            ]
+            # plugins = [
+            #     {
+            #         "id": "file-parser",
+            #         "pdf": {
+            #             "engine": "pdf-text"  # defaults to "mistral-ocr". See Pricing below
+            #         }
+            #     }
+            # ]
             payload = {
               "model": "openai/gpt-4.1-nano",
               "messages": messages,
-              "plugins": plugins
+              # "plugins": plugins
             }
             response = requests.post(url, headers=headers, json=payload)
             if response.status_code != 200:
