@@ -815,7 +815,7 @@ if st.session_state.ocr == True:
             }
             response = requests.post(url, headers=headers, json=payload)
             
-            st.session_state['ocr_result'] = print(response.json())
+            st.session_state['ocr_result'] = print(response)
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
