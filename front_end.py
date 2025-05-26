@@ -829,5 +829,5 @@ if st.session_state.ocr == True:
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
-
+  print(response.text)
 
