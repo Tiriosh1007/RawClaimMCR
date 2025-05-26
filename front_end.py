@@ -814,7 +814,18 @@ if st.session_state.ocr == True:
               # "plugins": plugins
             }
             response = requests.post(url, headers=headers, json=payload)
-            
+            if response.status_code != 200:
+              st.error(f"API Error: {response.status_code} - {response.text}")
+
+            # Parse the JSON response
+            try:
+                result = response.json()
+                st.session_state['ocr_result'] = result
+                st.success("File processed successfully!")
+            except ValueError:
+                st.error("Invalid response from API. Could not parse JSON.")
+                st.write("Response content:", response.text)
+                
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
