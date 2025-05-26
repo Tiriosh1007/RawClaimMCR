@@ -7,7 +7,8 @@ import seaborn as sns
 import datetime as dt
 from datetime import timedelta
 import warnings
-import ollama
+# import ollama
+from openai import OpenAI
 import base64
 from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
@@ -736,7 +737,13 @@ if st.session_state.ocr == True:
   # Title and description in main area
   st.markdown("""
       # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemma-3 OCR
-  """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
+      """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
+
+  from openai import OpenAI
+  client = OpenAI(
+    base_url="https://openrouter.ai/google/gemini-2.5-flash-preview-05-20",
+    api_key="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",
+  )
 
   # Add clear button to top right
   col1, col2 = st.columns([6,1])
@@ -746,12 +753,12 @@ if st.session_state.ocr == True:
         del st.session_state['ocr_result']
         st.rerun()
 
-  st.markdown('<p style="margin-top: -20px;">Extract structured text from images using Gemma-3 Vision!</p>', unsafe_allow_html=True)
+  st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemma-3 Vision!</p>', unsafe_allow_html=True)
   st.markdown("---")
 
   # Move upload controls to sidebar
   with st.sidebar:
-    st.header("Upload Image")
+    st.header("Upload Loss Ratio PDF")
     uploaded_file = st.file_uploader("Choose pdf...",
                                     type=['pdf']) #type=['png', 'jpg', 'jpeg'])
       
@@ -764,11 +771,15 @@ if st.session_state.ocr == True:
       if st.button("Extract Text 🔍", type="primary"):
         with st.spinner("Processing image..."):
           try:
-            response = ollama.chat(
-                model='gemma3:12b',
-                messages=[{
-                    'role': 'user',
-                    'content': """You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
+            completion = client.chat.completions.create(
+              model="google/gemini-2.5-flash-preview-05-20",
+              messages=[
+                {
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": """You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
 
                     1. A header section with these fields:
                     Customer Name
@@ -820,11 +831,20 @@ if st.session_state.ocr == True:
                     loss_ratio           ← percent string
                     
                     5. Write the result to a .xlsx file.
-                    Produce only the final Excel file (or code to generate it)—do not include any example values.""",
-                    'pdf': [uploaded_file.getvalue()]
-                }]
+                    Produce only the final Excel file (or code to generate it)—do not include any example values."""
+                    },
+                    {
+                      "type": "file",
+                      "file": {
+                        "filename": "loss_ratio_report.pdf",
+                        "content": binary_data
+                      }
+                    }
+                  ]
+                }
+              ]
             )
-            st.session_state['ocr_result'] = response.message.content
+            st.session_state['ocr_result'] = print(completion.choices[0].message.content)
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
