@@ -854,7 +854,7 @@ if st.session_state.ocr == True:
                           5. Write the result to a .xlsx file.
                           Produce only the final Excel file (or code to generate it)—do not include any example values."""},
                           {"type": "file",
-                           "file": {"filename": uploaded_file.name, "file_data": data_url}}
+                           "file": {"filename": f.name, "file_data": data_url}}
                 ]
               }
             ]
