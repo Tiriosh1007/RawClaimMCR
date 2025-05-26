@@ -802,7 +802,7 @@ if st.session_state.ocr == True:
                   {"type": "text",
                    "text":"""You are an AI assistant that converts a loss ratio report PDF into text. The PDF always has:
                           Role: Data Input Officer
-                          Desired Output: a markdown output of the pdf in json format."""},
+                          Desired Output: a markdown output of the pdf in json file."""},
                           {"type": "file",
                            "file": {"filename": uploaded_file.name, "file_data": data_url}}
                 ]
@@ -825,7 +825,7 @@ if st.session_state.ocr == True:
             except ValueError:
                 st.error("Invalid response from API. Could not parse JSON.")
                 st.write("Response content:", response.text)
-                
+
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
