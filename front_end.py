@@ -803,8 +803,8 @@ if st.session_state.ocr == True:
                    "text":"""You are an AI assistant that converts a loss ratio report PDF into text. The PDF always has:
                           Role: Data Input Officer
                           Desired Output: a markdown output of the pdf in json file."""},
-                          {"type": "file",
-                           "file": {"filename": uploaded_file.name, "file_data": data_url}}
+                  {"type": "file",
+                    "file": {"filename": uploaded_file.name, "file_data": data_url}}
                 ]
               }
             ]
@@ -819,7 +819,7 @@ if st.session_state.ocr == True:
 
             # Parse the JSON response
             try:
-                result = response.json()
+                result = json.loads(response)
                 st.session_state['ocr_result'] = result
                 st.success("File processed successfully!")
             except ValueError:
