@@ -738,7 +738,7 @@ if st.session_state.member_census == True:
 if st.session_state.ocr == True:
   # Title and description in main area
   st.markdown("""
-      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemma-3 OCR
+      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemini 2.5 Flash Preview ver.0520 OCR
       """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
   
   def encode_pdf_to_base64(pdf_path):
@@ -854,7 +854,7 @@ if st.session_state.ocr == True:
                           5. Write the result to a .xlsx file.
                           Produce only the final Excel file (or code to generate it)—do not include any example values."""},
                           {"type": "file",
-                           "file": {"filename": f.name, "file_data": data_url}}
+                           "file": {"filename": uploaded_file.name, "file_data": data_url}}
                 ]
               }
             ]
