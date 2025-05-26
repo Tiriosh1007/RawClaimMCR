@@ -1,9 +1,9 @@
-messages = [
+
     {
       "role": "user",
       "content": [
         {"type": "text",
-         "text":"""You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
+         "text":"You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
 
                 1. A header section with these fields:
                 Customer Name
@@ -55,9 +55,8 @@ messages = [
                 loss_ratio           ← percent string
                 
                 5. Write the result to a .xlsx file.
-                Produce only the final Excel file (or code to generate it)—do not include any example values."""},
+                Produce only the final Excel file (or code to generate it)—do not include any example values."},
                 {"type": "file",
                  "file": {"filename": uploaded_file.name, "file_data": data_url}}
       ]
     }
-  ]
