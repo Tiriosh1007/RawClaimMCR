@@ -782,8 +782,10 @@ if st.session_state.ocr == True:
       import tempfile
       import os
       temp_dir = tempfile.mkdtemp()
-      pdf_path_full = os.path.join(os.getcwd(), pdf_path)
-      base64_pdf = encode_pdf_to_base64(pdf_path_full)
+      pdf_path_full = os.path.join(temp_dir, pdf_path)
+      with open(path, "wb") as f:
+        f.write(uploaded_file.getvalue())
+      base64_pdf = encode_pdf_to_base64(f)
       data_url = f"data:application/pdf;base64,{base64_pdf}"
       
       
