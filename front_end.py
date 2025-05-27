@@ -870,13 +870,13 @@ if st.session_state.ocr == True:
           try:
             messages = [
               {
-                "role": "user",
-                "content": [
-                  {"type": "text",
-                   "text":"""Hi, Can you also say hi to me?"""},
+                "role": "user", "content": "Hi, Can you also say hi to me?"
+                # "content": [
+                #   {"type": "text",
+                #    "text":"""Hi, Can you also say hi to me?"""},
                   # {"type": "file",
                   #   "file": {"filename": uploaded_file.name, "file_data": data_url}}
-                ]
+                # ]
               }
             ]
             # plugins = [
