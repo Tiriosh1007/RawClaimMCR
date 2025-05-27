@@ -12,6 +12,7 @@ import warnings
 import requests, json
 from pathlib import Path
 import base64
+import json
 from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
@@ -885,11 +886,11 @@ if st.session_state.ocr == True:
             #         }
             #     }
             # ]
-            payload = {
+            payload = json.dumps({
               "model": "google/gemini-2.5-flash-preview-05-20",
               "messages": messages,
               # "plugins": plugins
-            }
+            })
             response = requests.post(url, headers=headers, json=payload)
             if response.status_code != 200:
               st.error(f"API Error: {response.status_code} - {response.text}")
@@ -907,5 +908,5 @@ if st.session_state.ocr == True:
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
-  
+  st.write(response.json())
 
