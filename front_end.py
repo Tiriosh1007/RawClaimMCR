@@ -11,6 +11,7 @@ import warnings
 # from openai import OpenAI
 import requests, json
 from pathlib import Path
+open_rounter_api_key = "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"
 import base64
 import json
 from streamlit_pdf_viewer import pdf_viewer
@@ -816,10 +817,10 @@ if st.session_state.ocr == True:
   def encode_pdf_to_base64(pdf_path):
     with open(pdf_path, "rb") as pdf_file:
         return base64.b64encode(pdf_file.read()).decode('utf-8')
-    
-  url = "https://openrouter.ai/api/v1/chat/completion"
+  
+  url = "https://openrouter.ai/api/v1/chat/completions"
   headers = {
-    "Authorization": "Bearer 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",
+    "Authorization": f"Bearer {open_rounter_api_key}",
     "Content-Type": "application/json"
   }
 
@@ -837,7 +838,7 @@ if st.session_state.ocr == True:
         del st.session_state['ocr_result']
         st.rerun()
 
-  st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemma-3 Vision!</p>', unsafe_allow_html=True)
+  st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemini 2.5 Flash Preview Vision!</p>', unsafe_allow_html=True)
   st.markdown("---")
 
   # Move upload controls to sidebar
