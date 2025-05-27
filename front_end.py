@@ -816,7 +816,7 @@ if st.session_state.ocr == True:
     with open(pdf_path, "rb") as pdf_file:
         return base64.b64encode(pdf_file.read()).decode('utf-8')
     
-  url = "https://openrouter.ai/openai/gpt-4.1-nano"
+  url = "https://openrouter.ai/api/v1/chat/completion"
   headers = {
     "Authorization": "Bearer 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",
     "Content-Type": "application/json"
@@ -886,7 +886,7 @@ if st.session_state.ocr == True:
             #     }
             # ]
             payload = {
-              "model": "openai/gpt-4.1-nano",
+              "model": "openai/gemini-2.5-flash-preview-05-20",
               "messages": messages,
               # "plugins": plugins
             }
