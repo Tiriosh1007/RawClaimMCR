@@ -21,6 +21,7 @@ from RawClaimData import *
 from Shortfall import *
 from ColumnNameManagement import *
 from MemberCensus import *
+from MCRConvert import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -35,8 +36,11 @@ if 'col_management' not in st.session_state:
   st.session_state.col_management = False
 if 'member_census' not in st.session_state:
   st.session_state.member_census = False
+if 'mcr_convert' not in st.session_state:
+  st.session_state.mcr_convert = False  
 if 'ocr' not in st.session_state:
   st.session_state.ocr = False
+
   
 function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8= st.columns([1,1,1, 1, 1,1,1,1])
 
@@ -57,6 +61,7 @@ with function_col1:
     st.session_state.col_management = False
     st.session_state.member_census = False
     st.session_state.member_census_proceed = False
+    st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col2:
@@ -66,6 +71,7 @@ with function_col2:
     st.session_state.shortfall_process = False
     st.session_state.col_management = False
     st.session_state.member_census = False
+    st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col3:
@@ -75,6 +81,7 @@ with function_col3:
     st.session_state.raw_process = False
     st.session_state.col_management = False
     st.session_state.member_census = False
+    st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col4:
@@ -84,6 +91,7 @@ with function_col4:
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.member_census = False
+    st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col5:
@@ -93,17 +101,33 @@ with function_col5:
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.member_census = True
+    st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col6:
+  if st.button('Convert MCR'):
+    st.session_state.col_management = False
+    st.session_state.shortfall = False
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.session_state.member_census = False
+    st.session_state.mcr_convert = True
+    st.session_state.ocr = False
+
+with function_col7:
   if st.button('OCR'):
     st.session_state.col_management = False
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
     st.session_state.member_census = False
+    st.session_state.mcr_convert = False
     st.session_state.ocr = True
 
+
+# ========================================================================================================
+# Raw Claim Analysis Session
+# ========================================================================================================
 
 if st.session_state.raw_claim == True:
   st.write("""
@@ -425,7 +449,9 @@ if st.session_state.raw_claim == True:
       pyg_app.explorer()
 
 
-
+# ========================================================================================================
+# Shortfall Convert to MCR
+# ========================================================================================================
 
 
 
@@ -493,6 +519,12 @@ if st.session_state.shortfall == True:
                         file_name="shortfall_data.csv",
                         mime="application/vnd.ms-excel")
     
+
+# ========================================================================================================
+# Column Name Management Session (to be fixed)
+# ========================================================================================================
+
+
 
 if st.session_state.col_management == True:
   
@@ -602,6 +634,10 @@ if st.session_state.col_management == True:
     st.write('Column Name Updated!')
     st.session_state.col_management = False"""
 
+
+# ========================================================================================================
+# Member Census Chart and Info Session
+# ========================================================================================================
 
 if st.session_state.member_census == True:
   st.write("""
@@ -733,7 +769,42 @@ if st.session_state.member_census == True:
     with member_df_col_5:
       if st.button('Class & Dep'):
         st.dataframe(member_census.cls_df)
-   
+
+
+
+
+# ========================================================================================================
+# MCR Convert
+# ========================================================================================================
+
+if st.session_state.mcr_convert == True:
+  st.write("""
+           # Gain Miles Assurance Consultancy Ltd
+           ### MCR  to Presentation and GMI upload Tool
+           """)
+  st.write("---")
+  upload_file_l = []
+  mcr_analysis_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=True, key='mcr_convert_uploader')
+  for uploaded_file in mcr_analysis_uploaded:
+      upload_file_l.append(uploaded_file.name)
+
+      import tempfile
+      import os
+      temp_dir = tempfile.mkdtemp()
+      path = os.path.join(temp_dir, uploaded_file.name)
+      with open(path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+
+      
+
+
+
+
+
+# ========================================================================================================
+# OCR Session
+# ========================================================================================================
+
 
 if st.session_state.ocr == True:
   # Title and description in main area
