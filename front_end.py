@@ -887,11 +887,12 @@ if st.session_state.ocr == True:
             #         }
             #     }
             # ]
-            payload = json.dumps({
+            payload = {
               "model": "google/gemini-2.5-flash-preview-05-20",
-              "messages": messages,
+              #"messages": messages,
+              "messages": [{"role": "user", "content": "Hi, Can you also say hi to me?"}],
               # "plugins": plugins
-            })
+            }
             response = requests.post(url, headers=headers, json=payload)
             if response.status_code != 200:
               st.error(f"API Error: {response.status_code} - {response.text}")
