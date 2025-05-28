@@ -201,7 +201,6 @@ class MCRConvert():
         input_p25 = self.mcr_p25_class_panel_benefit
         template_p25 = self.template_wb["P25_UsageByplanBynetworkByben"]
         input_p25.fillna(0, inplace=True)
-        self.set_plan_info()
         plan_num = self.plan_info
 
         # creating dataframe for handling non-panel data
