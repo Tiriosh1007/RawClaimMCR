@@ -77,8 +77,8 @@ class MCRConvert():
                 
 
     def P20_overall(self):
-        input_p20 = self.mcr_p20_policy.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                            ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p20 = self.mcr_p20_policy.loc[((self.mcr_p20_policy["policy_number"] == self.current_policy_num) & (self.mcr_p20_policy["year"] == self.current_year)) | 
+                                            ((self.mcr_p20_policy["policy_number"] == self.previous_policy_num) & (self.mcr_p20_policy["year"] == self.previous_year))].dropna()
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         previous_start_row = current_start_row = 10
@@ -97,8 +97,8 @@ class MCRConvert():
 
 
     def P20_benefittype(self):
-        input_p20_btype = self.mcr_p20_benefit.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                                   ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p20_btype = self.mcr_p20_benefit.loc[((self.mcr_p20_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p20_benefit["year"] == self.current_year)) | 
+                                                   ((self.mcr_p20_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p20_benefit["year"] == self.previous_year))].dropna()
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         # by benefit table variables 
@@ -125,8 +125,8 @@ class MCRConvert():
 
 
     def P20_network(self):
-        input_p20_btype = self.mcr_p20_network.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                                   ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))]
+        input_p20_btype = self.mcr_p20_network.loc[((self.mcr_p20_network["policy_number"] == self.current_policy_num) & (self.mcr_p20_network["year"] == self.current_year)) | 
+                                                   ((self.mcr_p20_network["policy_number"] == self.previous_policy_num) & (self.mcr_p20_network["year"] == self.previous_year))]
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         previous_start_row = current_start_row = 27
@@ -143,8 +143,8 @@ class MCRConvert():
 
     
     def P21_by_class(self):
-        input_p21 = self.mcr_p21_class.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                           ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p21 = self.mcr_p21_class.loc[((self.mcr_p21_class["policy_number"] == self.current_policy_num) & (self.mcr_p21_class["year"] == self.current_year)) | 
+                                           ((self.mcr_p21_class["policy_number"] == self.previous_policy_num) & (self.mcr_p21_class["year"] == self.previous_year))].dropna()
         template_p21 = self.template_wb["P21_Usage by Class"]
 
         current_start_row = previous_start_row = 7
@@ -162,8 +162,8 @@ class MCRConvert():
 
 
     def P22_by_class(self):
-        input_p22 = self.mcr_p22_class_benefit.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                                   ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p22 = self.mcr_p22_class_benefit.loc[((self.mcr_p22_class_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p22_class_benefit["year"] == self.current_year)) | 
+                                                   ((self.mcr_p22_class_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p22_class_benefit["year"] == self.previous_year))].dropna()
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22.fillna(0, inplace=True)
@@ -201,8 +201,8 @@ class MCRConvert():
                         
         
     def P25_by_plan(self):
-        input_p25 = self.mcr_p25_class_panel_benefit.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                                         ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p25 = self.mcr_p25_class_panel_benefit.loc[((self.mcr_p25_class_panel_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p25_class_panel_benefit["year"] == self.current_year)) | 
+                                                         ((self.mcr_p25_class_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p25_class_panel_benefit["year"] == self.previous_year))].dropna()
         template_p25 = self.template_wb["P25_UsageByplanBynetworkByben"]
         input_p25.fillna(0, inplace=True)
         plan_num = self.plan_info
@@ -263,8 +263,8 @@ class MCRConvert():
 
 
     def P26_by_class(self):
-        input_p26 = self.mcr_p26_op_panel_benefit.loc[((self.plan_info["policy_number"] == self.current_policy_num) & (self.plan_info["year"] == self.current_year)) | 
-                                                      ((self.plan_info["policy_number"] == self.previous_policy_num) & (self.plan_info["year"] == self.previous_year))].dropna()
+        input_p26 = self.mcr_p26_op_panel_benefit.loc[((self.mcr_p26_op_panel_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p26_op_panel_benefit["year"] == self.current_year)) | 
+                                                      ((self.mcr_p26_op_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p26_op_panel_benefit["year"] == self.previous_year))].dropna()
         template_p26 = self.template_wb["P26_Usage_Clinical by Network"]
 
         panel_previous_start_row = panel_current_start_row = 7
