@@ -55,7 +55,7 @@ class MCRConvert():
         self.previous_policy_num, self.current_policy_num = previous_policy_num, current_policy_num
         self.plan_info = self.mcr_p21_class.copy(deep=True)
         self.plan_info = self.plan_info.loc[(self.plan_info["policy_number"] == self.current_policy_num) & 
-                                            (self.plan_info["year"] == self.current_year), ["class"]].to_list()
+                                            (self.plan_info["year"] == self.current_year), ["class"]].tolist()
         
     
     def claim_info(self):
