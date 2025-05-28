@@ -153,7 +153,7 @@ class MCRConvert():
         for index, row in input_p21.iterrows():
             if row['year'] == self.current_year:
                 current_start_row  += 1 
-                template_p21.cell(row=current_start_row, column=1).value = row['class']
+                # template_p21.cell(row=current_start_row, column=1).value = row['class']
                 for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
                     template_p21.cell(row=current_start_row, column=col).value = val
 
@@ -165,7 +165,7 @@ class MCRConvert():
 
     def P22_by_class(self):
         input_p22 = self.mcr_p22_class_benefit.loc[((self.mcr_p22_class_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p22_class_benefit["year"] == self.current_year)) | 
-                                                   ((self.mcr_p22_class_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p22_class_benefit["year"] == self.previous_year))].dropna()
+                                                   ((self.mcr_p22_class_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p22_class_benefit["year"] == self.previous_year))]
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22.fillna(0, inplace=True)
@@ -204,7 +204,7 @@ class MCRConvert():
         
     def P25_by_plan(self):
         input_p25 = self.mcr_p25_class_panel_benefit.loc[((self.mcr_p25_class_panel_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p25_class_panel_benefit["year"] == self.current_year)) | 
-                                                         ((self.mcr_p25_class_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p25_class_panel_benefit["year"] == self.previous_year))].dropna()
+                                                         ((self.mcr_p25_class_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p25_class_panel_benefit["year"] == self.previous_year))]
         template_p25 = self.template_wb["P25_UsageByplanBynetworkByben"]
         input_p25.fillna(0, inplace=True)
         plan_num = self.plan_info
