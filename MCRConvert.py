@@ -165,12 +165,12 @@ class MCRConvert():
         input_p22 = self.mcr_p22_class_benefit
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
-        input_p22 .fillna(0, inplace=True)
+        input_p22.fillna(0, inplace=True)
 
         plan_num = self.plan_info
         P22_format_row_num = [13,20,27,34,45,52,59,66,77,84,91,98]
 
-        plan_num, P22_format_row_num = pd.Series(plan_num).astype(int), pd.Series(P22_format_row_num)
+        plan_num, P22_format_row_num = pd.Series(plan_num).astype(str), pd.Series(P22_format_row_num)
         current_plan_row_df = pd.concat([plan_num, P22_format_row_num],axis=1, ignore_index=True).dropna()
         current_plan_row_df.columns = ['plan', "start_row"]
         
@@ -206,7 +206,7 @@ class MCRConvert():
 
         # creating dataframe for handling non-panel data
         P25_nonpanel_row_num = [13,27,41,60,74,88,107,121,135,154,168,182]
-        plan_num, P25_nonpanel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_nonpanel_row_num)
+        plan_num, P25_nonpanel_row_num = pd.Series(plan_num).astype(str), pd.Series(P25_nonpanel_row_num)
         nonpanel_plan_row_df = pd.concat([plan_num, P25_nonpanel_row_num],axis=1, ignore_index=True).dropna()
         nonpanel_plan_row_df.columns = ['plan', "start_row"]
 
@@ -215,7 +215,7 @@ class MCRConvert():
 
         # creating dataframe for handling panel data
         P25_panel_row_num  = [20,34,48,67,81,95,114,128,142,161,175,189]
-        plan_num, P25_panel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_panel_row_num)
+        plan_num, P25_panel_row_num = pd.Series(plan_num).astype(str), pd.Series(P25_panel_row_num)
         panel_plan_row_df = pd.concat([plan_num, P25_panel_row_num],axis=1, ignore_index=True).dropna()
         panel_plan_row_df.columns = ['plan', "start_row"]
         
