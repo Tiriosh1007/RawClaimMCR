@@ -793,6 +793,13 @@ if st.session_state.mcr_convert == True:
   st.write("---")
   upload_file_l = []
   mcr_file_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=False, key='mcr_convert_uploader')
+  mcr_convert_upload_col1, mcr_convert_upload_col2 = st.columns([1,1])
+  st.write("### Optional")
+  with mcr_convert_upload_col1:
+    previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", key='previous_year_loss_ratio_text')
+  with mcr_convert_upload_col2:
+    current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", key='current_year_loss_ratio_text')
+    
   import tempfile
   import os
   if mcr_file_uploaded is not None:
@@ -807,6 +814,7 @@ if st.session_state.mcr_convert == True:
   if st.session_state.mcr_convert_uploaded == True:
     st.write("---")
     mcr_convert_  = MCRConvert(path)
+    mcr_convert_.loss_ratio_text(previous_year_loss_ratio_text, current_year_loss_ratio_text)
     st.dataframe(mcr_convert_.policy_info)
     mcr_covert_policy_info_df = mcr_convert_.policy_info.copy(deep=True)
     
@@ -820,29 +828,51 @@ if st.session_state.mcr_convert == True:
     mcr_convert_year_cofig_col1, mcr_convert_year_cofig_col2 = st.columns([1, 1])
     with mcr_convert_year_cofig_col1:
       st.write('Previous Year')
+
+      if mcr_convert_.previous_year_loss_ratio_df is None:
+        temp_previous_policy_num, temp_previous_year, temp_previous_year_start_date, temp_previous_year_end_date = None, None, None, None
+      else:
+        temp_previous_policy_num = mcr_convert_.previous_year_loss_ratio_df['policy_number'].unique().values[0]
+        temp_previous_year = mcr_convert_.previous_year_loss_ratio_df['policy_start_date'].unique().values[0].year
+        temp_previous_year_start_date = mcr_convert_.previous_year_loss_ratio_df['policy_start_date'].unique().values[0]
+        temp_previous_year_end_date = mcr_convert_.previous_year_loss_ratio_df['policy_end_date'].unique().values[0]
+      
       previous_policy_num = st.selectbox('Policy Number',
                    options=mcr_covert_policy_info_df['policy_number'].unique(),
                    index=None,
+                   placeholder=temp_previous_policy_num,
                    key='prev_policy_number')
       previous_year = st.selectbox('Year',
                    options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == previous_policy_num].unique(),
                    index=None,
+                   placeholder=temp_previous_year,
                    key='prev_year')
-      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date')), "%-d/%-m/%Y"))
-      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date')), "%-d/%-m/%Y"))
+      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date', value=temp_previous_year_start_date)), "%-d/%-m/%Y"))
+      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date', value=temp_previous_year_end_date)), "%-d/%-m/%Y"))
 
     with mcr_convert_year_cofig_col2:
       st.write('Current Year')
+
+      if mcr_convert_.current_year_loss_ratio_df is None:
+        temp_current_policy_num, temp_current_year, temp_current_year_start_date, temp_current_year_end_date = None, None, None, None
+      else:
+        temp_current_policy_num = mcr_convert_.current_year_loss_ratio_df['policy_number'].unique().values[0]
+        temp_current_year = mcr_convert_.current_year_loss_ratio_df['policy_start_date'].unique().values[0].year
+        temp_current_year_start_date = mcr_convert_.current_year_loss_ratio_df['policy_start_date'].unique().values[0]
+        temp_current_year_end_date = mcr_convert_.current_year_loss_ratio_df['policy_end_date'].unique().values[0]
+
       current_policy_num = st.selectbox('Policy Number',
                          options=mcr_covert_policy_info_df['policy_number'].unique(),
                          index=None,
+                         placeholder=temp_current_policy_num,
                          key='current_policy_number')
       current_year = st.selectbox('Year',
                           options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == current_policy_num].unique(),
                           index=None,
+                          placeholder=temp_current_year,
                           key='current_year')
-      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date')), "%-d/%-m/%Y"))
-      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date')), "%-d/%-m/%Y"))
+      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date', value=temp_current_year_start_date)), "%-d/%-m/%Y"))
+      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date', value=temp_current_year_end_date)), "%-d/%-m/%Y"))
     
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
@@ -937,20 +967,18 @@ if st.session_state.ocr == True:
 
                               [1st col: policy_id]: Contract Number + "_" + year & month of the starting period. (in our case would be 015989_202310)
                               [2nd col: policy_number]: Contract Number (in our case: 015989)
-                              [3rd col: insurer]: leave it empty by now.
-                              [4th col: client_name]: Customer Name
-                              [5th col: policy_start_date]: the start date of period (in our case 2023-10-01)
-                              [6th col: policy_end_date]: one year after the start date of period (in our case 2024-09-30)
-                              [7th col: duration]: Annualised to: (in our case 12)
-                              [8th col: ibnr]: IBNR
-                              [9th col: data_as_of]Data as of
-                              [10th col: benefit type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
-                              [11th col: actual_premium] Actual Subscription
-                              [12th col: actual_paid_w_ibnr] Actual Claims with IBNR
-                              [13th col: loss_ratio] Actual Loss Ratio
-                            """},
-                              {"type": "file",
-                              "file": {"filename": uploaded_file.name, "file_data": data_url}},
+                              [3rd col: client_name]: Customer Name
+                              [4th col: policy_start_date]: the start date of period (in our case 2023-10-01)
+                              [5th col: policy_end_date]: one year after the start date of period (in our case 2024-09-30)
+                              [6th col: duration]: Annualised to: (in our case 12)
+                              [7th col: ibnr]: IBNR
+                              [8th col: data_as_of]Data as of
+                              [9th col: benefit type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
+                              [10th col: actual_premium] Actual Subscription
+                              [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
+                              [12th col: loss_ratio] Actual Loss Ratio
+                              """}
+
                 ]
               }
             ]
