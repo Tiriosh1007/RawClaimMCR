@@ -62,13 +62,15 @@ class MCRConvert():
     def claim_info(self):
         claim_info_worksheet = self.template_wb["ClaimInfo"]
 
-        claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
-        claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
-        claim_info_worksheet.cell(row=7,column=3).value = self.previous_year_end_date
+        if self.previous_policy_num is not None:
+            claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
+            claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
+            claim_info_worksheet.cell(row=7,column=3).value = self.previous_year_end_date
 
-        claim_info_worksheet.cell(row=9,column=3).value = self.current_policy_num
-        claim_info_worksheet.cell(row=11,column=3).value = self.current_year_start_date
-        claim_info_worksheet.cell(row=12,column=3).value = self.current_year_end_date
+        if self.current_policy_num is not None:
+            claim_info_worksheet.cell(row=9,column=3).value = self.current_policy_num
+            claim_info_worksheet.cell(row=11,column=3).value = self.current_year_start_date
+            claim_info_worksheet.cell(row=12,column=3).value = self.current_year_end_date
 
         plan_start_row = 2
         for i in range(plan_start_row, len(self.plan_info) + 2):
