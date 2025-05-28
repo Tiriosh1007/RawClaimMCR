@@ -825,8 +825,8 @@ if st.session_state.mcr_convert == True:
                    options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == previous_policy_num].unique(),
                    index=None,
                    key='prev_year')
-      previous_year_start_date = st.date_input('Start Date', key='prev_year_start_date')
-      previous_year_end_date = st.date_input('End Date', key='prev_year_end_date')
+      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date')), "%d/%m/%Y"))
+      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date')), "%d/%m/%Y"))
 
     with mcr_convert_year_cofig_col2:
       st.write('Current Year')
@@ -838,8 +838,8 @@ if st.session_state.mcr_convert == True:
                           options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == current_policy_num].unique(),
                           index=None,
                           key='current_year')
-      current_year_start_date = st.date_input('Start Date', key='current_year_start_date')
-      current_year_end_date = st.date_input('End Date', key='current_year_end_date')
+      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date')), "%d/%m/%Y"))
+      current_year_end_date = str.format((st.date_input('End Date', key='current_year_end_date'), "%d/%m/%Y"))
     
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
