@@ -839,7 +839,7 @@ if st.session_state.mcr_convert == True:
                           index=None,
                           key='current_year')
       current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date')), "%d/%m/%Y"))
-      current_year_end_date = str.format((st.date_input('End Date', key='current_year_end_date'), "%d/%m/%Y"))
+      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date')), "%d/%m/%Y"))
     
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
