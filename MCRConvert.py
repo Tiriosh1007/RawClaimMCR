@@ -290,7 +290,7 @@ class MCRConvert():
                 for col, val in zip(info['cols'], values):
                     template_p26.cell(row=row_idx, column=col).value = val
 
-    def save(self, output_file):
+    def save(self):
         from io import BytesIO
         output_file = BytesIO()
         try:
