@@ -38,7 +38,7 @@ class MCRConvert():
             self.mcr_p25_class_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType', dtype=self.input_dtype)
             self.mcr_p26_op_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit', dtype=self.input_dtype)
 
-            self.policy_info = self.mcr_p20_policy[["policy_number", "year"]].unique().tolist()
+            self.policy_info = self.mcr_p20_policy[["policy_number", "year"]]
 
         except FileNotFoundError:
             print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
