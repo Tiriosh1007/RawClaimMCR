@@ -221,7 +221,7 @@ class MCRConvert():
         previous_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
         current_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
     
-        for index, row in df.iterrows():
+        for index, row in input_p25.iterrows():
             class_id = row['class']
             previous_start_row = previous_nonpanel_row_dict[class_id]
             current_start_row = current_nonpanel_row_dict[class_id]
