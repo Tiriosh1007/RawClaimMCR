@@ -871,12 +871,64 @@ if st.session_state.ocr == True:
               {
                 "role": "user",
                 "content": [
-                  {"type": "text",
-                   "text":"""Hi, Can you also say hi to me?"""},
-                  # {"type": "file",
-                  #   "file": {"filename": uploaded_file.name, "file_data": data_url}}
-                ]
-              }
+                            {"type": "text",
+                            "text":"""You are an AI assistant that converts a loss ratio report PDF into an Excel workbook. The PDF always has:
+                                      1. A header section with these fields:
+                                      Customer Name
+                                      Contract Number
+                                      Period (start date and end date)
+                                      Annualised to (number of months)
+                                      IBNR
+                                      Data as of
+
+                                      2. A table listing each benefit line, with columns:
+                                      Benefit
+                                      Actual Subscription
+                                      Actual Claims with IBNR
+                                      Actual Loss Ratio
+
+                                      Your task:
+                                      1. Extract header values and assign to variables:
+                                      client_name ← Customer Name
+                                      policy_number ← Contract Number
+                                      policy_start_date ← the Period start date
+                                      policy_end_date ← one year after the Period start date
+                                      duration ← Annualised to
+                                      ibnr ← IBNR
+                                      data_as_of ← Data as of
+
+                                      2. For each row in the benefit table:
+                                      benefit_type ← Benefit
+                                      actual_premium ← Actual Subscription (numeric)
+                                      actual_paid_w_ibnr ← Actual Claims with IBNR (numeric)
+                                      loss_ratio ← Actual Loss Ratio (string with percent)
+
+                                      3. Build
+                                      policy_id by concatenating policy_number, an underscore, and the year+month of policy_start_date (formatted YYYYMM).
+
+                                      4. Assemble all rows into an Excel sheet with these columns (in order):`
+
+                                      policy_id,
+                                      policy_number,
+                                      insurer,        ← leave blank
+                                      client_name,
+                                      policy_start_date,   ← YYYY-MM-DD
+                                      policy_end_date,     ← YYYY-MM-DD
+                                      duration,            ← integer months
+                                      ibnr,                ← percent string
+                                      data_as_of,          ← YYYY-MM-DD
+                                      benefit_type,
+                                      actual_premium,      ← numeric
+                                      actual_paid_w_ibnr,  ← numeric
+                                      loss_ratio           ← percent string
+                                      
+                                      5. Write the result to a .xlsx file.
+                                      Produce only the final Excel file (or code to generate it)—do not include any example values."""
+                                      },
+                              {"type": "file",
+                              "file": {"filename": uploaded_file.name, "file_data": data_url}}
+      ]
+    }
             ]
             # plugins = [
             #     {
