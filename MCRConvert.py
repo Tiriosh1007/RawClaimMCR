@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 
 class MCRConvert():
     def __init__(self, input_file):
-        # try:
+        try:
             self.input_file = input_file
             
             # template_file = "GMI_template.xlsx"
@@ -40,10 +40,10 @@ class MCRConvert():
 
             self.policy_info = self.mcr_p20_policy[["policy_number", "year"]]
 
-        # except FileNotFoundError:
-        #     print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        # except Exception as e:
-        #     print(f"An error occurred: {e}")
+        except FileNotFoundError:
+            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def set_policy_input(self,
                          previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
@@ -59,26 +59,20 @@ class MCRConvert():
         
     
     def claim_info(self):
-        try:
-            claim_info_worksheet = self.template_wb["Claim Info"]
+        claim_info_worksheet = self.template_wb["Claim Info"]
 
-            claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
-            claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
-            claim_info_worksheet.cell(row=7,column=3).value = self.previous_year_end_date
+        claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
+        claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
+        claim_info_worksheet.cell(row=7,column=3).value = self.previous_year_end_date
 
-            claim_info_worksheet.cell(row=9,column=3).value = self.current_policy_num
-            claim_info_worksheet.cell(row=11,column=3).value = self.current_year_start_date
-            claim_info_worksheet.cell(row=12,column=3).value = self.current_year_end_date
+        claim_info_worksheet.cell(row=9,column=3).value = self.current_policy_num
+        claim_info_worksheet.cell(row=11,column=3).value = self.current_year_start_date
+        claim_info_worksheet.cell(row=12,column=3).value = self.current_year_end_date
 
-            plan_start_row = 2
-            for i in range(plan_start_row, len(self.plan_info) + 2):
-                claim_info_worksheet.cell(row=plan_start_row, column=8).value = self.plan_info[i]
-        
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-                
+        plan_start_row = 2
+        for i in range(plan_start_row, len(self.plan_info) + 2):
+            claim_info_worksheet.cell(row=plan_start_row, column=8).value = self.plan_info[i]
+
 
     def P20_overall(self):
         input_p20 = self.mcr_p20_policy
