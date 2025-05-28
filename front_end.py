@@ -797,9 +797,9 @@ if st.session_state.mcr_convert == True:
   mcr_convert_upload_col1, mcr_convert_upload_col2 = st.columns([1,1])
   
   with mcr_convert_upload_col1:
-    previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", placeholder=None, key='previous_year_loss_ratio_text')
+    previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", key='previous_year_loss_ratio_text')
   with mcr_convert_upload_col2:
-    current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", placeholder=None, key='current_year_loss_ratio_text')
+    current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", key='current_year_loss_ratio_text')
     
   import tempfile
   import os
