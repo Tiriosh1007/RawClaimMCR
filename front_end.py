@@ -963,7 +963,7 @@ if st.session_state.ocr == True:
                             {"type": "text",
                             "text":"""
                             Role: Data Input Officer
-                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an excel .xlsx file.
+                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format for copy and paste.
 
                               [1st col: policy_id]: Contract Number + "_" + year & month of the starting period. (in our case would be 015989_202310)
                               [2nd col: policy_number]: Contract Number (in our case: 015989)
@@ -977,7 +977,9 @@ if st.session_state.ocr == True:
                               [10th col: actual_premium] Actual Subscription
                               [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
                               [12th col: loss_ratio] Actual Loss Ratio
-                              """}
+                              """},
+                              {"type": "file",
+                              "file": {"filename": uploaded_file.name, "file_data": data_url}},
 
                 ]
               }
