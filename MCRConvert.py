@@ -319,11 +319,11 @@ class MCRConvert():
 
     def loss_ratio_text_convert(self, previous_yr_loss_ratio_text=None, current_yr_loss_ratio_text = None):
         self.previous_year_loss_ratio_df, self.current_year_loss_ratio_df = None, None
-        if previous_yr_loss_ratio_text is not None or previous_yr_loss_ratio_text != "":
+        if previous_yr_loss_ratio_text is not None or previous_yr_loss_ratio_text != "None":
             previous_yr_loss_ratio_text = previous_yr_loss_ratio_text.splitlines()
             data_l = [previous_yr_loss_ratio_text[i].split(",") for i in range(len(previous_yr_loss_ratio_text))]
             self.previous_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
-        if current_yr_loss_ratio_text is not None or current_yr_loss_ratio_text != "":
+        if current_yr_loss_ratio_text is not None or current_yr_loss_ratio_text != "None":
             current_yr_loss_ratio_text = current_yr_loss_ratio_text.splitlines()
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
