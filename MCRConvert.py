@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 
 class MCRConvert():
     def __init__(self, input_file):
-        try:
+        # try:
             self.input_file = input_file
             
             # template_file = "GMI_template.xlsx"
@@ -40,10 +40,10 @@ class MCRConvert():
 
             self.policy_info = self.mcr_p20_policy[["policy_number", "year"]]
 
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        # except FileNotFoundError:
+        #     print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
+        # except Exception as e:
+        #     print(f"An error occurred: {e}")
 
     def set_policy_input(self,
                          previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
