@@ -157,7 +157,7 @@ class MCRConvert():
 
 
     def P22_by_class(self):
-        input_p22 = self.mcr_p22_class_benefit
+        input_p22 = self.mcr_p22_class_benefit.dropna()
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22.fillna(0, inplace=True)
