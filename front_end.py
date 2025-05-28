@@ -841,7 +841,7 @@ if st.session_state.mcr_convert == True:
       else:
         temp_previous_policy_num = mcr_convert_.previous_year_loss_ratio_df['policy_number'].unique().values[0]
         temp_previous_year = mcr_convert_.previous_year_loss_ratio_df['policy_start_date'].unique().values[0].year
-        temp_previous_year_start_date = mcr_convert_.previous_year_loss_ratio_df['policy_start_date'].unique().values[0]
+        temp_previous_year_start_date = pd.to_datetime(mcr_convert_.previous_year_loss_ratio_df['policy_start_date']).unique().values[0]
         temp_previous_year_end_date = mcr_convert_.previous_year_loss_ratio_df['policy_end_date'].unique().values[0]
       
       previous_policy_num = st.selectbox('Policy Number',
@@ -865,7 +865,7 @@ if st.session_state.mcr_convert == True:
       else:
         temp_current_policy_num = mcr_convert_.current_year_loss_ratio_df['policy_number'].unique().values[0]
         temp_current_year = mcr_convert_.current_year_loss_ratio_df['policy_start_date'].unique().values[0].year
-        temp_current_year_start_date = mcr_convert_.current_year_loss_ratio_df['policy_start_date'].unique().values[0]
+        temp_current_year_start_date = pd.to_datetime(mcr_convert_.current_year_loss_ratio_df['policy_start_date']).unique().values[0]
         temp_current_year_end_date = mcr_convert_.current_year_loss_ratio_df['policy_end_date'].unique().values[0]
 
       current_policy_num = st.selectbox('Policy Number',
