@@ -59,7 +59,7 @@ class MCRConvert():
         
     
     def claim_info(self):
-        claim_info_worksheet = self.template_wb["Claim Info"]
+        claim_info_worksheet = self.template_wb["ClaimInfo"]
 
         claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
         claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
