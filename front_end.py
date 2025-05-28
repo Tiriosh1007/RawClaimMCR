@@ -781,22 +781,42 @@ if st.session_state.member_census == True:
 # ========================================================================================================
 
 if st.session_state.mcr_convert == True:
+  if 'mcr_convert_uploaded' not in st.session_state:
+    st.session_state.mcr_convert_uploaded = False
   st.write("""
            # Gain Miles Assurance Consultancy Ltd
            ### MCR  to Presentation and GMI upload Tool
            """)
   st.write("---")
   upload_file_l = []
-  mcr_analysis_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=True, key='mcr_convert_uploader')
-  for uploaded_file in mcr_analysis_uploaded:
-      upload_file_l.append(uploaded_file.name)
+  mcr_file_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=False, key='mcr_convert_uploader')
+  import tempfile
+  import os
+  temp_dir = tempfile.mkdtemp()
+  path = os.path.join(temp_dir, uploaded_file.name)
+  with open(path, "wb") as f:
+    f.write(uploaded_file.getvalue())
 
-      import tempfile
-      import os
-      temp_dir = tempfile.mkdtemp()
-      path = os.path.join(temp_dir, uploaded_file.name)
-      with open(path, "wb") as f:
-            f.write(uploaded_file.getvalue())
+  if st.button('Confirm MCR Analysis File Upload'):
+    st.session_state.mcr_convert_uploaded = True
+  
+  if st.session_state.mcr_convert_uploaded == True:
+    st.write("---")
+    mcr_convert_  = MCRConvert(path)
+    st.dataframe(mcr_convert_.policy_info)
+    
+    st.write("""
+             Please Select the policy number, year, start date, and end date for both previous year and current year.
+
+             Please make sure that the class of both years are in sync, otherwise the conversion will not work properly.
+
+             If the class is not in sync, please just leave previous year empty.
+             """)
+
+  
+  
+
+      
 
       
 
@@ -938,6 +958,7 @@ if st.session_state.ocr == True:
             #             "engine": "pdf-text"  # defaults to "mistral-ocr". See Pricing below
             #         }
             #     }
+
             # ]
             payload = {
               "model": "google/gemini-2.5-flash-preview-05-20",

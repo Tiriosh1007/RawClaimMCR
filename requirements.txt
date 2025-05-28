@@ -10,6 +10,7 @@ openpyxl
 pygwalker
 chart_studio
 xlrd
+openpyxl
 openai
 pillow
 streamlit_pdf_viewer

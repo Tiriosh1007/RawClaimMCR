@@ -2,21 +2,13 @@ import pandas as pd
 from openpyxl import load_workbook
 
 class MCRConvert():
-    def __init__(self, input_file, 
-                 previous_policy_num, previous_year_start_date, previous_year_end_datae, previous_year, 
-                 current_policy_num, current_year_start_date, current_year_end_datae, current_year):
+    def __init__(self, input_file):
         try:
             self.input_file = input_file
-            self.previous_year = previous_year
-            self.previous_year_start_date = previous_year_start_date
-            self.previous_year_end_datae = previous_year_end_datae
-            self.current_year = current_year
-            self.current_year_start_date = current_year_start_date
-            self.current_year_end_datae = current_year_end_datae
+            
             # template_file = "GMI_template.xlsx"
             self.template_file = "GMI_template.xlsx"
-            self.previous_policy_num = previous_policy_num
-            self.current_policy_num = current_policy_num
+            
             self.template_wb = load_workbook(self.template_file, keep_links=False, data_only=False)
 
             self.input_dtype = {
@@ -36,9 +28,7 @@ class MCRConvert():
                 "incurred_per_claimant": float,
                 "paid_per_claimant": float,
                 "claim_frequency": float,
-                
             }
-
             
             self.mcr_p20_policy = pd.read_excel(self.input_file, sheet_name='P.20_Policy', dtype=self.input_dtype)
             self.mcr_p20_benefit = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType', dtype=self.input_dtype)
@@ -48,295 +38,281 @@ class MCRConvert():
             self.mcr_p25_class_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType', dtype=self.input_dtype)
             self.mcr_p26_op_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit', dtype=self.input_dtype)
 
-            self.plan_info = self.mcr_p21_class.copy(deep=True)
-            self.plan_info = self.plan_info.loc[(self.plan_info["policy_number"] == self.current_policy_num) & 
-                                                (self.plan_info["year"] == self.current_year), ["class"]].to_list()
+            self.policy_info = self.mcr_p20_policy[["policy_number", "year"]].unique().tolist()
 
         except FileNotFoundError:
             print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
         except Exception as e:
             print(f"An error occurred: {e}")
-    
-    # def set_plan_info(self):
-    #     # getting the plan number and names and make a list 
-    #     df = pd.read_excel(self.input_file, sheet_name='P.21_Class')
-    #     plan_info_list = []
 
-    #     for index, row in df.iterrows():
-    #         if row['year'] == self.current_year:
-    #             plan_value = row['class']
-    #             if isinstance(plan_value, float):
-    #                 plan_value = int(plan_value)
-    #             plan_info_list.append(plan_value)
+    def set_policy_input(self,
+                         previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
+                         current_policy_num, current_year_start_date, current_year_end_date, current_year
+                         ):
+        self.previous_year, self.current_year = previous_year, current_year
+        self.previous_year_start_date, self.previous_year_end_date = previous_year_start_date, previous_year_end_date
+        self.current_year_start_date, self.current_year_end_date = current_year_start_date, current_year_end_date
+        self.previous_policy_num, self.current_policy_num = previous_policy_num, current_policy_num
+        self.plan_info = self.mcr_p21_class.copy(deep=True)
+        self.plan_info = self.plan_info.loc[(self.plan_info["policy_number"] == self.current_policy_num) & 
+                                            (self.plan_info["year"] == self.current_year), ["class"]].to_list()
+        
+    
+    def claim_info(self):
+        try:
+            claim_info_worksheet = self.template_wb["Claim Info"]
 
-    #     self.plan_info = plan_info_list
-    
-    
+            claim_info_worksheet.cell(row=4,column=3).value = self.previous_policy_num
+            claim_info_worksheet.cell(row=6,column=3).value = self.previous_year_start_date
+            claim_info_worksheet.cell(row=7,column=3).value = self.previous_year_end_date
+
+            claim_info_worksheet.cell(row=9,column=3).value = self.current_policy_num
+            claim_info_worksheet.cell(row=11,column=3).value = self.current_year_start_date
+            claim_info_worksheet.cell(row=12,column=3).value = self.current_year_end_date
+
+            plan_start_row = 2
+            for i in range(plan_start_row, len(self.plan_info) + 2):
+                claim_info_worksheet.cell(row=plan_start_row, column=8).value = self.plan_info[i]
+        
+        except FileNotFoundError:
+            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+                
 
     def P20_overall(self):
-        try:
-            df = self.mcr_p20_policy
-            ws = self.template_wb["P20_Usage Overview"]
+        input_p20 = self.mcr_p20_policy
+        template_p20 = self.template_wb["P20_Usage Overview"]
 
-            previous_start_row = current_start_row = 10
-            for index, row in df.iterrows():
-                if row['year'] == self.previous_year:
-                    previous_start_row += 1 
-                    for col, val in zip([2,3,4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                        ws.cell(row=previous_start_row, column=1).value = self.previous_policy_num
-                        ws.cell(row=previous_start_row, column=col).value = val
-                
-                elif row['year'] == self.current_year:
-                    current_start_row += 1
-                    for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                        ws.cell(row=previous_start_row, column=5).value = self.current_policy_num
-                        ws.cell(row=current_start_row, column=col).value = val
+        previous_start_row = current_start_row = 10
+        for index, row in input_p20.iterrows():
+            if row['year'] == self.previous_year:
+                previous_start_row += 1 
+                for col, val in zip([2,3,4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                    template_p20.cell(row=previous_start_row, column=1).value = self.previous_policy_num
+                    template_p20.cell(row=previous_start_row, column=col).value = val
+            
+            elif row['year'] == self.current_year:
+                current_start_row += 1
+                for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                    template_p20.cell(row=previous_start_row, column=5).value = self.current_policy_num
+                    template_p20.cell(row=current_start_row, column=col).value = val
 
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
 
     def P20_benefittype(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType')
-            ws = self.template_wb["P20_Usage Overview"]
+        input_p20_btype = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType')
+        template_p20 = self.template_wb["P20_Usage Overview"]
 
-            # by benefit table variables 
-            previous_start_row = current_start_row = 15
+        # by benefit table variables 
+        previous_start_row = current_start_row = 15
 
-            # number of claims table variables 
-            previous_num_of_claim = current_num_of_claim = 33
+        # number of claims table variables 
+        previous_num_of_claim = current_num_of_claim = 33
 
-            for index, row in df.iterrows():
-                if row["benefit_type"] != 'Total':
-                    if row["year"] == self.previous_year:
-                        previous_start_row +=1
-                        previous_num_of_claim +=1
-                        ws.cell(row=previous_num_of_claim, column=2).value = row['no_of_claims']
-                        for col, val in zip([2,3,4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
-                            ws.cell(row=previous_start_row, column=col).value = val
+        for index, row in input_p20_btype.iterrows():
+            if row["benefit_type"] != 'Total':
+                if row["year"] == self.previous_year:
+                    previous_start_row +=1
+                    previous_num_of_claim +=1
+                    template_p20.cell(row=previous_num_of_claim, column=2).value = row['no_of_claims']
+                    for col, val in zip([2,3,4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
+                        template_p20.cell(row=previous_start_row, column=col).value = val
 
-                    elif row["year"] == self.current_year:
-                        current_start_row += 1
-                        current_num_of_claim += 1
-                        ws.cell(row=current_num_of_claim, column=6).value = row['no_of_claims']
-                        for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                            ws.cell(row=current_start_row, column=col).value = val
+                elif row["year"] == self.current_year:
+                    current_start_row += 1
+                    current_num_of_claim += 1
+                    template_p20.cell(row=current_num_of_claim, column=6).value = row['no_of_claims']
+                    for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                        template_p20.cell(row=current_start_row, column=col).value = val
 
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
 
     def P20_network(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.20_Network')
-            ws = self.template_wb["P20_Usage Overview"]
-    
-            previous_start_row = current_start_row = 27
-            for index, row in df.iterrows():
-                # Handling the by network table in P20_overview worksheet
-                row_offset = 1 if row['panel'] == "Panel" else 0
-                if row['year'] == self.previous_year:
-                    for col, val in zip([2, 3, 4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                        ws.cell(row=previous_start_row + row_offset, column=col).value = val
+        input_p20_btype = pd.read_excel(self.input_file, sheet_name='P.20_Network')
+        template_p20 = self.template_wb["P20_Usage Overview"]
 
-                elif row['year'] == self.current_year:
-                    for col, val in zip([6, 7, 8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
-                        ws.cell(row=current_start_row + row_offset, column=col).value = val
+        previous_start_row = current_start_row = 27
+        for index, row in input_p20_btype.iterrows():
+            # Handling the by network table in P20_overview worksheet
+            row_offset = 1 if row['panel'] == "Panel" else 0
+            if row['year'] == self.previous_year:
+                for col, val in zip([2, 3, 4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                    template_p20.cell(row=previous_start_row + row_offset, column=col).value = val
 
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            elif row['year'] == self.current_year:
+                for col, val in zip([6, 7, 8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
+                    template_p20.cell(row=current_start_row + row_offset, column=col).value = val
+
     
     def P21_by_class(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.21_Class')
-            ws = self.template_wb["P21_Usage by Class"]
+        input_p21 = pd.read_excel(self.input_file, sheet_name='P.21_Class')
+        template_p21 = self.template_wb["P21_Usage by Class"]
 
-            current_start_row = previous_start_row = 7
-            for index, row in df.iterrows():
-                if row['year'] == self.current_year:
-                    current_start_row  += 1 
-                    ws.cell(row=current_start_row, column=1).value = row['class']
-                    for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
-                        ws.cell(row=current_start_row, column=col).value = val
+        current_start_row = previous_start_row = 7
+        for index, row in input_p21.iterrows():
+            if row['year'] == self.current_year:
+                current_start_row  += 1 
+                template_p21.cell(row=current_start_row, column=1).value = row['class']
+                for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
+                    template_p21.cell(row=current_start_row, column=col).value = val
 
-                elif row['year'] == self.previous_year:
-                    previous_start_row += 1
-                    for col, val in zip([3,4,5], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
-                        ws.cell(row=previous_start_row, column=col).value = val
-        
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            elif row['year'] == self.previous_year:
+                previous_start_row += 1
+                for col, val in zip([3,4,5], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
+                    template_p21.cell(row=previous_start_row, column=col).value = val
+
 
     def P22_by_class(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.22_Class_BenefitType')
-            ws = self.template_wb["P22_Usage by Class by Ben"]
+        input_p22 = pd.read_excel(self.input_file, sheet_name='P.22_Class_BenefitType')
+        template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
-            df.fillna(0, inplace=True)
+        input_p22 .fillna(0, inplace=True)
 
-            self.set_plan_info()
-            plan_num = self.plan_info
-            P22_format_row_num = [13,20,27,34,45,52,59,66,77,84,91,98]
+        plan_num = self.plan_info
+        P22_format_row_num = [13,20,27,34,45,52,59,66,77,84,91,98]
 
-            plan_num, P22_format_row_num = pd.Series(plan_num).astype(int), pd.Series(P22_format_row_num)
-            current_plan_row_df = pd.concat([plan_num, P22_format_row_num],axis=1, ignore_index=True).dropna()
-            current_plan_row_df.columns = ['plan', "start_row"]
-            
-            previous_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
-            current_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
+        plan_num, P22_format_row_num = pd.Series(plan_num).astype(int), pd.Series(P22_format_row_num)
+        current_plan_row_df = pd.concat([plan_num, P22_format_row_num],axis=1, ignore_index=True).dropna()
+        current_plan_row_df.columns = ['plan', "start_row"]
+        
+        previous_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
+        current_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
 
-            for index, row in df.iterrows():
-                class_id = row['class']
-                previous_start_row = previous_row_dict[class_id]
-                current_start_row = current_row_dict[class_id]
+        for index, row in input_p22.iterrows():
+            class_id = row['class']
+            previous_start_row = previous_row_dict[class_id]
+            current_start_row = current_row_dict[class_id]
 
+            if row['year'] == self.previous_year:
+                row_target = previous_start_row + 1
+                cols = [3, 4, 5]
+                previous_row_dict[class_id] = row_target
+                for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                    template_p22.cell(row=row_target, column=col).value = val
+
+            elif row['year'] == self.current_year:
+                row_target = current_start_row + 1
+                cols = [6, 7, 8]
+                current_row_dict[class_id] = row_target
+                for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                    template_p22.cell(row=row_target, column=col).value = val
+                        
+        
+    def P25_by_plan(self):
+        input_p25 = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType')
+        template_p25 = self.template_wb["P25_UsageByplanBynetworkByben"]
+        input_p25.fillna(0, inplace=True)
+        self.set_plan_info()
+        plan_num = self.plan_info
+
+        # creating dataframe for handling non-panel data
+        P25_nonpanel_row_num = [13,27,41,60,74,88,107,121,135,154,168,182]
+        plan_num, P25_nonpanel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_nonpanel_row_num)
+        nonpanel_plan_row_df = pd.concat([plan_num, P25_nonpanel_row_num],axis=1, ignore_index=True).dropna()
+        nonpanel_plan_row_df.columns = ['plan', "start_row"]
+
+        previous_nonpanel_row_dict = nonpanel_plan_row_df.set_index('plan')['start_row'].to_dict()
+        current_nonpanel_row_dict = nonpanel_plan_row_df.set_index('plan')['start_row'].to_dict()
+
+        # creating dataframe for handling panel data
+        P25_panel_row_num  = [20,34,48,67,81,95,114,128,142,161,175,189]
+        plan_num, P25_panel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_panel_row_num)
+        panel_plan_row_df = pd.concat([plan_num, P25_panel_row_num],axis=1, ignore_index=True).dropna()
+        panel_plan_row_df.columns = ['plan', "start_row"]
+        
+        previous_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
+        current_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
+    
+        for index, row in df.iterrows():
+            class_id = row['class']
+            previous_start_row = previous_nonpanel_row_dict[class_id]
+            current_start_row = current_nonpanel_row_dict[class_id]
+
+            previous_panel_start_row = previous_panel_row_dict[class_id]
+            current_panel_start_row = current_panel_row_dict[class_id]
+
+            if row['panel'] == 'Non-Panel':
                 if row['year'] == self.previous_year:
                     row_target = previous_start_row + 1
-                    cols = [3, 4, 5]
-                    previous_row_dict[class_id] = row_target
+                    cols = [4, 5, 6]
+                    previous_nonpanel_row_dict[class_id] = row_target
                     for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                        ws.cell(row=row_target, column=col).value = val
-
+                        template_p25.cell(row=row_target, column=col).value = val
                 elif row['year'] == self.current_year:
                     row_target = current_start_row + 1
-                    cols = [6, 7, 8]
-                    current_row_dict[class_id] = row_target
+                    cols = [7,8,9]
+                    current_nonpanel_row_dict[class_id] = row_target
                     for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                        ws.cell(row=row_target, column=col).value = val
-                        
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-
-    def P25_by_plan(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType')
-            ws = self.template_wb["P25_UsageByplanBynetworkByben"]
-            df.fillna(0, inplace=True)
-            self.set_plan_info()
-            plan_num = self.plan_info
-
-            # creating dataframe for handling non-panel data
-            P25_nonpanel_row_num = [13,27,41,60,74,88,107,121,135,154,168,182]
-            plan_num, P25_nonpanel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_nonpanel_row_num)
-            nonpanel_plan_row_df = pd.concat([plan_num, P25_nonpanel_row_num],axis=1, ignore_index=True).dropna()
-            nonpanel_plan_row_df.columns = ['plan', "start_row"]
-
-            previous_nonpanel_row_dict = nonpanel_plan_row_df.set_index('plan')['start_row'].to_dict()
-            current_nonpanel_row_dict = nonpanel_plan_row_df.set_index('plan')['start_row'].to_dict()
-
-            # creating dataframe for handling panel data
-            P25_panel_row_num  = [20,34,48,67,81,95,114,128,142,161,175,189]
-            plan_num, P25_panel_row_num = pd.Series(plan_num).astype(int), pd.Series(P25_panel_row_num)
-            panel_plan_row_df = pd.concat([plan_num, P25_panel_row_num],axis=1, ignore_index=True).dropna()
-            panel_plan_row_df.columns = ['plan', "start_row"]
+                        template_p25.cell(row=row_target, column=col).value = val
             
-            previous_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
-            current_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
-        
-            for index, row in df.iterrows():
-                class_id = row['class']
-                previous_start_row = previous_nonpanel_row_dict[class_id]
-                current_start_row = current_nonpanel_row_dict[class_id]
+            elif row['panel'] == 'Panel':
+                if row['year'] == self.previous_year:
+                    row_target = previous_panel_start_row + 1
+                    cols = [4, 5, 6]
+                    previous_panel_row_dict[class_id] = row_target
+                    for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                        template_p25.cell(row=row_target, column=col).value = val
+                elif row['year'] == self.current_year:
+                    row_target = current_panel_start_row + 1
+                    cols = [7,8,9]
+                    current_panel_row_dict[class_id] = row_target
+                    for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
+                        template_p25.cell(row=row_target, column=col).value = val
 
-                previous_panel_start_row = previous_panel_row_dict[class_id]
-                current_panel_start_row = current_panel_row_dict[class_id]
-
-                if row['panel'] == 'Non-Panel':
-                    if row['year'] == self.previous_year:
-                        row_target = previous_start_row + 1
-                        cols = [4, 5, 6]
-                        previous_nonpanel_row_dict[class_id] = row_target
-                        for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                            ws.cell(row=row_target, column=col).value = val
-                    elif row['year'] == self.current_year:
-                        row_target = current_start_row + 1
-                        cols = [7,8,9]
-                        current_nonpanel_row_dict[class_id] = row_target
-                        for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                            ws.cell(row=row_target, column=col).value = val
-                
-                elif row['panel'] == 'Panel':
-                    if row['year'] == self.previous_year:
-                        row_target = previous_panel_start_row + 1
-                        cols = [4, 5, 6]
-                        previous_panel_row_dict[class_id] = row_target
-                        for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                            ws.cell(row=row_target, column=col).value = val
-                    elif row['year'] == self.current_year:
-                        row_target = current_panel_start_row + 1
-                        cols = [7,8,9]
-                        current_panel_row_dict[class_id] = row_target
-                        for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
-                            ws.cell(row=row_target, column=col).value = val
-       
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
 
     def P26_by_class(self):
-        try:
-            df = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit')
-            ws = self.template_wb["P26_Usage_Clinical by Network"]
+        input_p26 = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit')
+        template_p26 = self.template_wb["P26_Usage_Clinical by Network"]
 
-            panel_previous_start_row = panel_current_start_row = 7
-            nonpanel_previous_start_row = nonpanel_current_start_row = 28
+        panel_previous_start_row = panel_current_start_row = 7
+        nonpanel_previous_start_row = nonpanel_current_start_row = 28
 
-            rows = {
-                ('Panel', self.current_year): {'row': panel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
-                ('Panel', self.previous_year): {'row': panel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
-                ('Non-Panel', self.current_year): {'row': nonpanel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
-                ('Non-Panel', self.previous_year): {'row': nonpanel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']}
-            }
+        rows = {
+            ('Panel', self.current_year): {'row': panel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
+            ('Panel', self.previous_year): {'row': panel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
+            ('Non-Panel', self.current_year): {'row': nonpanel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']},
+            ('Non-Panel', self.previous_year): {'row': nonpanel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim']}
+        }
 
-            current_rows = {
-                ('Panel', self.current_year): panel_previous_start_row,
-                ('Panel', self.previous_year): panel_current_start_row,
-                ('Non-Panel', self.current_year): nonpanel_previous_start_row,
-                ('Non-Panel', self.previous_year): nonpanel_current_start_row
-            }
+        current_rows = {
+            ('Panel', self.current_year): panel_previous_start_row,
+            ('Panel', self.previous_year): panel_current_start_row,
+            ('Non-Panel', self.current_year): nonpanel_previous_start_row,
+            ('Non-Panel', self.previous_year): nonpanel_current_start_row
+        }
 
-            for index, row in df.iterrows():
-                key = (row['panel'], row['year'])
-                if key in rows:
-                    current_rows[key] += 1
-                    row_idx = current_rows[key]
-                    info = rows[key]
-                    values = [row[val] for val in info['values']]
-                    for col, val in zip(info['cols'], values):
-                        ws.cell(row=row_idx, column=col).value = val
-        
-        except FileNotFoundError:
-            print(f"Error: The file '{self.input_file}' was not found. Please check the name and try again.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        for index, row in input_p26.iterrows():
+            key = (row['panel'], row['year'])
+            if key in rows:
+                current_rows[key] += 1
+                row_idx = current_rows[key]
+                info = rows[key]
+                values = [row[val] for val in info['values']]
+                for col, val in zip(info['cols'], values):
+                    template_p26.cell(row=row_idx, column=col).value = val
 
     def save(self, output_file):
+        from io import BytesIO
+        output_file = BytesIO()
         try:
+            # self.template_wb.save(output_file)
+            # print(f"File saved successfully as '{output_file}'")
             self.template_wb.save(output_file)
-            print(f"File saved successfully as '{output_file}'")
+            return output_file.getvalue()
         except Exception as e:
-            print(f"An error occurred while saving the file: {e}")
+            print(f"An error occurred while saving the file into the BytesIO: {e}")
 
-def main():
-    GMI = MCRConvert(input_file='input_example_01.xlsx', previous_policy_num="015989", previous_year= 2023, current_policy_num="015989", current_year=2024)
-    GMI.P20_overall()
-    GMI.P20_network()
-    GMI.P20_benefittype()
-    GMI.P21_by_class()
-    GMI.P22_by_class()
-    GMI.P25_by_plan()
-    GMI.P26_by_class()
-    GMI.save(output_file='Filled file.xlsx')
+        
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     GMI = MCRConvert(input_file='input_example_01.xlsx', previous_policy_num="015989", previous_year= 2023, current_policy_num="015989", current_year=2024)
+#     GMI.P20_overall()
+#     GMI.P20_network()
+#     GMI.P20_benefittype()
+#     GMI.P21_by_class()
+#     GMI.P22_by_class()
+#     GMI.P25_by_plan()
+#     GMI.P26_by_class()
+#     GMI.save(output_file='Filled file.xlsx')
+
+# if __name__ == "__main__":
+#     main()
