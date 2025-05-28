@@ -963,7 +963,7 @@ if st.session_state.ocr == True:
                             {"type": "text",
                             "text":"""
                             Role: Data Input Officer
-                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an excel .xlsx file.
+                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into a .csv format data for copt and paste.
 
                               [1st col: policy_id]: Contract Number + "_" + year & month of the starting period. (in our case would be 015989_202310)
                               [2nd col: policy_number]: Contract Number (in our case: 015989)
