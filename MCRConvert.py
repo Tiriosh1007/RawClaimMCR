@@ -13,7 +13,7 @@ class MCRConvert():
 
             self.input_dtype = {
                 "policy_number": str,
-                "year": int,
+                "year": str,
                 "benefit_type": str,
                 "benefit": str,
                 "panel": str,
