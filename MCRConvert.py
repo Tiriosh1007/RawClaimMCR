@@ -53,7 +53,7 @@ class MCRConvert():
         self.previous_year_start_date, self.previous_year_end_date = previous_year_start_date, previous_year_end_date
         self.current_year_start_date, self.current_year_end_date = current_year_start_date, current_year_end_date
         self.previous_policy_num, self.current_policy_num = previous_policy_num, current_policy_num
-        self.plan_info = self.mcr_p21_class.copy(deep=True)
+        self.plan_info = self.mcr_p21_class.copy(deep=True).dropna()
         self.plan_info = self.plan_info["class"].loc[(self.plan_info["policy_number"] == self.current_policy_num) & 
                                             (self.plan_info["year"] == self.current_year)].tolist()
         
@@ -157,7 +157,7 @@ class MCRConvert():
 
 
     def P22_by_class(self):
-        input_p22 = self.mcr_p22_class_benefit.dropna()
+        input_p22 = self.mcr_p22_class_benefit
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22.fillna(0, inplace=True)
