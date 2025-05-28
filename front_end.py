@@ -928,8 +928,8 @@ if st.session_state.ocr == True:
                                       },
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}}
-      ]
-    }
+                ]
+              }
             ]
             # plugins = [
             #     {
@@ -942,7 +942,7 @@ if st.session_state.ocr == True:
             payload = {
               "model": "google/gemini-2.5-flash-preview-05-20",
               #"messages": messages,
-              "messages": [{"role": "user", "content": "Hi, Can you also say hi to me?"}],
+              "messages": messages,
               # "plugins": plugins
             }
             response = requests.post(url, headers=headers, json=payload)
