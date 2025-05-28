@@ -792,10 +792,11 @@ if st.session_state.mcr_convert == True:
   mcr_file_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=False, key='mcr_convert_uploader')
   import tempfile
   import os
-  temp_dir = tempfile.mkdtemp()
-  path = os.path.join(temp_dir, mcr_file_uploaded.name)
-  with open(path, "wb") as f:
-    f.write(mcr_file_uploaded.getvalue())
+  if mcr_file_uploaded is not None:
+    temp_dir = tempfile.mkdtemp()
+    path = os.path.join(temp_dir, mcr_file_uploaded.name)
+    with open(path, "wb") as f:
+      f.write(mcr_file_uploaded.getvalue())
 
   if st.button('Confirm MCR Analysis File Upload'):
     st.session_state.mcr_convert_uploaded = True
