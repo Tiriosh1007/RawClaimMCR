@@ -29,7 +29,7 @@ class MCRConvert():
                 "paid_per_claimant": float,
                 "claim_frequency": float,
             }
-            
+
             self.mcr_p20_policy = pd.read_excel(self.input_file, sheet_name='P.20_Policy', dtype=self.input_dtype)
             self.mcr_p20_benefit = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType', dtype=self.input_dtype, na_values=0)
             self.mcr_p20_network = pd.read_excel(self.input_file, sheet_name='P.20_Network', dtype=self.input_dtype, na_values=0)
