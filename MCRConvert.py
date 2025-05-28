@@ -33,7 +33,7 @@ class MCRConvert():
             self.mcr_p20_policy = pd.read_excel(self.input_file, sheet_name='P.20_Policy', dtype=self.input_dtype)
             self.mcr_p20_benefit = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType', dtype=self.input_dtype, na_values=0)
             self.mcr_p20_network = pd.read_excel(self.input_file, sheet_name='P.20_Network', dtype=self.input_dtype, na_values=0)
-            self.mcr_p21_class = pd.read_excel(self.input_file, sheet_name='P.21_Class', dtype=self.input_dtype, na_values=0)
+            self.mcr_p21_class = pd.read_excel(self.input_file, sheet_name='P.21_Class', dtype=self.input_dtype)
             self.mcr_p22_class_benefit = pd.read_excel(self.input_file, sheet_name='P.22_Class_BenefitType', dtype=self.input_dtype, na_values=0)
             self.mcr_p25_class_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType', dtype=self.input_dtype, na_values=0)
             self.mcr_p26_op_panel_benefit = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit', dtype=self.input_dtype, na_values=0)
