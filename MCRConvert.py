@@ -21,8 +21,8 @@ class MCRConvert():
                 "incurred_amount": float,
                 "paid_amount": float,
                 "usage_ratio": float,
-                "no_of_claims": int,
-                "no_of_claimants": int,
+                # "no_of_claims": int,
+                # "no_of_claimants": int,
                 "incurred_per_claim": float,
                 "paid_per_claim": float,
                 "incurred_per_claimant": float,
@@ -100,7 +100,7 @@ class MCRConvert():
 
 
     def P20_benefittype(self):
-        input_p20_btype = pd.read_excel(self.input_file, sheet_name='P.20_BenefitType')
+        input_p20_btype = self.mcr_p20_benefit
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         # by benefit table variables 
@@ -127,7 +127,7 @@ class MCRConvert():
 
 
     def P20_network(self):
-        input_p20_btype = pd.read_excel(self.input_file, sheet_name='P.20_Network')
+        input_p20_btype = self.mcr_p20_network
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         previous_start_row = current_start_row = 27
@@ -144,7 +144,7 @@ class MCRConvert():
 
     
     def P21_by_class(self):
-        input_p21 = pd.read_excel(self.input_file, sheet_name='P.21_Class')
+        input_p21 = self.mcr_p21_class
         template_p21 = self.template_wb["P21_Usage by Class"]
 
         current_start_row = previous_start_row = 7
@@ -162,7 +162,7 @@ class MCRConvert():
 
 
     def P22_by_class(self):
-        input_p22 = pd.read_excel(self.input_file, sheet_name='P.22_Class_BenefitType')
+        input_p22 = self.mcr_p22_class_benefit
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22 .fillna(0, inplace=True)
@@ -198,7 +198,7 @@ class MCRConvert():
                         
         
     def P25_by_plan(self):
-        input_p25 = pd.read_excel(self.input_file, sheet_name='P.25_Class_Panel_BenefitType')
+        input_p25 = self.mcr_p25_class_panel_benefit
         template_p25 = self.template_wb["P25_UsageByplanBynetworkByben"]
         input_p25.fillna(0, inplace=True)
         self.set_plan_info()
@@ -260,7 +260,7 @@ class MCRConvert():
 
 
     def P26_by_class(self):
-        input_p26 = pd.read_excel(self.input_file, sheet_name='P.26_OP_Panel_Benefit')
+        input_p26 = self.mcr_p26_op_panel_benefit
         template_p26 = self.template_wb["P26_Usage_Clinical by Network"]
 
         panel_previous_start_row = panel_current_start_row = 7
