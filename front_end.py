@@ -793,8 +793,9 @@ if st.session_state.mcr_convert == True:
   st.write("---")
   upload_file_l = []
   mcr_file_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=False, key='mcr_convert_uploader')
-  mcr_convert_upload_col1, mcr_convert_upload_col2 = st.columns([1,1])
   st.write("### Optional")
+  mcr_convert_upload_col1, mcr_convert_upload_col2 = st.columns([1,1])
+  
   with mcr_convert_upload_col1:
     previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", key='previous_year_loss_ratio_text')
   with mcr_convert_upload_col2:
@@ -814,7 +815,7 @@ if st.session_state.mcr_convert == True:
   if st.session_state.mcr_convert_uploaded == True:
     st.write("---")
     mcr_convert_  = MCRConvert(path)
-    mcr_convert_.loss_ratio_text(previous_year_loss_ratio_text, current_year_loss_ratio_text)
+    mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text)
     st.dataframe(mcr_convert_.policy_info)
     mcr_covert_policy_info_df = mcr_convert_.policy_info.copy(deep=True)
     
