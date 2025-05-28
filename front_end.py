@@ -809,7 +809,6 @@ if st.session_state.mcr_convert == True:
   if st.session_state.mcr_convert_uploaded == True:
     st.write("---")
     mcr_convert_  = MCRConvert(path)
-    mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text)
     st.dataframe(mcr_convert_.policy_info)
     mcr_covert_policy_info_df = mcr_convert_.policy_info.copy(deep=True)
     
@@ -857,6 +856,8 @@ if st.session_state.mcr_convert == True:
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
                                     current_policy_num, current_year_start_date, current_year_end_date, current_year)
+      
+      mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text)
       mcr_convert_.convert_all()
       st.download_button('Download MCR Converted Excel',
                           mcr_convert_.save(),
