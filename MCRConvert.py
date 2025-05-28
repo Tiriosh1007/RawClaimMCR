@@ -71,7 +71,7 @@ class MCRConvert():
 
         plan_start_row = 2
         for i in range(plan_start_row, len(self.plan_info) + 2):
-            claim_info_worksheet.cell(row=plan_start_row, column=8).value = self.plan_info[i]
+            claim_info_worksheet.cell(row=i, column=8).value = self.plan_info[i]
         
                 
 
