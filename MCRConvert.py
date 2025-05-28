@@ -176,7 +176,7 @@ class MCRConvert():
         for index, row in input_p22.iterrows():
             class_id = row['class']
             print(f"Processing class: {class_id}, Year: {row['year']}")
-            print(previous_row_dict)
+            print(row)
             previous_start_row = previous_row_dict[class_id]
             current_start_row = current_row_dict[class_id]
 
