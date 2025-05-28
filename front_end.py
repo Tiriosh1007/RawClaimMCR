@@ -831,8 +831,8 @@ if st.session_state.mcr_convert == True:
                    options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == previous_policy_num].unique(),
                    index=None,
                    key='prev_year')
-      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date')), "%-d/%-m/%Y"))
-      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date')), "%-d/%-m/%Y"))
+      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date', value="today")), "%-d/%-m/%Y"))
+      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date', value="today")), "%-d/%-m/%Y"))
       st.write(" ### Optional")
       previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", placeholder="None", key='previous_year_loss_ratio_text')
 
@@ -847,8 +847,8 @@ if st.session_state.mcr_convert == True:
                           options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == current_policy_num].unique(),
                           index=None,
                           key='current_year')
-      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date')), "%-d/%-m/%Y"))
-      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date')), "%-d/%-m/%Y"))
+      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date', value="today")), "%-d/%-m/%Y"))
+      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date', value="today")), "%-d/%-m/%Y"))
       st.write(" ### Optional")
       current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", placeholder="None", key='current_year_loss_ratio_text')
 
