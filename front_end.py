@@ -933,14 +933,7 @@ if st.session_state.ocr == True:
                             {"type": "text",
                             "text":"""
                             Role: Data Input Officer
-                            Desired Output: a markdown output of the pdf.
-                            """},
-                              {"type": "file",
-                              "file": {"filename": uploaded_file.name, "file_data": data_url}},
-
-                            {"type": "text",
-                             "text": """
-                             now based on the markdown output, we need to convert it into an excel .xlsx file.
+                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an excel .xlsx file.
 
                               [1st col: policy_id]: Contract Number + "_" + year & month of the starting period. (in our case would be 015989_202310)
                               [2nd col: policy_number]: Contract Number (in our case: 015989)
@@ -955,7 +948,9 @@ if st.session_state.ocr == True:
                               [11th col: actual_premium] Actual Subscription
                               [12th col: actual_paid_w_ibnr] Actual Claims with IBNR
                               [13th col: loss_ratio] Actual Loss Ratio
-                              """}
+                            """},
+                              {"type": "file",
+                              "file": {"filename": uploaded_file.name, "file_data": data_url}},
                 ]
               }
             ]
