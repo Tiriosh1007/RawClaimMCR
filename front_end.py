@@ -793,9 +793,9 @@ if st.session_state.mcr_convert == True:
   import tempfile
   import os
   temp_dir = tempfile.mkdtemp()
-  path = os.path.join(temp_dir, uploaded_file.name)
+  path = os.path.join(temp_dir, mcr_file_uploaded.name)
   with open(path, "wb") as f:
-    f.write(uploaded_file.getvalue())
+    f.write(mcr_file_uploaded.getvalue())
 
   if st.button('Confirm MCR Analysis File Upload'):
     st.session_state.mcr_convert_uploaded = True
