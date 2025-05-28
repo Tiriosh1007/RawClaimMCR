@@ -793,18 +793,6 @@ if st.session_state.mcr_convert == True:
   st.write("---")
   upload_file_l = []
   mcr_file_uploaded = st.file_uploader("Upload the MCR analysis excel produced by this system", accept_multiple_files=False, key='mcr_convert_uploader')
-  st.write("### Optional")
-  mcr_convert_upload_col1, mcr_convert_upload_col2 = st.columns([1,1])
-  
-  with mcr_convert_upload_col1:
-
-    previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", placeholder="None", key='previous_year_loss_ratio_text')
-    st.write(previous_year_loss_ratio_text)
-
-
-  with mcr_convert_upload_col2:
-    current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", placeholder="None", key='current_year_loss_ratio_text')
-    st.write(current_year_loss_ratio_text)
 
     
   import tempfile
@@ -835,51 +823,36 @@ if st.session_state.mcr_convert == True:
     mcr_convert_year_cofig_col1, mcr_convert_year_cofig_col2 = st.columns([1, 1])
     with mcr_convert_year_cofig_col1:
       st.write('Previous Year')
-
-      if mcr_convert_.previous_year_loss_ratio_df is None:
-        temp_previous_policy_num, temp_previous_year, temp_previous_year_start_date, temp_previous_year_end_date = None, None, None, None
-      else:
-        temp_previous_policy_num = mcr_convert_.previous_year_loss_ratio_df['policy_number'].unique().values[0]
-        temp_previous_year = mcr_convert_.previous_year_loss_ratio_df['policy_start_date'].unique().values[0].year
-        temp_previous_year_start_date = pd.to_datetime(mcr_convert_.previous_year_loss_ratio_df['policy_start_date']).unique().values[0]
-        temp_previous_year_end_date = mcr_convert_.previous_year_loss_ratio_df['policy_end_date'].unique().values[0]
       
       previous_policy_num = st.selectbox('Policy Number',
                    options=mcr_covert_policy_info_df['policy_number'].unique(),
                    index=None,
-                   placeholder=temp_previous_policy_num,
                    key='prev_policy_number')
       previous_year = st.selectbox('Year',
                    options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == previous_policy_num].unique(),
                    index=None,
-                   placeholder=temp_previous_year,
                    key='prev_year')
-      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date', value=temp_previous_year_start_date)), "%-d/%-m/%Y"))
-      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date', value=temp_previous_year_end_date)), "%-d/%-m/%Y"))
+      previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date')), "%-d/%-m/%Y"))
+      previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date')), "%-d/%-m/%Y"))
+      st.write(" ### Optional")
+      previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", placeholder="None", key='previous_year_loss_ratio_text')
 
     with mcr_convert_year_cofig_col2:
       st.write('Current Year')
 
-      if mcr_convert_.current_year_loss_ratio_df is None:
-        temp_current_policy_num, temp_current_year, temp_current_year_start_date, temp_current_year_end_date = None, None, None, None
-      else:
-        temp_current_policy_num = mcr_convert_.current_year_loss_ratio_df['policy_number'].unique().values[0]
-        temp_current_year = mcr_convert_.current_year_loss_ratio_df['policy_start_date'].unique().values[0].year
-        temp_current_year_start_date = pd.to_datetime(mcr_convert_.current_year_loss_ratio_df['policy_start_date']).unique().values[0]
-        temp_current_year_end_date = mcr_convert_.current_year_loss_ratio_df['policy_end_date'].unique().values[0]
-
       current_policy_num = st.selectbox('Policy Number',
                          options=mcr_covert_policy_info_df['policy_number'].unique(),
                          index=None,
-                         placeholder=temp_current_policy_num,
                          key='current_policy_number')
       current_year = st.selectbox('Year',
                           options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == current_policy_num].unique(),
                           index=None,
-                          placeholder=temp_current_year,
                           key='current_year')
-      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date', value=temp_current_year_start_date)), "%-d/%-m/%Y"))
-      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date', value=temp_current_year_end_date)), "%-d/%-m/%Y"))
+      current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date')), "%-d/%-m/%Y"))
+      current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date')), "%-d/%-m/%Y"))
+      st.write(" ### Optional")
+      current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", placeholder="None", key='current_year_loss_ratio_text')
+
     
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
