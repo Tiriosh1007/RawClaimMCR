@@ -64,6 +64,7 @@ with function_col1:
     st.session_state.member_census = False
     st.session_state.member_census_proceed = False
     st.session_state.mcr_convert = False
+    st.session_state.mcr_convert_uploaded = False
     st.session_state.ocr = False
     st.session_state.ocr_result = False
 
