@@ -804,17 +804,51 @@ if st.session_state.mcr_convert == True:
     st.write("---")
     mcr_convert_  = MCRConvert(path)
     st.dataframe(mcr_convert_.policy_info)
+    mcr_covert_policy_info_df = mcr_convert_.policy_info.copy(deep=True)
     
     st.write("""
              Please Select the policy number, year, start date, and end date for both previous year and current year.
 
              Please make sure that the class of both years are in sync, otherwise the conversion will not work properly.
 
-             If the class is not in sync, please just leave previous year empty.
+             ### *If the class is not in sync, please just leave previous year empty.*
              """)
+    mcr_convert_year_cofig_col1, mcr_convert_year_cofig_col2 = st.columns([1, 1])
+    with mcr_convert_year_cofig_col1:
+      st.write('Previous Year')
+      previous_policy_num = st.selectbox('Policy Number',
+                   options=mcr_covert_policy_info_df['policy_number'].unique(),
+                   index=None,
+                   key='prev_policy_number')
+      previous_year = st.selectbox('Year',
+                   options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == previous_policy_num].unique(),
+                   index=None,
+                   key='prev_year')
+      previous_year_start_date = st.date_input('Start Date', key='prev_year_start_date')
+      previous_year_end_date = st.date_input('End Date', key='prev_year_end_date')
 
-  
-  
+    with mcr_convert_year_cofig_col2:
+      st.write('Current Year')
+      current_policy_num = st.selectbox('Policy Number',
+                         options=mcr_covert_policy_info_df['policy_number'].unique(),
+                         index=None,
+                         key='current_policy_number')
+      current_year = st.selectbox('Year',
+                          options=mcr_covert_policy_info_df['year'].loc[mcr_covert_policy_info_df['policy_number'] == current_policy_num].unique(),
+                          index=None,
+                          key='current_year')
+      current_year_start_date = st.date_input('Start Date', key='current_year_start_date')
+      current_year_end_date = st.date_input('End Date', key='current_year_end_date')
+    
+    if st.button('Confirm Year Configuration'):
+      mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
+                                    current_policy_num, current_year_start_date, current_year_end_date, current_year)
+      mcr_convert_.convert_all()
+      st.download_button('Download MCR Converted Excel',
+                          mcr_convert_.save(),
+                          file_name=f'GMI_{current_policy_num}_{current_year}.xlsx',
+                          mime="application/vnd.ms-excel")
+
 
       
 

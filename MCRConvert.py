@@ -301,6 +301,16 @@ class MCRConvert():
         except Exception as e:
             print(f"An error occurred while saving the file into the BytesIO: {e}")
 
+    def covert_all(self):
+        self.claim_info()
+        self.P20_overall()
+        self.P20_benefittype()
+        self.P20_network()
+        self.P21_by_class()
+        self.P22_by_class()
+        self.P25_by_plan()
+        self.P26_by_class()
+
         
 
 # def main():
