@@ -844,7 +844,7 @@ if st.session_state.mcr_convert == True:
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
                                     current_policy_num, current_year_start_date, current_year_end_date, current_year)
-      mcr_convert_.convert_all
+      mcr_convert_.convert_all()
       st.download_button('Download MCR Converted Excel',
                           mcr_convert_.save(),
                           file_name=f'GMI_{current_policy_num}_{current_year}.xlsx',
