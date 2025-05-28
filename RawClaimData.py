@@ -1285,7 +1285,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False):
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
@@ -1331,6 +1331,10 @@ class RawClaimData():
       self.df['common_diagnosis_flag'].loc[(self.df.diagnosis.str.contains('viral warts', case=False))|self.df.procedure.str.contains('warts', case=False)] = 'viral_warts'
       self.df['common_diagnosis_flag'].loc[self.df.procedure.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False)] = 'endoscopy'
       
+
+    if group_optical == False:
+      self.df['benefit_type'].loc[self.df['benefit_type'] == 'Optical'] = 'Clinic'
+
 
     self.df.suboffice.fillna('00', inplace=True)
 
