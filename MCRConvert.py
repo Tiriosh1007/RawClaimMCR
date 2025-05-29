@@ -313,21 +313,20 @@ class MCRConvert():
         if previous_yr_loss_ratio_text:
             previous_yr_loss_ratio_text = previous_yr_loss_ratio_text.splitlines()
             data_l = [previous_yr_loss_ratio_text[i].split(",") for i in range(len(previous_yr_loss_ratio_text))]
-            print(previous_yr_loss_ratio_text)
-            print(current_yr_loss_ratio_text)
-            print(data_l)
             self.previous_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
         if current_yr_loss_ratio_text:
             current_yr_loss_ratio_text = current_yr_loss_ratio_text.splitlines()
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
-            print(self.current_year_loss_ratio_df)
+
 
     def p16_LR_by_benefits(self):
         # self.loss_ratio_text_convert()
         template_p16 = self.template_wb["P16_LR by Benefits"]
         cols = [3,4,5]
         previous_start_row, current_start_row = 5,12
+        print(self.previous_year_loss_ratio_df)
+        len(None)
         if self.previous_year_loss_ratio_df is not None:
             for i in range(previous_start_row, len(self.previous_year_loss_ratio_df) + previous_start_row):
                 if self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['benefit_type'] == "Total":
