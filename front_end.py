@@ -954,10 +954,12 @@ if st.session_state.ocr == True:
                               [6th col: duration]: Annualised to: (in our case 12)
                               [7th col: ibnr]: IBNR
                               [8th col: data_as_of]Data as of
-                              [9th col: benefit type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
+                              [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
                               [10th col: actual_premium] Actual Subscription
                               [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
                               [12th col: loss_ratio] Actual Loss Ratio
+
+                              The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Grand Total] (If any one of these benefit type ais not presented in the report, skip the item).
                               """},
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}},
