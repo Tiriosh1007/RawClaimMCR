@@ -971,6 +971,7 @@ if st.session_state.ocr == True:
                               2. If the report states "Annualized XXX", ie Annualized Premium, please make sure to convert back to the actual by mulitplying the duration and then divided by 12 months to revert the annualization effect.
                               3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this case, it is 8 months.
                               4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
+                              5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
                               """},
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}},
