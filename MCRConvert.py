@@ -327,17 +327,12 @@ class MCRConvert():
                 self.current_year_loss_ratio_df["actual_premium"].loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"] = self.current_year_loss_ratio_df["actual_premium"].loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"].astype(float).values[0] + self.current_year_loss_ratio_df["actual_premium"].loc[self.current_year_loss_ratio_df.benefit_type == "Optical"].astype(float).values[0]
                 self.current_year_loss_ratio_df["actual_paid_w_ibnr"].loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"] = self.current_year_loss_ratio_df["actual_paid_w_ibnr"].loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"].astype(float).values[0] + self.current_year_loss_ratio_df["actual_paid_w_ibnr"].loc[self.current_year_loss_ratio_df.benefit_type == "Optical"].astype(float).values[0]
                 self.current_year_loss_ratio_df = self.current_year_loss_ratio_df.loc[self.current_year_loss_ratio_df.benefit_type != "Optical"]
-                
-            # print(self.current_year_loss_ratio_df)
 
 
     def p16_LR_by_benefits(self):
-        # self.loss_ratio_text_convert()
         template_p16 = self.template_wb["P16_LR by Benefits"]
         cols = [3,4,5]
         previous_start_row, current_start_row = 5,12
-        print(self.previous_year_loss_ratio_df)
-        print(self.current_year_loss_ratio_df)
         
         
         if self.previous_year_loss_ratio_df is not None:
@@ -345,27 +340,12 @@ class MCRConvert():
                 if self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['benefit_type'] != "Total":
                     template_p16.cell(row=i, column=3).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_premium']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
                     template_p16.cell(row=i, column=4).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_paid_w_ibnr']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
-                    # template_p16.cell(row=i, column=5).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['loss_ratio'])
-            # for index, row in self.previous_year_loss_ratio_df.iterrows():
-            #     if row['benefit_type'] != "Total":
-            #         previous_start_row +=1
-            #         row['actual_premium'], row["actual_paid_w_ibnr"] = float(row['actual_premium']) * 12 / int(row["duration"]) , float(row["actual_paid_w_ibnr"]) * 12 / int(row["duration"])
-            #         for col, val in zip(cols, [row['actual_premium'], row['actual_paid_w_ibnr'], row['loss_ratio']]):
-            #             template_p16.cell(row=previous_start_row, column=col).value = val
 
         if self.current_year_loss_ratio_df is not None:
             for i in range(current_start_row, len(self.current_year_loss_ratio_df) + current_start_row):
                 if self.current_year_loss_ratio_df.iloc[i-current_start_row]['benefit_type'] != "Total":
                     template_p16.cell(row=i, column=3).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_premium']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
                     template_p16.cell(row=i, column=4).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_paid_w_ibnr']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
-                    # template_p16.cell(row=i, column=5).value = self.current_year_loss_ratio_df.iloc[i-current_start_row]['loss_ratio']
-            # for index, row in self.current_year_loss_ratio_df.iterrows():
-            #     if row['benefit_type'] != "Total":
-            #         current_start_row +=1
-            #         row['actual_premium'], row["actual_paid_w_ibnr"] = float(row['actual_premium']) * 12 / int(row["duration"]) , float(row["actual_paid_w_ibnr"]) * 12 / int(row["duration"])
-            #         for col, val in zip(cols, [row['actual_premium'], row['actual_paid_w_ibnr'], row['loss_ratio']]):
-            #             template_p16.cell(row=current_start_row, column=col).value = val
-
 
     def convert_all(self):
         self.claim_info()
