@@ -952,7 +952,7 @@ if st.session_state.ocr == True:
                               [4th col: policy_start_date]: the start date of period 
                               [5th col: policy_end_date]: one year after the start date of period
                               [6th col: duration]: Annualised to: (for example: 12)
-                              [7th col: ibnr]: IBNR
+                              [7th col: ibnr]: IBNR, this has to be a percentage. If the report does not state the IBNR, please input "Not State" default.
                               [8th col: data_as_of]Data as of
                               [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
                               [10th col: actual_premium] Actual Subscription
