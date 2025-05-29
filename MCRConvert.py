@@ -182,8 +182,6 @@ class MCRConvert():
 
         for index, row in input_p22.iterrows():
             class_id = row['class']
-            print(f"Processing class: {class_id}, Year: {row['year']}")
-            print(row)
             previous_start_row = previous_row_dict[class_id]
             current_start_row = current_row_dict[class_id]
 
@@ -362,9 +360,7 @@ class MCRConvert():
 
     def convert_all(self):
         self.claim_info()
-        self.loss_ratio_text_convert()
         self.p16_LR_by_benefits()
-
         self.P20_overall()
         self.P20_benefittype()
         self.P20_network()
