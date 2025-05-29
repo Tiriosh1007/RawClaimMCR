@@ -834,7 +834,7 @@ if st.session_state.mcr_convert == True:
       previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date', value="today")), "%-d/%-m/%Y"))
       previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date', value="today")), "%-d/%-m/%Y"))
       st.write(" ### Optional")
-      previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", placeholder="None", key='previous_year_loss_ratio_text')
+      previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", key='previous_year_loss_ratio_text')
 
     with mcr_convert_year_cofig_col2:
       st.write('Current Year')
@@ -850,7 +850,7 @@ if st.session_state.mcr_convert == True:
       current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date', value="today")), "%-d/%-m/%Y"))
       current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date', value="today")), "%-d/%-m/%Y"))
       st.write(" ### Optional")
-      current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", placeholder="None", key='current_year_loss_ratio_text')
+      current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", key='current_year_loss_ratio_text')
 
     
     if st.button('Confirm Year Configuration'):
