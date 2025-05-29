@@ -358,8 +358,7 @@ class MCRConvert():
     def convert_all(self):
         self.claim_info()
         self.loss_ratio_text_convert()
-        if self.previous_year_loss_ratio_df is not None or self.current_year_loss_ratio_df is not None:
-            self.p16_LR_by_benefits()
+        self.p16_LR_by_benefits()
 
         self.P20_overall()
         self.P20_benefittype()
