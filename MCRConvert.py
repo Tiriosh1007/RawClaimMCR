@@ -328,8 +328,6 @@ class MCRConvert():
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
 
-        
-
 # def main():
 #     GMI = MCRConvert(input_file='input_example_01.xlsx', previous_policy_num="015989", previous_year= 2023, current_policy_num="015989", current_year=2024)
 #     GMI.P20_overall()
