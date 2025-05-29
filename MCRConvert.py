@@ -333,7 +333,7 @@ class MCRConvert():
         
         if self.previous_year_loss_ratio_df is not None:
             for i in range(previous_start_row, len(self.previous_year_loss_ratio_df) + previous_start_row):
-                if self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['benefit_type'] == "Total":
+                if self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['benefit_type'] != "Total":
                     template_p16.cell(row=i, column=3).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_premium']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
                     template_p16.cell(row=i, column=4).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_paid_w_ibnr']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
                     template_p16.cell(row=i, column=5).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['loss_ratio'])
@@ -346,7 +346,7 @@ class MCRConvert():
 
         if self.current_year_loss_ratio_df is not None:
             for i in range(current_start_row, len(self.current_year_loss_ratio_df) + current_start_row):
-                if self.current_year_loss_ratio_df.iloc[i-current_start_row]['benefit_type'] == "Total":
+                if self.current_year_loss_ratio_df.iloc[i-current_start_row]['benefit_type'] != "Total":
                     template_p16.cell(row=i, column=3).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_premium']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
                     template_p16.cell(row=i, column=4).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_paid_w_ibnr']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
                     template_p16.cell(row=i, column=5).value = self.current_year_loss_ratio_df.iloc[i-current_start_row]['loss_ratio']
