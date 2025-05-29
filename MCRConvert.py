@@ -326,6 +326,7 @@ class MCRConvert():
         cols = [3,4,5]
         previous_start_row, current_start_row = 5,12
         print(self.previous_year_loss_ratio_df)
+        print(self.current_year_loss_ratio_df)
         len(None)
         if self.previous_year_loss_ratio_df is not None:
             for i in range(previous_start_row, len(self.previous_year_loss_ratio_df) + previous_start_row):
