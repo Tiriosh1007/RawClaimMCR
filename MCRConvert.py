@@ -315,7 +315,7 @@ class MCRConvert():
             data_l = [previous_yr_loss_ratio_text[i].split(",") for i in range(len(previous_yr_loss_ratio_text))]
             self.previous_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
             if ("Optical" in self.previous_year_loss_ratio_df.benefit_type.tolist()) & (loss_ratio_grouping_optical == True):
-                self.previous_year_loss_ratio_df.loc["Clinical"] = self.previous_year_loss_ratio_df.loc["Clinical"].astype(float) + self.previous_year_loss_ratio_df.loc["Optical"].astype(float)
+                self.previous_year_loss_ratio_df.loc[self.previous_year_loss_ratio_df.benefit_type == "Clinical"] = self.previous_year_loss_ratio_df.loc[self.previous_year_loss_ratio_df.benefit_type == "Clinical"].astype(float) + self.previous_year_loss_ratio_df.loc[self.previous_year_loss_ratio_df.benefit_type == "Optical"].astype(float)
                 self.previous_year_loss_ratio_df.drop("Optical", inplace=True)
             # print(self.previous_year_loss_ratio_df)
         if current_yr_loss_ratio_text:
@@ -323,8 +323,9 @@ class MCRConvert():
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
             if ("Optical" in self.current_year_loss_ratio_df.benefit_type.tolist()) & (loss_ratio_grouping_optical == True):
-                self.current_year_loss_ratio_df.loc["Clinical"] = self.current_year_loss_ratio_df.loc["Clinical"].astype(float) + self.current_year_loss_ratio_df.loc["Optical"].astype(float)
+                self.current_year_loss_ratio_df.loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"] = self.current_year_loss_ratio_df.loc[self.current_year_loss_ratio_df.benefit_type == "Clinical"].astype(float) + self.current_year_loss_ratio_df.loc[self.current_year_loss_ratio_df.benefit_type == "Optical"].astype(float)
                 self.current_year_loss_ratio_df.drop("Optical", inplace=True)
+                
             # print(self.current_year_loss_ratio_df)
 
 
