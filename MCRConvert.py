@@ -349,7 +349,7 @@ class MCRConvert():
                 if self.current_year_loss_ratio_df.iloc[i-current_start_row]['benefit_type'] == "Total":
                     template_p16.cell(row=i, column=3).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_premium']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
                     template_p16.cell(row=i, column=4).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_paid_w_ibnr']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
-                    template_p16.cell(row=i, column=5).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['loss_ratio'])
+                    template_p16.cell(row=i, column=5).value = self.current_year_loss_ratio_df.iloc[i-current_start_row]['loss_ratio']
             # for index, row in self.current_year_loss_ratio_df.iterrows():
             #     if row['benefit_type'] != "Total":
             #         current_start_row +=1
