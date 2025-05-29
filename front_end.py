@@ -959,7 +959,7 @@ if st.session_state.ocr == True:
                               [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
                               [12th col: loss_ratio] Actual Loss Ratio
 
-                              The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Grand Total] (If any one of these benefit type ais not presented in the report, skip the item).
+                              The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Total] (If any one of these benefit type ais not presented in the report, skip the item).
                               """},
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}},
