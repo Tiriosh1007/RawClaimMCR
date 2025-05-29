@@ -307,15 +307,6 @@ class MCRConvert():
         except Exception as e:
             print(f"An error occurred while saving the file into the BytesIO: {e}")
 
-    def convert_all(self):
-        self.claim_info()
-        self.P20_overall()
-        self.P20_benefittype()
-        self.P20_network()
-        self.P21_by_class()
-        self.P22_by_class()
-        self.P25_by_plan()
-        self.P26_by_class()
 
     def loss_ratio_text_convert(self, previous_yr_loss_ratio_text=None, current_yr_loss_ratio_text = None):
         self.previous_year_loss_ratio_df, self.current_year_loss_ratio_df = None, None
@@ -328,6 +319,52 @@ class MCRConvert():
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
 
+    def p16_LR_by_benefits(self):
+        # self.loss_ratio_text_convert()
+        template_p16 = self.template_wb["P16_LR by Benefits"]
+        cols = [3,4,5]
+        previous_start_row, current_start_row = 5,12
+        if self.previous_year_loss_ratio_df is not None:
+            for i in range(previous_start_row, len(self.previous_year_loss_ratio_df) + previous_start_row):
+                if self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['benefit_type'] == "Total":
+                    template_p16.cell(row=i, column=3).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_premium']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
+                    template_p16.cell(row=i, column=4).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['actual_paid_w_ibnr']) * 12 / int(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]["duration"])
+                    template_p16.cell(row=i, column=5).value = float(self.previous_year_loss_ratio_df.iloc[i-previous_start_row]['loss_ratio'])
+            # for index, row in self.previous_year_loss_ratio_df.iterrows():
+            #     if row['benefit_type'] != "Total":
+            #         previous_start_row +=1
+            #         row['actual_premium'], row["actual_paid_w_ibnr"] = float(row['actual_premium']) * 12 / int(row["duration"]) , float(row["actual_paid_w_ibnr"]) * 12 / int(row["duration"])
+            #         for col, val in zip(cols, [row['actual_premium'], row['actual_paid_w_ibnr'], row['loss_ratio']]):
+            #             template_p16.cell(row=previous_start_row, column=col).value = val
+
+        if self.current_year_loss_ratio_df is not None:
+            for i in range(current_start_row, len(self.current_year_loss_ratio_df) + current_start_row):
+                if self.current_year_loss_ratio_df.iloc[i-current_start_row]['benefit_type'] == "Total":
+                    template_p16.cell(row=i, column=3).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_premium']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
+                    template_p16.cell(row=i, column=4).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['actual_paid_w_ibnr']) * 12 / int(self.current_year_loss_ratio_df.iloc[i-current_start_row]["duration"])
+                    template_p16.cell(row=i, column=5).value = float(self.current_year_loss_ratio_df.iloc[i-current_start_row]['loss_ratio'])
+            # for index, row in self.current_year_loss_ratio_df.iterrows():
+            #     if row['benefit_type'] != "Total":
+            #         current_start_row +=1
+            #         row['actual_premium'], row["actual_paid_w_ibnr"] = float(row['actual_premium']) * 12 / int(row["duration"]) , float(row["actual_paid_w_ibnr"]) * 12 / int(row["duration"])
+            #         for col, val in zip(cols, [row['actual_premium'], row['actual_paid_w_ibnr'], row['loss_ratio']]):
+            #             template_p16.cell(row=current_start_row, column=col).value = val
+
+
+    def convert_all(self):
+        self.claim_info()
+        self.loss_ratio_text_convert()
+        if self.previous_year_loss_ratio_df is not None or self.current_year_loss_ratio_df is not None:
+            self.p16_LR_by_benefits()
+
+        self.P20_overall()
+        self.P20_benefittype()
+        self.P20_network()
+        self.P21_by_class()
+        self.P22_by_class()
+        self.P25_by_plan()
+        self.P26_by_class()
+    
 # def main():
 #     GMI = MCRConvert(input_file='input_example_01.xlsx', previous_policy_num="015989", previous_year= 2023, current_policy_num="015989", current_year=2024)
 #     GMI.P20_overall()
