@@ -946,12 +946,12 @@ if st.session_state.ocr == True:
                             Role: Data Input Officer
                             Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format for copy and paste.
 
-                              [1st col: policy_id]: Contract Number + "_" + year & month of the starting period. (in our case would be 015989_202310)
-                              [2nd col: policy_number]: Contract Number (in our case: 015989)
+                              [1st col: policy_id]: Contract Number + "_" + year & month of the starting period.
+                              [2nd col: policy_number]: Contract Number 
                               [3rd col: client_name]: Customer Name
-                              [4th col: policy_start_date]: the start date of period (in our case 2023-10-01)
-                              [5th col: policy_end_date]: one year after the start date of period (in our case 2024-09-30)
-                              [6th col: duration]: Annualised to: (in our case 12)
+                              [4th col: policy_start_date]: the start date of period 
+                              [5th col: policy_end_date]: one year after the start date of period
+                              [6th col: duration]: Annualised to: (for example: 12)
                               [7th col: ibnr]: IBNR
                               [8th col: data_as_of]Data as of
                               [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
