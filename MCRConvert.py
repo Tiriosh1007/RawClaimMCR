@@ -306,7 +306,7 @@ class MCRConvert():
             print(f"An error occurred while saving the file into the BytesIO: {e}")
 
 
-    def loss_ratio_text_convert(self, previous_yr_loss_ratio_text=None, current_yr_loss_ratio_text = None):
+    def loss_ratio_text_convert(self, previous_yr_loss_ratio_text=None, current_yr_loss_ratio_text = None, loss_ratio_grouping_optical=True):
         self.previous_year_loss_ratio_df, self.current_year_loss_ratio_df = None, None
         print("previous_yr_loss_ratio_text:", previous_yr_loss_ratio_text)
         print("current_yr_loss_ratio_text:", current_yr_loss_ratio_text)
@@ -314,12 +314,18 @@ class MCRConvert():
             previous_yr_loss_ratio_text = previous_yr_loss_ratio_text.splitlines()
             data_l = [previous_yr_loss_ratio_text[i].split(",") for i in range(len(previous_yr_loss_ratio_text))]
             self.previous_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
-            print(self.previous_year_loss_ratio_df)
+            if ("Optical" in self.previous_year_loss_ratio_df.benefit_type.tolist()) & (loss_ratio_grouping_optical == True):
+                self.previous_year_loss_ratio_df.loc["Clinical"] = self.previous_year_loss_ratio_df.loc["Clinical"].astype(float) + self.previous_year_loss_ratio_df.loc["Optical"].astype(float)
+                self.previous_year_loss_ratio_df.drop("Optical", inplace=True)
+            # print(self.previous_year_loss_ratio_df)
         if current_yr_loss_ratio_text:
             current_yr_loss_ratio_text = current_yr_loss_ratio_text.splitlines()
             data_l = [current_yr_loss_ratio_text[i].split(",") for i in range(len(current_yr_loss_ratio_text))]
             self.current_year_loss_ratio_df = pd.DataFrame(data_l[1:], columns=data_l[0])
-            print(self.current_year_loss_ratio_df)
+            if ("Optical" in self.current_year_loss_ratio_df.benefit_type.tolist()) & (loss_ratio_grouping_optical == True):
+                self.current_year_loss_ratio_df.loc["Clinical"] = self.current_year_loss_ratio_df.loc["Clinical"].astype(float) + self.current_year_loss_ratio_df.loc["Optical"].astype(float)
+                self.current_year_loss_ratio_df.drop("Optical", inplace=True)
+            # print(self.current_year_loss_ratio_df)
 
 
     def p16_LR_by_benefits(self):

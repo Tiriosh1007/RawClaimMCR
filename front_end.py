@@ -852,12 +852,13 @@ if st.session_state.mcr_convert == True:
       st.write(" ### Optional")
       current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", key='current_year_loss_ratio_text')
 
-    
+    st.write('---')
+    loss_ratio_group_optical = st.toggle('Group Optical Items into Clinical', value=True)
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
                                     current_policy_num, current_year_start_date, current_year_end_date, current_year)
       
-      mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text)
+      mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text, loss_ratio_group_optical)
       mcr_convert_.convert_all()
       st.download_button('Download MCR Converted Excel',
                           mcr_convert_.save(),
