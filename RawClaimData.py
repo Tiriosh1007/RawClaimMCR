@@ -1330,7 +1330,7 @@ class RawClaimData():
       self.df['procedure'].fillna("no procedures provided", inplace=True)
       self.df['common_diagnosis_flag'].loc[(self.df.diagnosis.str.contains('viral warts', case=False))|self.df.procedure.str.contains('warts', case=False)] = 'viral_warts'
       self.df['common_diagnosis_flag'].loc[(self.df.procedure.str.contains('endoscopy|esophagoscopy|gastroscopy|colonoscopy|esophagogastroduodenoscopy|anoscopy|proctoscopy|sigmoidoscopy|proctosigmoidoscopy', case=False) == True) & 
-                                           (self.df.procedure.str.contains('nasal') == False)] = 'endoscopy'
+                                           (self.df.procedure.str.contains('nasal', case=False) == False)] = 'endoscopy'
       endo_id_list = self.df['claim_id'].loc[self.df['common_diagnosis_flag'] == 'endoscopy'].unique().tolist()
       viral_warts_id_list = self.df['claim_id'].loc[self.df['common_diagnosis_flag'] == 'viral_warts'].unique().tolist()
       self.df['common_diagnosis_flag'].loc[(self.df['common_diagnosis_flag'] == 'others') & (self.df['claim_id'].isin(endo_id_list) == True)] = 'endoscopy'
