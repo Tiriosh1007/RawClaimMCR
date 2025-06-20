@@ -1009,7 +1009,7 @@ if st.session_state.ocr == True:
             st.session_state['ocr_result'] = response.json()
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
-  if st.session_state.ocr_result == True:
+  if 'ocr_result' in st.session_state:
     full_response = response.json()
     result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
     csv_data = result_text.split('```csv')[-1]
