@@ -1013,7 +1013,7 @@ if st.session_state.ocr == True:
   if 'ocr_result' in st.session_state:
     full_response = response.json()
     result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
-    csv_data = io.StringIO(result_text.split('```csv')[-1])
+    csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
     csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
     st.write(csv_data)
