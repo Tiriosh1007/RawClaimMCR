@@ -1013,5 +1013,5 @@ if st.session_state.ocr == True:
     full_response = response.json()
     result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
     csv_data = result_text.split('```csv')[-1]
-    st.write(csv_data)
+    st.write(result_text)
 
