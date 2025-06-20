@@ -950,7 +950,7 @@ if st.session_state.ocr == True:
                               [3rd col: client_name]: Customer Name
                               [4th col: policy_start_date]: the start date of period 
                               [5th col: policy_end_date]: one year after the start date of period
-                              [6th col: duration]: The month between the period. If you cannot find that, you can use "Annualised to:"
+                              [6th col: duration]: The month between period. If you cannot find that, you can use "Annualised to:". Please make sure that the period may not the same as the policy start date to policy end date. For example, the report is stated as "10/07/2024 to 09/03/2025". The period is 6 months, and the policy start date is 10/07/2024 and policy end date is 09/07/2025.
                               [7th col: ibnr]: IBNR, this has to be a percentage. If the report does not state the IBNR, please input "Not State" default.
                               [8th col: data_as_of]Data as of
                               [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
@@ -968,7 +968,7 @@ if st.session_state.ocr == True:
                                 Clinical: Outpatient
                                 Actual Premium: Pro-Rata Premium
                               2. If the report states "Annualized XXX", ie Annualized Premium, please make sure to convert back to the actual by mulitplying the duration and then divided by 12 months to revert the annualization effect.
-                              3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this case, it is 8 months.
+                              3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this example, it is 8 months.
                               4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
                               5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
                               """},
