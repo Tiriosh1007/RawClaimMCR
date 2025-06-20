@@ -11,7 +11,8 @@ import warnings
 # from openai import OpenAI
 import requests, json
 from pathlib import Path
-open_rounter_api_key = "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"
+
+open_rounter_api_key = st.secrets['api_key']
 import base64
 import json
 from streamlit_pdf_viewer import pdf_viewer
@@ -889,17 +890,13 @@ if st.session_state.ocr == True:
     with open(pdf_path, "rb") as pdf_file:
         return base64.b64encode(pdf_file.read()).decode('utf-8')
   
+
   url = "https://openrouter.ai/api/v1/chat/completions"
   headers = {
     "Authorization": f"Bearer {open_rounter_api_key}",
     "Content-Type": "application/json"
   }
 
-  # from openai import OpenAI
-  # client = OpenAI(
-  #   base_url="https://openrouter.ai/google/gemini-2.5-flash-preview-05-20",
-  #   api_key="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",
-  # )
 
   # Add clear button to top right
   col1, col2 = st.columns([6,1])
