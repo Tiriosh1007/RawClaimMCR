@@ -15,6 +15,7 @@ from pathlib import Path
 open_rounter_api_key = st.secrets['api_key']
 import base64
 import json
+import io
 from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
@@ -1012,7 +1013,9 @@ if st.session_state.ocr == True:
   if 'ocr_result' in st.session_state:
     full_response = response.json()
     result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
-    csv_data = result_text.split('```csv')[-1]
-    csv_loss_ratio = pd.read_csv(pd.compat.StringIO(csv_data), sep=',', header=0, skip_blank_lines=True)
+    csv_data = io.StringIO(result_text.split('```csv')[-1])
+
+    csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
     st.write(csv_data)
+    st.dataframe(csv_loss_ratio)
 
