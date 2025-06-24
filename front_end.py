@@ -13,8 +13,8 @@ import requests, json
 from pathlib import Path
 
 open_rounter_api_key = st.secrets['api_key']
-prompt_lib_xml = "prompt_lib.xml"
-prompt_lib = pd.read_xml(prompt_lib_xml)
+prompt_lib_xml = 'prompt_lib.xml'
+prompt_lib = pd.read_xml('prompt_lib.xml')
 prompt = ""
 import base64
 import json
