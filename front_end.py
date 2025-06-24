@@ -938,7 +938,7 @@ if st.session_state.ocr == True:
     if st.button("BlueCross Usage"):
       prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "BlueCross Usage"].to_dict("records")[0]
 
-  prompt_text = st.text_area("Prompt Text", value=prompt['text'], height=200)
+  prompt_text = st.text_area("Prompt Text", value=prompt, height=200)
 
   # Move upload controls to sidebar
   with st.sidebar:
