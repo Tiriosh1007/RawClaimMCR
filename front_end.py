@@ -13,6 +13,9 @@ import requests, json
 from pathlib import Path
 
 open_rounter_api_key = st.secrets['api_key']
+prompt_lib_xml = "prompt_lib.xml"
+prompt_lib = pd.read_xml(prompt_lib_xml)
+prompt = ""
 import base64
 import json
 import io
@@ -897,6 +900,7 @@ if st.session_state.ocr == True:
     "Authorization": f"Bearer {open_rounter_api_key}",
     "Content-Type": "application/json"
   }
+  
 
 
   # Add clear button to top right
@@ -909,6 +913,32 @@ if st.session_state.ocr == True:
 
   st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemini 2.5 Flash Preview Vision!</p>', unsafe_allow_html=True)
   st.markdown("---")
+
+  prompt_lib_col1, prompt_lib_col2, prompt_lib_col3, prompt_lib_col4, prompt_lib_col5, prompt_lib_col6,  = st.columns([1, 1, 1, 1, 1, 1])
+
+  with prompt_lib_col1:
+    if st.button("Loss Ratio"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Loss Ratio"].to_dict("records")[0]
+
+  with prompt_lib_col2:
+    if st.button("AIA 105 Overall Usage"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 105 Overall Usage"].to_dict("records")[0]
+    if st.button("AIA 101 Hosp Usage"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 101 Hosp Usage"].to_dict("records")[0]
+    if st.button("AIA 102 Clinical Usage"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 102 Clinical Usage"].to_dict("records")[0]
+  
+  with prompt_lib_col3:
+    if st.button("Bupa Shortfall Non-healthnet"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Non-healthnet"].to_dict("records")[0]
+    if st.button("Bupa Shortfall Class"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Class"].to_dict("records")[0]
+  
+  with prompt_lib_col4:
+    if st.button("BlueCross Usage"):
+      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "BlueCross Usage"].to_dict("records")[0]
+
+  prompt_text = st.text_area("Prompt Text", value=prompt['text'], height=200)
 
   # Move upload controls to sidebar
   with st.sidebar:
@@ -940,38 +970,39 @@ if st.session_state.ocr == True:
               {
                 "role": "user",
                 "content": [
-                            {"type": "text",
-                            "text":"""
-                            Role: Data Input Officer
-                            Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format for copy and paste.
+                            # {"type": "text",
+                            # "text":"""
+                            # Role: Data Input Officer
+                            # Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format for copy and paste.
 
-                              [1st col: policy_id]: Contract Number + "_" + year & month of the starting period.
-                              [2nd col: policy_number]: Contract Number 
-                              [3rd col: client_name]: Customer Name
-                              [4th col: policy_start_date]: the start date of period 
-                              [5th col: policy_end_date]: one year after the start date of period
-                              [6th col: duration]: The month between period. If you cannot find that, you can use "Annualised to:". Please make sure that the period may not the same as the policy start date to policy end date. For example, the report is stated as "10/07/2024 to 09/03/2025". The period is 6 months, and the policy start date is 10/07/2024 and policy end date is 09/07/2025.
-                              [7th col: ibnr]: IBNR, this has to be a percentage. If the report does not state the IBNR, please input "Not State" default.
-                              [8th col: data_as_of]Data as of
-                              [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
-                              [10th col: actual_premium] Actual Subscription
-                              [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
-                              [12th col: loss_ratio] Actual Loss Ratio
+                            #   [1st col: policy_id]: Contract Number + "_" + year & month of the starting period.
+                            #   [2nd col: policy_number]: Contract Number 
+                            #   [3rd col: client_name]: Customer Name
+                            #   [4th col: policy_start_date]: the start date of period 
+                            #   [5th col: policy_end_date]: one year after the start date of period
+                            #   [6th col: duration]: The month between period. If you cannot find that, you can use "Annualised to:". Please make sure that the period may not the same as the policy start date to policy end date. For example, the report is stated as "10/07/2024 to 09/03/2025". The period is 6 months, and the policy start date is 10/07/2024 and policy end date is 09/07/2025.
+                            #   [7th col: ibnr]: IBNR, this has to be a percentage. If the report does not state the IBNR, please input "Not State" default.
+                            #   [8th col: data_as_of]Data as of
+                            #   [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
+                            #   [10th col: actual_premium] Actual Subscription
+                            #   [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
+                            #   [12th col: loss_ratio] Actual Loss Ratio
 
-                              The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Total] (If any one of these benefit type ais not presented in the report, skip the item).
-                              *Warm reminder when converting*
-                              1. Some terms are interchangable among different insurers. Below is the reference for you.
-                                Premium: Subscription
-                                Customer Name: Client Name/ Policy Holder
-                                Loss Ratio: Claim Ratio
-                                Hospital: Hospitalisation/ Inpatient/ Hospital & Surgical
-                                Clinical: Outpatient
-                                Actual Premium: Pro-Rata Premium
-                              2. If the report states "Annualized XXX", ie Annualized Premium, please make sure to convert back to the actual by mulitplying the duration and then divided by 12 months to revert the annualization effect.
-                              3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this example, it is 8 months.
-                              4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
-                              5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
-                              """},
+                            #   The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Total] (If any one of these benefit type ais not presented in the report, skip the item).
+                            #   *Warm reminder when converting*
+                            #   1. Some terms are interchangable among different insurers. Below is the reference for you.
+                            #     Premium: Subscription
+                            #     Customer Name: Client Name/ Policy Holder
+                            #     Loss Ratio: Claim Ratio
+                            #     Hospital: Hospitalisation/ Inpatient/ Hospital & Surgical
+                            #     Clinical: Outpatient
+                            #     Actual Premium: Pro-Rata Premium
+                            #   2. If the report states "Annualized XXX", ie Annualized Premium, please make sure to convert back to the actual by mulitplying the duration and then divided by 12 months to revert the annualization effect.
+                            #   3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this example, it is 8 months.
+                            #   4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
+                            #   5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
+                            #   """},
+                              prompt,
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}},
 
@@ -1012,10 +1043,13 @@ if st.session_state.ocr == True:
             st.error(f"Error processing image: {str(e)}")
   if 'ocr_result' in st.session_state:
     full_response = response.json()
-    result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
-    csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
+    st.write(response.json())
+    # result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
+    # csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
-    csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
-    st.write(csv_data)
-    st.dataframe(csv_loss_ratio)
+    # csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
+    # st.write(csv_data)
+    # st.dataframe(csv_loss_ratio)
+
+    
 
