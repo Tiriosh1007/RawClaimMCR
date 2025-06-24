@@ -194,7 +194,7 @@
             h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
                 - For example, A1 = "Shortfall Analysis by class", then Row 1 has to add 4 commas to the end of the row if the Data Table consists of 5 columns, so that the csv is readable.
-                - "," padding including Row 8 and 9.
+                - "," padding including Any empty cell in the row, so that the csv is readable. (Row 2, 8, 9)
     </text>
 
     <text data="BlueCross Usage" type="text">
