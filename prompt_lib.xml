@@ -153,7 +153,9 @@
     <text data="Bupa Shortfall Class" type="text">
         Role: Data Input Officer  
 
-        Desired output: markdown table output which combines all the data tables in the pdf into a single master table.PDF Page setting:In each page, you will see 2 section, General Information and Data Table.General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
+        Desired output: markdown table output which combines all the data tables in the pdf into a single master table.
+        PDF Page setting:In each page, you will see 2 section, General Information and Data Table.
+        General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
         Data Table is a table contains the claim data of each classes. It column headers are:
         [1st column]: Benefit Type 
         [2nd column]: Class 
@@ -167,9 +169,9 @@
 
         Task:  
         1. Read the table in the pdf 
-            a. The pdf is a multi-page table file grouped by [‘benefit type’, ‘class’]  
-            b. [’Benefit’] = int and [‘Benefit description’] = text  
-            c. At the end of each ([‘benefit type’, ‘class’] ) item, there is a Total row, for total row: 
+            a. The pdf is a multi-page table file grouped by ["benefit type", "class"]  
+            b. ["Benefit"] = int and ["Benefit description"] = text  
+            c. At the end of each (["benefit type", "class"] ) item, there is a Total row, for total row: 
                 i. Leave [“Benefit Type”,“Benefit”, “”Benefit Description”, “”Number of claimants”] empty 
                 ii. [“Class”] = f”{class}Total” 
             d. At the end of each benefit type section, there is a total row: 
@@ -190,6 +192,7 @@
             f. A7 = “# Confidential” 
             g. Skip 2 rows  
             h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
+            i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in the first 9 rows such that the csv is readable.
     </text>
 
     <text data="BlueCross Usage" type="text">
@@ -210,7 +213,7 @@
 
         Task:  
         1. Read the table in the pdf 
-            a. The pdf is a multi-page table file grouped by [‘For level code’]  
+            a. The pdf is a multi-page table file grouped by ["For level code"]  
             b. At the end of each level code table, there is a total row: 
             c. At the end of the table (ie. The last page), there is a grand total row: 
         2. Based on the description of the pdf, generate a markdown table output of the table for me: 
