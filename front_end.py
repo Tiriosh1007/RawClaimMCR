@@ -983,20 +983,19 @@ if st.session_state.ocr == True:
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
   if 'ocr_result' in st.session_state:
-    try:
-      full_response = response.json()
-      st.write(response.json())
-      result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
-      csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
-      if "Shortfall" in prompt_data_options[data_selection]:
-        csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=None)
-      else:
-        csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
-      # st.write(csv_data)
-      st.dataframe(csv_loss_ratio)
-    except:
-      None
+    full_response = response.json()
+    st.write(response.json())
+    result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
+    csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
+
+    if "Shortfall" in prompt_data_options[data_selection]:
+      csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=None)
+    else:
+      csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
+    # st.write(csv_data)
+    st.dataframe(csv_loss_ratio)
+
 
     
 
