@@ -914,29 +914,48 @@ if st.session_state.ocr == True:
   st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemini 2.5 Flash Preview Vision!</p>', unsafe_allow_html=True)
   st.markdown("---")
 
-  prompt_lib_col1, prompt_lib_col2, prompt_lib_col3, prompt_lib_col4, prompt_lib_col5, prompt_lib_col6,  = st.columns([1, 1, 1, 1, 1, 1])
+  # prompt_lib_col1, prompt_lib_col2, prompt_lib_col3, prompt_lib_col4, prompt_lib_col5, prompt_lib_col6,  = st.columns([1, 1, 1, 1, 1, 1])
 
-  with prompt_lib_col1:
-    if st.button("Loss Ratio"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Loss Ratio"].to_dict("records")[0]
+  # with prompt_lib_col1:
+  #   if st.button("Loss Ratio"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Loss Ratio"].to_dict("records")[0]
 
-  with prompt_lib_col2:
-    if st.button("AIA 105 Overall Usage"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 105 Overall Usage"].to_dict("records")[0]
-    if st.button("AIA 101 Hosp Usage"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 101 Hosp Usage"].to_dict("records")[0]
-    if st.button("AIA 102 Clinical Usage"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 102 Clinical Usage"].to_dict("records")[0]
+  # with prompt_lib_col2:
+  #   if st.button("AIA 105 Overall Usage"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 105 Overall Usage"].to_dict("records")[0]
+  #   if st.button("AIA 101 Hosp Usage"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 101 Hosp Usage"].to_dict("records")[0]
+  #   if st.button("AIA 102 Clinical Usage"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 102 Clinical Usage"].to_dict("records")[0]
   
-  with prompt_lib_col3:
-    if st.button("Bupa Shortfall Non-healthnet"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Non-healthnet"].to_dict("records")[0]
-    if st.button("Bupa Shortfall Class"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Class"].to_dict("records")[0]
+  # with prompt_lib_col3:
+  #   if st.button("Bupa Shortfall Non-healthnet"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Non-healthnet"].to_dict("records")[0]
+  #   if st.button("Bupa Shortfall Class"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Class"].to_dict("records")[0]
   
-  with prompt_lib_col4:
-    if st.button("BlueCross Usage"):
-      prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "BlueCross Usage"].to_dict("records")[0]
+  # with prompt_lib_col4:
+  #   if st.button("BlueCross Usage"):
+  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "BlueCross Usage"].to_dict("records")[0]
+
+  prompt_data_options = {
+    0: "Loss Ratio",
+    1: "AIA 105 Overall Usage",
+    2: "AIA 101 Hosp Usage",
+    3: "AIA 102 Clinical Usage",
+    4: "Bupa Shortfall Non-healthnet",
+    5: "Bupa Shortfall Class",
+    6: "BlueCross Usage"
+  }
+
+  data_selection = st.pills(
+    "Select Prompt Data",
+    options=prompt_data_options.keys(),
+    format_func=lambda x: prompt_data_options[x],
+    selection_mode="single",
+  )
+  prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == data_selection].to_dict("records")[0]
+  
 
   prompt_text = st.text_area("Prompt Text", value=prompt, height=200)
 
