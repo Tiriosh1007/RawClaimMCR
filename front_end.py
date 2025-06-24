@@ -954,7 +954,11 @@ if st.session_state.ocr == True:
     format_func=lambda x: prompt_data_options[x],
     selection_mode="single",
   )
-  prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == prompt_data_options[data_selection]].to_dict("records")[0]
+
+  if data_selection is None:
+    prompt = ""
+  else:
+    prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == prompt_data_options[data_selection]].to_dict("records")[0]
   
 
   prompt_text = st.text_area("Prompt Text", value=prompt, height=200)
