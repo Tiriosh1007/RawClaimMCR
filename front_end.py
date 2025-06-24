@@ -983,7 +983,7 @@ if st.session_state.ocr == True:
           except Exception as e:
             st.error(f"Error processing image: {str(e)}")
   if 'ocr_result' in st.session_state:
-    if response is not None:
+    try:
       full_response = response.json()
       st.write(response.json())
       result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
@@ -995,6 +995,8 @@ if st.session_state.ocr == True:
         csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
       # st.write(csv_data)
       st.dataframe(csv_loss_ratio)
+    except:
+      None
 
     
 
