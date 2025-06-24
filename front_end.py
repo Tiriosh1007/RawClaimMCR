@@ -12,10 +12,15 @@ import warnings
 import requests, json
 from pathlib import Path
 
+# ========================================================================================================
+# OCR Setup
+# ========================================================================================================
+
 open_rounter_api_key = st.secrets['api_key']
 prompt_lib_xml = 'prompt_lib.xml'
 prompt_lib = pd.read_xml('prompt_lib.xml')
 prompt = ""
+prompt_data_options = prompt_lib.data.to_dict()
 import base64
 import json
 import io
@@ -914,40 +919,6 @@ if st.session_state.ocr == True:
   st.markdown('<p style="margin-top: -20px;">Extract structured text from pdf using Gemini 2.5 Flash Preview Vision!</p>', unsafe_allow_html=True)
   st.markdown("---")
 
-  # prompt_lib_col1, prompt_lib_col2, prompt_lib_col3, prompt_lib_col4, prompt_lib_col5, prompt_lib_col6,  = st.columns([1, 1, 1, 1, 1, 1])
-
-  # with prompt_lib_col1:
-  #   if st.button("Loss Ratio"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Loss Ratio"].to_dict("records")[0]
-
-  # with prompt_lib_col2:
-  #   if st.button("AIA 105 Overall Usage"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 105 Overall Usage"].to_dict("records")[0]
-  #   if st.button("AIA 101 Hosp Usage"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 101 Hosp Usage"].to_dict("records")[0]
-  #   if st.button("AIA 102 Clinical Usage"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "AIA 102 Clinical Usage"].to_dict("records")[0]
-  
-  # with prompt_lib_col3:
-  #   if st.button("Bupa Shortfall Non-healthnet"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Non-healthnet"].to_dict("records")[0]
-  #   if st.button("Bupa Shortfall Class"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "Bupa Shortfall Class"].to_dict("records")[0]
-  
-  # with prompt_lib_col4:
-  #   if st.button("BlueCross Usage"):
-  #     prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == "BlueCross Usage"].to_dict("records")[0]
-
-  prompt_data_options = {
-    0: "Loss Ratio",
-    1: "AIA 105 Overall Usage",
-    2: "AIA 101 Hosp Usage",
-    3: "AIA 102 Clinical Usage",
-    4: "Bupa Shortfall Non-healthnet",
-    5: "Bupa Shortfall Class",
-    6: "BlueCross Usage"
-  }
-
   data_selection = st.pills(
     "Select Prompt Data",
     options=prompt_data_options.keys(),
@@ -965,9 +936,9 @@ if st.session_state.ocr == True:
 
   # Move upload controls to sidebar
   with st.sidebar:
-    st.header("Upload Loss Ratio PDF")
+    st.header("Upload PDF")
     uploaded_file = st.file_uploader("Choose pdf...",
-                                    type=['pdf']) #type=['png', 'jpg', 'jpeg'])
+                                    type=['pdf']) 
       
     if uploaded_file is not None:
 
@@ -993,65 +964,20 @@ if st.session_state.ocr == True:
               {
                 "role": "user",
                 "content": [
-                            # {"type": "text",
-                            # "text":"""
-                            # Role: Data Input Officer
-                            # Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format for copy and paste.
-
-                            #   [1st col: policy_id]: Contract Number + "_" + year & month of the starting period.
-                            #   [2nd col: policy_number]: Contract Number 
-                            #   [3rd col: client_name]: Customer Name
-                            #   [4th col: policy_start_date]: the start date of period 
-                            #   [5th col: policy_end_date]: one year after the start date of period
-                            #   [6th col: duration]: The month between period. If you cannot find that, you can use "Annualised to:". Please make sure that the period may not the same as the policy start date to policy end date. For example, the report is stated as "10/07/2024 to 09/03/2025". The period is 6 months, and the policy start date is 10/07/2024 and policy end date is 09/07/2025.
-                            #   [7th col: ibnr]: IBNR, this has to be a percentage. If the report does not state the IBNR, please input "Not State" default.
-                            #   [8th col: data_as_of]Data as of
-                            #   [9th col: benefit_type] Benefit (Clinical, Dental, Hospital ...., Grand Total etc.)
-                            #   [10th col: actual_premium] Actual Subscription
-                            #   [11th col: actual_paid_w_ibnr] Actual Claims with IBNR
-                            #   [12th col: loss_ratio] Actual Loss Ratio
-
-                            #   The order of this table should be re-arranged by the benefit type. The order is [Hospital, Clinical, Dental, Optical, Maternity, Top-Up/ SMM, Total] (If any one of these benefit type ais not presented in the report, skip the item).
-                            #   *Warm reminder when converting*
-                            #   1. Some terms are interchangable among different insurers. Below is the reference for you.
-                            #     Premium: Subscription
-                            #     Customer Name: Client Name/ Policy Holder
-                            #     Loss Ratio: Claim Ratio
-                            #     Hospital: Hospitalisation/ Inpatient/ Hospital & Surgical
-                            #     Clinical: Outpatient
-                            #     Actual Premium: Pro-Rata Premium
-                            #   2. If the report states "Annualized XXX", ie Annualized Premium, please make sure to convert back to the actual by mulitplying the duration and then divided by 12 months to revert the annualization effect.
-                            #   3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this example, it is 8 months.
-                            #   4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
-                            #   5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
-                            #   """},
                               prompt,
                               {"type": "file",
                               "file": {"filename": uploaded_file.name, "file_data": data_url}},
-
                 ]
               }
             ]
-            # plugins = [
-            #     {
-            #         "id": "file-parser",
-            #         "pdf": {
-            #             "engine": "pdf-text"  # defaults to "mistral-ocr". See Pricing below
-            #         }
-            #     }
-
-            # ]
             payload = {
               "model": "google/gemini-2.5-flash-preview-05-20",
-              #"messages": messages,
               "messages": messages,
-              # "plugins": plugins
             }
             response = requests.post(url, headers=headers, json=payload)
             if response.status_code != 200:
               st.error(f"API Error: {response.status_code} - {response.text}")
 
-            # Parse the JSON response
             try:
                 result = response.json()
                 st.session_state['ocr_result'] = result
