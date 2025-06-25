@@ -44,7 +44,7 @@ class Shortfall():
     print(str(shortfall_fp))
     print('csv' in str(shortfall_fp))
 
-    if ('csv' in str(shortfall_fp)):
+    if ('csv' in str(shortfall_fp)) == False:
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
       client_name_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0]
       policy_no_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0]
@@ -53,7 +53,6 @@ class Shortfall():
       duration_ = (end_d_ - start_d_).days + 1
       policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
     
-      
     else:
       t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
       client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
