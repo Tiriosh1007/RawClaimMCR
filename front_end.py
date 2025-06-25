@@ -1004,7 +1004,7 @@ if st.session_state.ocr == True:
                         file_name=file_name_to_csv,
                         mime="application/vnd.ms-excel")
     
-    if "BlueCross" in prompt_data_options[data_selection]:
+    if "BlueCross Usage" in prompt_data_options[data_selection]:
       from BlueCrossUsageReportConvert import *
       BlueCross = BlueCrossUsageReportConvert(csv_report)
       st.download_button('BlueCross Usage Excel', 
