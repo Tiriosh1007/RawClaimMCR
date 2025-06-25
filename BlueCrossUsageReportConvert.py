@@ -49,7 +49,7 @@ class BlueCrossUsageReportConvert:
             "Adjusted": float, 
         }
 
-        self.df = pd.read_csv(input_file) 
+        self.df = pd.read_csv(input_file, sep=',') 
         self.df.fillna(0, inplace=True)
         self.df.replace('-', 0, inplace=True)
         columns_to_convert = ['Presented', 'Adjusted']
