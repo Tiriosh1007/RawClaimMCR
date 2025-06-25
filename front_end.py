@@ -990,11 +990,17 @@ if st.session_state.ocr == True:
     csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
     if "Shortfall" in prompt_data_options[data_selection]:
-      csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=None)
+      csv_report = pd.read_csv(csv_data, sep=',', header=None)
+      file_name_to_csv = "shortfall_usage_converted.csv"
     else:
-      csv_loss_ratio = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
+      csv_report = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
+      file_name_to_csv = "consolidated_usage_report.csv"
     # st.write(csv_data)
-    st.dataframe(csv_loss_ratio)
+    st.dataframe(csv_report)
+    st.download_button('Shortfall/ Usage Converted', 
+                        data=csv_report.to_csv(index=False).encode('utf-8'),
+                        file_name=file_name_to_csv,
+                        mime="application/vnd.ms-excel")
 
 
     
