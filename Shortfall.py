@@ -42,10 +42,10 @@ class Shortfall():
     print(f'Processing {shortfall_fp} ...')
     print(shortfall_fp, type(shortfall_fp))
     print(str(shortfall_fp))
-    print('xlsx' in str(shortfall_fp))
+    print('csv' in str(shortfall_fp))
     
 
-    if ('xlsx' in str(shortfall_fp)) == True:
+    if 'csv' in str(shortfall_fp):
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
       client_name_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0]
       policy_no_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0]
