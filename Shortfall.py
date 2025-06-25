@@ -42,7 +42,7 @@ class Shortfall():
     print(f'Processing {shortfall_fp} ...')
     print(shortfall_fp, type(shortfall_fp))
     print(str(shortfall_fp))
-    print('csv' in str(shortfall_fp))
+    print('xlsx' in str(shortfall_fp))
     
 
     if ('xlsx' in str(shortfall_fp)) == True:
