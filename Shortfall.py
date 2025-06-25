@@ -39,6 +39,7 @@ class Shortfall():
 
 
   def __bupa_shortfall(self, shortfall_fp):
+    print(f'Processing {shortfall_fp} ...')
 
     if ".csv" in shortfall_fp:
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
