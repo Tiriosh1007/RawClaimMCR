@@ -39,7 +39,12 @@ class Shortfall():
 
 
   def __bupa_shortfall(self, shortfall_fp):
-    t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
+
+    if "csv" not in shortfall_fp:
+      t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
+    else:
+      t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
+      
     client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
     policy_no_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
     start_d_ = pd.to_datetime(t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Period', case=False) == True].values[0].split(': ')[1].split(' ')[-5], format='%Y-%m-%d')

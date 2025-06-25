@@ -930,7 +930,7 @@ if st.session_state.ocr == True:
   with st.sidebar:
     st.header("Upload PDF")
     uploaded_file = st.file_uploader("Choose pdf...",
-                                    type=['pdf'], accept_multiple_files=True) 
+                                    type=['pdf'], accept_multiple_files=False) 
       
     if uploaded_file is not None:
 
@@ -989,13 +989,13 @@ if st.session_state.ocr == True:
     result_text = full_response.get('choices', [{}])[0].get('message', {}).get('content', '')
     csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
-    if "Shortfall" in prompt_data_options[data_selection]:
-      csv_report = pd.read_csv(csv_data, sep=',', header=None)
-      file_name_to_csv = "shortfall_usage_converted.csv"
+    # if "Shortfall" in prompt_data_options[data_selection]:
+    #   csv_report = pd.read_csv(csv_data, sep=',', header=None)
+    #   file_name_to_csv = "shortfall_usage_converted.csv"
 
-    else:
-      csv_report = pd.read_csv(csv_data, sep=',', header=0)
-      file_name_to_csv = "consolidated_usage_report.csv"
+    # else:
+    csv_report = pd.read_csv(csv_data, sep=',', header=0)
+    file_name_to_csv = "consolidated_usage_report.csv"
     # st.write(csv_data)
     st.dataframe(csv_report)
 
