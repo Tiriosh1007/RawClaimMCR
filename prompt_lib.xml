@@ -201,6 +201,7 @@
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
                 - For example, A1 = "Shortfall Analysis by class", then Row 1 has to add 4 commas to the end of the row if the Data Table consists of 5 columns, so that the csv is readable.
                 - "," padding including Any empty cell in the row, so that the csv is readable. (Row 2, 8, 9)
+        4. Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
     </text>
 
     <text data="BlueCross Usage" type="text">
@@ -231,7 +232,7 @@
             a. Table header = [“Policy number”, “Client name”, “Start date”, “End date”, ”Class" ,"Benefit Description", "Number of Claim Lines", "Presented",  "Adjusted", "Usage Ratio”].  
                 i. The pdf should contain more than 1 policy holder with different policy number and agent, extract them from every page general information part 
                 ii. Drop the “$” in presented and adjusted column 
-                iii. make sure that the datatbable
+
     </text>
 
 </prompt_library>
