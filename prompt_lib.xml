@@ -178,14 +178,14 @@
             a. The pdf is a multi-page table file grouped by ["benefit type", "class"]  
             b. ["Benefit"] = int and ["Benefit description"] = text  
             c. At the end of each (["benefit type", "class"] ) item, there is a Total row, for total row: 
-                i. Leave [“Benefit Type”,“Benefit”, “”Benefit Description”, “”Number of claimants”] empty 
+                i. Leave [“Benefit Type”,“Benefit”, “Benefit Description”, “Number of claimants”] empty 
                 ii. [“Class”] = f”{class}Total” 
             d. At the end of each benefit type section, there is a total row: 
                 i. [“Benefit Type”] = f”{benefit type}Total”  
-                ii. Leave [“Class”, “Benefit”, “”Benefit Description”, “”Number of claimants”, “Usage ratio”] empty  
+                ii. Leave [“Class”, “Benefit”, ”Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
             e. At the end of the table (ie. The last page), there is a grand total row: 
                 i. [“Benefit Type”] = Grand Total   
-                ii. Leave [“Class”, “Benefit”, “”Benefit Description”, “”Number of claimants”, “Usage ratio”] empty  
+                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
         2. Based on the description of the pdf, generate a markdown table output of the table for me: 
             a. table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             b. For newline-separated values within cells, iterate over each line within those cells to generate individual rows 
@@ -214,7 +214,7 @@
         [2nd column]: No. Of Visits 
         [3rd column]: % of Total Visits 
         [4th column]: Claim Incurred 
-        [5th  column]: Claim paid 
+        [5th column]: Claim paid 
         [6th column]: Usage % 
         [7th column]: Average Claim Paid (HK$) 
         Part of the data have 4 column, they do not have No. Of Visits, % of Total Visits and Average Claim Paid (HK$) 
@@ -231,6 +231,7 @@
             a. Table header = [“Policy number”, “Client name”, “Start date”, “End date”, ”Class" ,"Benefit Description", "Number of Claim Lines", "Presented",  "Adjusted", "Usage Ratio”].  
                 i. The pdf should contain more than 1 policy holder with different policy number and agent, extract them from every page general information part 
                 ii. Drop the “$” in presented and adjusted column 
+                iii. make sure that the datatbable
     </text>
 
 </prompt_library>
