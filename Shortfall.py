@@ -42,6 +42,7 @@ class Shortfall():
     print(f'Processing {shortfall_fp} ...')
     print(shortfall_fp, type(shortfall_fp))
     print(str(shortfall_fp))
+    print('csv' in str(shortfall_fp))
 
     if 'csv' in str(shortfall_fp):
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
