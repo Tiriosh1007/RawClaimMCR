@@ -995,7 +995,12 @@ if st.session_state.ocr == True:
 
     # else:
     csv_report = pd.read_csv(csv_data, sep=',', header=0)
-    file_name_to_csv = "consolidated_usage_report.csv"
+    if "Shortfall" in prompt_data_options[data_selection]:
+      policy_no_ = csv_report.iloc[:, 1].loc[csv_report.iloc[:, 0].str.contains('Contract', case=False) == True].values[0]
+      start_d_ = pd.to_datetime(csv_report.iloc[:, 1].loc[csv_report.iloc[:, 0].str.contains('Period', case=False) == True].values[0], format='%Y-%m-%d')
+      file_name_to_csv = f"Bupa_Shortfall_{policy_no_}_{start_d_.strftime('%Y%m')}.csv"
+    else:
+      file_name_to_csv = "consolidated_usage_report.csv"
     # st.write(csv_data)
     st.dataframe(csv_report)
 
