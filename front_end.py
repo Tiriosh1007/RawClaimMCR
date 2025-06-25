@@ -990,7 +990,7 @@ if st.session_state.ocr == True:
     csv_data = io.StringIO(result_text.split('```csv')[-1].split('```')[0])
 
     if "Shortfall" in prompt_data_options[data_selection]:
-      csv_report = pd.read_csv(csv_data, sep=',', header=None)
+      csv_report = pd.read_csv(csv_data, sep=',', header=0)
       file_name_to_csv = "shortfall_usage_converted.csv"
     else:
       csv_report = pd.read_csv(csv_data, sep=',', header=0, skip_blank_lines=True)
