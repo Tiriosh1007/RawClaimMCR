@@ -40,7 +40,7 @@ class Shortfall():
 
   def __bupa_shortfall(self, shortfall_fp):
 
-    if "csv" not in shortfall_fp:
+    if ".csv" not in shortfall_fp:
       t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
       client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
       policy_no_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
