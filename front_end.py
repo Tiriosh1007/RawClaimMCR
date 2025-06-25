@@ -1006,7 +1006,7 @@ if st.session_state.ocr == True:
     
     if "BlueCross Usage" in prompt_data_options[data_selection]:
       from BlueCrossUsageReportConvert import *
-      BlueCross = BlueCrossUsageReportConvert(csv_report.to_csv(index=False).encode('utf-8'))
+      BlueCross = BlueCrossUsageReportConvert(csv_data)
       st.download_button('BlueCross Usage Excel', 
                         data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
                         file_name="BlueCross_Usage_Report.csv",
