@@ -45,7 +45,7 @@ class Shortfall():
     print('csv' in str(shortfall_fp))
     
 
-    if ('csv' in str(shortfall_fp)) == True:
+    if ('xlsx' in str(shortfall_fp)) == True:
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
       client_name_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0]
       policy_no_ = t_df.iloc[:, 1].loc[t_df.iloc[:, 0].str.contains('Contract', case=False) == True].values[0]
