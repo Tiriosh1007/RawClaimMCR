@@ -53,37 +53,40 @@
     </text>
 
     <text data="AIA 101 Hosp Usage" type="text">
-       Role: Data Input Officer  
+        Role: Data Input Officer  
 
-        Task: 
+        PDF Page setting:In each page, you will see 2 section, General Information, Data Table General information consists of Title, Report ID, Policy, Date Range 
 
-        1. A markdown output of the pdf: col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
+        Data Table are table contains the claim data of each classes, which the claim data are grouped by benefit plan. It column headers are:
+        [1st column]: Benefit Type 
+        [2nd column]: No. Of services 
+        [3rd column]: Presented Amt (HK$) 
+        [4th column]: Avg Presented Amt (HK$) 
+        [5th column]: Adjusted Amt (HK$) 
+        [6th column]: Avg Adjusted Amt. (HK$) 
+        [7th column]: Reimbursement (%) 
+        
+        Task:  
+        1. Read the table in the pdf:  
+            a. The pdf id a multi-page table file grouped by ["benefit plan", "panel"] 
+            b. Identify the panel in the first row of each table: “panel” = non-network, network or affiliate network  
+            c. Section handling: for all sub-headers with the same indentation parer to prefix e.g. “Hospital Services - Minor”, “Hospital Services - Intermediate” input example as follows:  
+                Anesthetist Fee  
+                    Minor
+        2. Based on the description of the pdf, generate a master markdown table output: 
+            a. col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
+            b. For all supplementary major medical row, leave ["Presented Amt (HK$)", “Avg Presented Amt (HK$)”, “Adjusted Amt (HK$)”,  “Avg Adjusted Amt. (HK$)”] columns empty 
+        3. Then based on the master markdown table generate csv text output:  
+            a. col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
+            b. “Insurer” = AIA 
+            c. Leave “no. of claimants” empty 
+            d. Leave the “benefit_type (raw_data)” column empty  
+            e. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
+            f. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section 
+            g. Drop the section in which the section header contains “Summary” 
+            h. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
 
-        2. Identify the panel in the first row of the table in the pdf: Panel = non-network, network, or affiliate network 
-
-        3. Section handling: for all sub-headers with the same indentation parer to prefix e.g. “Hospital Services - Minor”, “Hospital Services - Intermediate” input example as follows:  
-
-        (a) Anesthetist Fee  
-
-        (b) Minor 
-
-        Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
-
-        Generate a csv file based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
-
-        For insurer, please set it to AIA and leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
-
-        Drop the section in which the section header contains “Summary” 
-
-        Do not include date range in the client name column 
-
-        If benefit = Supplementary Major Medical: incurred amt = 0 
-
-        Leave the benefit type column empty  
-
-        Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
-
-        Desired output: generate 1 csv file with all plans included named policy_num-client_name and show the preview of the csv file for me  
+        Desired output: generate 1 csv text with all plans included 
     </text>
 
     <text data="AIA 102 Clin Usage" type="text">
