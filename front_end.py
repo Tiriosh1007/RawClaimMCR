@@ -34,6 +34,7 @@ from Shortfall import *
 from ColumnNameManagement import *
 from MemberCensus import *
 from MCRConvert import *
+from BlueCrossUsageReportConvert import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -1011,7 +1012,6 @@ if st.session_state.ocr == True:
       file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
     elif "BlueCross Usage" in prompt_data_options[data_selection]:
       file_name_to_csv = "BlueCross_Usage_Report.csv"
-      from BlueCrossUsageReportConvert import *
       BlueCross = BlueCrossUsageReportConvert(csv_data)
       BlueCross.convert_to_final_df()
       csv_report = BlueCross.final_df
