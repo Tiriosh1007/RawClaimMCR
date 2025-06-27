@@ -1012,9 +1012,9 @@ if st.session_state.ocr == True:
       file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
     elif "BlueCross Usage" in prompt_data_options[data_selection]:
       file_name_to_csv = "BlueCross_Usage_Report.csv"
-      BlueCross = BlueCrossUsageReportConvert(csv_data)
-      BlueCross.convert_to_final_df()
-      csv_report = BlueCross.final_df
+      # BlueCross = BlueCrossUsageReportConvert(csv_data)
+      # BlueCross.convert_to_final_df()
+      # csv_report = BlueCross.final_df
 
     else:
       file_name_to_csv = "consolidated_usage_report.csv"
