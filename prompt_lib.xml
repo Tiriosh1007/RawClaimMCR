@@ -41,13 +41,15 @@
         1. A markdown output of the pdf: col = ["benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
         2. Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
         3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
-        4. Leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
-        5. Drop the rows in which column “benefit” contains "total", "summary" or "Report Run On:" 
-        6. Do not include date range in the client name column 
-        7. If benefit = Supplementary Major Medical: incurred amt = 0 
-        8. Leave the benefit type column empty  
-        9. Panel = non-network, network, or affiliate network 
-        10. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
+        4. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
+        5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
+        6. Leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
+        7. Drop the rows in which column “benefit” contains "total", "summary" or "Report Run On:" 
+        8. Do not include date range in the client name column 
+        9. If benefit = Supplementary Major Medical: incurred amt = 0 
+        10. Leave the benefit type column empty  
+        11. Panel = non-network, network, or affiliate network 
+        12. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name 
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
