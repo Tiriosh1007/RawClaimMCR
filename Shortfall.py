@@ -235,14 +235,15 @@ class Shortfall():
         
 
   def add_shortfall(self, shortfall_fp, insurer='Bupa'):
-    
+    t_df = None
     if insurer == 'Bupa':
       t_df = self.__bupa_shortfall(shortfall_fp)
 
     if insurer == "AIA":
       self.aia_file_list.append(shortfall_fp)
-
-    self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
+    
+    if t_df is not None:
+      self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
     return
 
   def aia_identify(self):
