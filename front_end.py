@@ -1004,11 +1004,11 @@ if st.session_state.ocr == True:
       start_d_ = pd.to_datetime(csv_report.iloc[:, 1].loc[csv_report.iloc[:, 0].str.contains('Period', case=False) == True].values[0], format='%Y-%m-%d')
       file_name_to_csv = f"Bupa_Shortfall_{policy_no_}_{start_d_.strftime('%Y%m')}.csv"
     elif "AIA 105" in prompt_data_options[data_selection]:
-      f"AIA_105_{csv_report.policy_id.iloc[0]}.csv"
+      file_name_to_csv = f"AIA_105_{csv_report.policy_id.iloc[0]}.csv"
     elif "AIA 101" in prompt_data_options[data_selection]:
-      f"AIA_101_{csv_report.policy_id.iloc[0]}.csv"
+      file_name_to_csv = f"AIA_101_{csv_report.policy_id.iloc[0]}.csv"
     elif "AIA 102" in prompt_data_options[data_selection]:
-      f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
+      file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
     else:
       file_name_to_csv = "consolidated_usage_report.csv"
 
