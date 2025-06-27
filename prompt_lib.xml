@@ -54,6 +54,7 @@
             d. If benefit is Dental Benefits, or other similar terms, set benefit_type = "Dental"
         11. Panel = non-network, network, or affiliate network 
         12. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
+        13. Make sure the date format is in "YYYY-MM-DD" format.
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name 
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
@@ -94,7 +95,8 @@
             h. "duration_days" = the number of days between policy_start_date and policy_end_date
             i. set "policy_end_date" = "policy_start_date" + 365 days (don't change the duration_days)
             j. Drop the section in which the section header contains “Summary” 
-            k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
+            k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
+            l. Make sure the date format is in "YYYY-MM-DD" format.
 
         Desired output: generate 1 csv text with all plans included.
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
@@ -115,6 +117,7 @@
         9. Set “benefit_type” column = "Clinic"  
         10. Panel = non-network, network, or affiliate network 
         11. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
+        12. Make sure the date format is in "YYYY-MM-DD" format.
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
