@@ -40,7 +40,7 @@
 
         1. A markdown output of the pdf: col = ["benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
         2. Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
-        3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
+        3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
         4. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
         5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
         6. Leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
@@ -80,11 +80,11 @@
             a. col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
             b. For all supplementary major medical row, leave ["Presented Amt (HK$)", “Avg Presented Amt (HK$)”, “Adjusted Amt (HK$)”,  “Avg Adjusted Amt. (HK$)”] columns empty 
         3. Then based on the master markdown table generate csv text output:  
-            a. col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
+            a. col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
             b. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
             c. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
             d. Leave “no. of claimants” empty 
-            e. Leave the “benefit_type (raw_data)” column empty  
+            e. Set “benefit_type” column = "Hospital"  
             f. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
             g. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section 
             h. Drop the section in which the section header contains “Summary” 
@@ -100,13 +100,13 @@
         Task: 
         1. A markdown output of the pdf: col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
         2. Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
-        3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
+        3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
         4. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
         5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
         6. For insurer, please set it to AIA and leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
         7. Drop the section in which the section header contains “Summary” 
         8. Do not include date range in the client name column 
-        9. Leave the benefit type column empty  
+        9. Set “benefit_type” column = "Clinic"  
         10. Panel = non-network, network, or affiliate network 
         11. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
 
