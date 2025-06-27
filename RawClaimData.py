@@ -33,7 +33,11 @@ class RawClaimData():
         'submission_date',
         'pay_date',
         'claim_status',
-        'claim_remark',
+        'claim_remark_1',
+        'claim_remark_2',
+        'claim_remark_3',
+        'claim_remark_4',
+        'claim_remark_5',
         'cert_true_copy',
         'claimant',
         'gender',
@@ -43,17 +47,28 @@ class RawClaimData():
         'member_status',
         'benefit_type',
         'benefit',
+        'diagnosis_code',
         'diagnosis',
+        'diagnosis_organ',
+        'procedure_code',
         'procedure',
+        'room_type',
+        'hospital_code',
         'hospital_name',
+        'hospital_type',
+        'provider_code',
         'provider',
+        'physician_code',
         'physician',
         'chronic',
+        'opd',
         'currency',
         'incurred_amount',
         'paid_amount',
         'panel',
+        'payment_method',
         'suboffice',
+        'deptment',
         'region',
         'common_diagnosis_flag',
     ]
@@ -84,7 +99,9 @@ class RawClaimData():
         'DATE OF RECEIPT': 'submission_date',
         'DATE OF PAYMENT': 'pay_date',
         'STATUS': 'claim_status',
-        'REMARK CODE1': 'claim_remark',
+        'REMARK CODE1': 'claim_remark_1',
+        'REMARK CODE2': 'claim_remark_2',
+        'REMARK CODE3': 'claim_remark_3',
         # 'cert_true_copy', # deduce from remark code
         'MEMBER': 'claimant',
         'CERTIFICATE NO': 'claimant',
@@ -123,6 +140,8 @@ class RawClaimData():
         'DATE OF PAYMENT': str,
         'STATUS': str,
         'REMARK CODE1': str,
+        'REMARK CODE2': str,
+        'REMARK CODE3': str,
         # 'cert_true_copy', # deduce from remark code
         'MEMBER': str,
         'CERTIFICATE NO': str,
@@ -162,7 +181,7 @@ class RawClaimData():
         'DATE OF RECEIPT': 'submission_date',
         'DATE OF PAYMENT': 'pay_date',
         'STATUS': 'claim_status',
-        'REMARK': 'claim_remark',
+        'REMARK': 'claim_remark_1',
         # 'cert_true_copy', # deduce from remark code
         'MEMBER': 'claimant',
         'CERTIFICATE NO': 'claimant',
@@ -429,7 +448,7 @@ class RawClaimData():
           'Pay date': 'pay_date',
           'Pay Date': 'pay_date',
           'Status Code': 'claim_status',
-          'Reject Code Description': 'claim_remark',
+          'Reject Code Description': 'claim_remark_1',
           # 'cert_true_copy',
           'Claimant': 'claimant',
           'Sex': 'gender',
@@ -442,19 +461,25 @@ class RawClaimData():
           'Benefit Type': 'benefit_type',
           'Benefit': 'benefit',
           'Benefit Code Description': 'benefit',
+          'Diagnosis Code': 'diagnosis_code',
           'Diagnosis description': 'diagnosis',
           'Diagnosis': 'diagnosis',
+          'Procedure Code': 'procedure_code',
           'Procedure Description': 'procedure',
           'Hospital Name': 'hospital_name',
+          'Provider Code': 'provider_code',
           'Provider Name': 'provider',
+          'Physician Code': 'physician_code',
           'Physician Name': 'physician',
           'Chronic flag': 'chronic',
-          'Diagnosis Chronic Flag': 'cheonic',
+          'OPD indicator': 'opd',
+          'Diagnosis Chronic Flag': 'chronic',
           # 'currency',
           'Presented': 'incurred_amount',
           'Adjusted': 'paid_amount',
           'Network Category': 'panel',
           'Network': 'panel',
+          'E Claims Indicator': 'payment_method',
           
           # 'suboffice', # deduced from contract number columns last 2 digits
           # 'region',
@@ -479,7 +504,7 @@ class RawClaimData():
           'Pay Date': str,
           'Status Code': str,
           # 'claim_status',
-          # 'claim_remark',
+          # 'claim_remark_1',
           'Reject Code Description': str,
           # 'cert_true_copy',
           'Claimant': str,
@@ -493,17 +518,25 @@ class RawClaimData():
           'Benefit Type': str,
           'Benefit': str,
           'Benefit Code Description': str,
+          'Diagnosis Code': str,
           'Diagnosis description': str,
           'Diagnosis': str,
+          'Procedure Code': str,
           'Procedure Description': str,
           'Hospital Name': str,
+          'Provider Code': str,
+          'Provider Name': str,
+          'Physician Code': str,
+          'Physician Name': str,
           'Chronic flag': str,
+          'OPD indicator': str,
           'Diagnosis Chronic Flag': str,
           # 'currency',
           'Presented': float,
           'Adjusted': float,
           'Network Category': str,
           'Network': str,
+          'E Claims Indicator': str,
           # 'suboffice', # deduced from contract number columns last 2 digits
           # 'region',
 
@@ -598,6 +631,7 @@ class RawClaimData():
           'Process Date': str,
           # 'claim_status',
           'Remark1': str,
+          'Remark2': str,
           # 'cert_true_copy',
           'Member ID': str,
           'Claimant No.': str,
@@ -625,6 +659,7 @@ class RawClaimData():
           'Reimbursed Amount': float,
           'Amount Paid': float,
           'Provider Type': str,
+          'Provider Name': str,
           'Network/Non-network': str,
           'SubOffice': str,
           # 'Entity': str,
@@ -652,7 +687,8 @@ class RawClaimData():
           'Process Date': 'pay_date',
           'Date Paid': 'pay_date',
           # 'claim_status',
-          'Remark1': 'claim_remark',
+          'Remark1': 'claim_remark_1',
+          'Remark2': 'claim_remark_2',
           # 'cert_true_copy',
           'Member ID': 'claimant',
           'Claimant No.': 'claimant',
@@ -680,6 +716,7 @@ class RawClaimData():
           'Reimbursed Amount': 'paid_amount',
           'Amount Paid': 'paid_amount',
           'Provider Type': 'panel',
+          'Provider Name': 'provider',
           'Network/Non-network': 'panel',
           'SubOffice': 'suboffice',
           # 'Entity': 'suboffice',
@@ -805,6 +842,7 @@ class RawClaimData():
           'CLAIM AMOUNT': float,
           'PAID AMOUNT': float,
           'REJECT REASON': str,
+          'PAID BY CHQ/AUTOPAY': str,
       }
       bluecross_rename_col = {
         # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
@@ -819,7 +857,7 @@ class RawClaimData():
         # 'submission_date',
         # 'pay_date',
         # 'claim_status',
-        'REJECT REASON': 'claim_remark',
+        'REJECT REASON': 'claim_remark_1',
         # 'cert_true_copy',
         'MEMBER': 'claimant',
         # 'gender',
@@ -837,10 +875,10 @@ class RawClaimData():
         'CLAIM AMOUNT': 'incurred_amount',
         'PAID AMOUNT': 'paid_amount',
         'INPUT CLAIM TYPE': 'panel',
+        'PAID BY CHQ/AUTOPAY': 'payment_method',
         # 'suboffice',
         # 'region',
 
-        'LEVEL CODE': 'level_code',
       }
       date_cols = ['incur_date']
     
@@ -866,7 +904,7 @@ class RawClaimData():
     _start_date = t_df['policy_start_date'].iloc[0]
     t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
     t_df['claim_status'] = np.nan
-    t_df['claim_status'].loc[t_df['claim_remark'].isna() == False] = 'R'
+    t_df['claim_status'].loc[t_df['claim_remark_1'].isna() == False] = 'R'
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
     t_df['region'] = region
     t_df['class'] = t_df['level_code'].str.split(' ').str[-1].str[0]
@@ -911,9 +949,15 @@ class RawClaimData():
           'ADMISSION/CONSULTATION_DATE': str,
           'DISCHARGE_DATE': str,
           'PAYMENT_DATE': str,
+          'ROOM_TYPE': str,
           'HOSPITAL': str,
+          'HOSPITAL_TYPE': str,
+          'DOCTOR_CODE': str,
           'DOCTOR': str,
+          'DIAGNOSIS_CODE': str,
           'DIAGNOSIS': str,
+          'DIAGNOSIS_ORGAN': str,
+          'PROCEDURE_CODE': str,
           'PROCEDURE': str,
           'STATUS': str,
           'NETWORK': str,
@@ -923,8 +967,10 @@ class RawClaimData():
           'CLAIM_PAID_AMOUNT(HKD)': float,
           'CLASS': str,
           'AFFILIATED_CODE': str,
+          'DEPARTMENT_CODE': str,
           'REMARK_1': str,
           'CLAIM_TYPE': str,
+          'PAY_METHOD': str,
       }
       axa_rename_col = {
         # 'policy_id', # This is the policy_id for future database development, f'{policy_number}__{policy_start_date:%Y%m}'
@@ -939,7 +985,11 @@ class RawClaimData():
         # 'submission_date',
         'PAYMENT_DATE': 'pay_date',
         'STATUS': 'claim_status',
-        'REMARK_1': 'claim_remark',
+        'REMARK_1': 'claim_remark_1',
+        'REMARK_2': 'claim_remark_2',
+        'REMARK_3': 'claim_remark_3',
+        'REMARK_4': 'claim_remark_4',
+        'REMARK_5': 'claim_remark_5',
         # 'cert_true_copy',
         'PATIENT': 'claimant',
         'GENDER': 'gender',
@@ -949,9 +999,15 @@ class RawClaimData():
         # 'member_status',
         'CLAIM_TYPE': 'benefit_type',
         'BENEFIT_CODE': 'benefit',
+        'DIAGNOSIS_CODE': 'diagnosis_code',
         'DIAGNOSIS': 'diagnosis',
+        'DIAGNOSIS_ORGAN': 'diagnosis_organ',
+        'PROCEDURE_CODE': 'procedure_code',
         'PROCEDURE': 'procedure',
+        'ROOM_TYPE': 'room_type',
         'HOSPITAL': 'hospital_name',
+        'HOSPITAL_TYPE': 'hospital_type',
+        'DOCTOR_CODE': 'physician_code',
         'DOCTOR': 'physician',
         # 'chronic',
         'CURRENCY': 'currency',
@@ -959,6 +1015,8 @@ class RawClaimData():
         'CLAIM_PAID_AMOUNT(HKD)': 'paid_amount',
         'NETWORK': 'panel',
         'AFFILIATED_CODE': 'suboffice',
+        'DEPARTMENT_CODE': 'department',
+        'PAY_METHOD': 'payment_method',
         # 'region',
       }
     date_cols = ['incur_date', 'discharge_date', 'pay_date']
@@ -1032,7 +1090,7 @@ class RawClaimData():
         # 'submission_date',
         'Paid date': 'pay_date',
         #'claim_status',
-        #'claim_remark',
+        #'claim_remark_1',
         #'cert_true_copy',
         'Cert no': 'claimant',
         #'gender',
@@ -1134,7 +1192,7 @@ class RawClaimData():
         # "Claim Pay": 	
         # "Payment method"	
         "Currency": "currency",
-        "REMARK DESCRIPTION": "claim_remark",}
+        "REMARK DESCRIPTION": "claim_remark_1",}
     # 'policy_id', # This is the policy_id for future
     date_cols = ['incur_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_hsbc_raw)
@@ -1192,7 +1250,7 @@ class RawClaimData():
       'submission_date': str,
       'pay_date': str,
       'claim_status': str,
-      'claim_remark': str,
+      'claim_remark_1': str,
       'cert_true_copy': str,
       'claimant': str,
       'gender': str,
@@ -1291,14 +1349,14 @@ class RawClaimData():
 
     if rejected_claim == True:
       reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
-      self.df.claim_remark.fillna('no_remark', inplace=True)
+      self.df.claim_remark_1.fillna('no_remark', inplace=True)
       # Bupa claim remark = Reject Code so it must be rejected
-      self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark != 'no_remark')] = 'R'
-      self.df.claim_status.loc[self.df.claim_remark.str.contains('|'.join(reject_claim_words), case=False) & ((self.df.paid_amount == 0) | (self.df.paid_amount.isna()))] = 'R'
+      self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark_1 != 'no_remark')] = 'R'
+      self.df.claim_status.loc[self.df.claim_remark_1.str.contains('|'.join(reject_claim_words), case=False) & ((self.df.paid_amount == 0) | (self.df.paid_amount.isna()))] = 'R'
       self.df.claim_status.loc[(self.df.insurer == 'AXA') & (self.df.claim_status == 'R') & (self.df.paid_amount != 0)] = 'PR'
       self.df.claim_status.loc[(self.df.insurer == 'HSBC') & (self.df.claim_status != "Approved")] = 'R'
       self.df = self.df.loc[(self.df.claim_status != 'R')]
-      # self.df = self.df.loc[(self.df.claim_remark == 'no_remark')]
+      # self.df = self.df.loc[(self.df.claim_remark_1 == 'no_remark')]
       
 
     if smm == True:
