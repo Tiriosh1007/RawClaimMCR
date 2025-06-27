@@ -253,7 +253,7 @@ class Shortfall():
       if len (aia_105_df) != 0:
         aia_105_df['policy_id'] = aia_105_df['aia_105'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-2] + "_" + aia_105_df['aia_105'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
         aia_101_df = pd.DataFrame(aia_l.loc[aia_l.str.contains("AIA_101")], columns=['aia_101'])
-        aia_101_df['policy_id'] = aia_105_df['aia_101'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-2] + "_" + aia_105_df['aia_101'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
+        aia_101_df['policy_id'] = aia_101_df['aia_101'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-2] + "_" + aia_101_df['aia_101'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
         aia_102_df = pd.DataFrame(aia_l.loc[aia_l.str.contains("AIA_102")], columns=['aia_102'])
         aia_102_df['policy_id'] = aia_102_df['aia_102'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-2] + "_" + aia_102_df['aia_102'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
 
