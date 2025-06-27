@@ -35,6 +35,7 @@ class Shortfall():
     self.df = pd.DataFrame(columns=self.col_setup)
 
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
+    self.aia_file_list = []
 
 
 
@@ -183,13 +184,96 @@ class Shortfall():
 
     return t_df
 
+  def __aia_usage_combine(self, csv_101, csv_102, csv_105):
+    if csv_105 is None:
+      raise ValueError("csv_105 must be provided")
+      return
+    df105 = pd.read_csv(csv_105)
+    if csv_101:
+      df105 = df105.loc[~df105['benefit'].isin([
+        "Hospitalization and Surgical Benefits",
+        "Top-up/SMM"
+      ])]
+    if csv_102:
+      df105 = df105.loc[~df105['benefit_type'].isin(["OUTPATIENT BENEFITS/CLINICAL"])]
+
+    dfs = []
+    if csv_101:
+      dfs.append(pd.read_csv(csv_101))
+    if csv_102:
+      dfs.append(pd.read_csv(csv_102))
+    dfs.append(df105)
+
+    combined = pd.concat(dfs, ignore_index=True)
+
+    panel_map = {
+      'non-network':       'Non-Panel',
+      'network':           'Panel',
+      'affiliate-network': 'Panel',
+      'affiliate network': 'Panel',
+    }
+    combined['panel'] = (
+      combined['panel']
+      .fillna('')
+      .astype(str)
+      .str.strip()
+      .str.lower()
+      .str.replace(r'\s+', '-', regex=True)   # e.g. “Affiliate Network” → “affiliate-network”
+      .map(panel_map)
+      .fillna('non-panel')
+    )
+
+    # 5) Extract class digits
+    combined['class'] = (
+      combined['class']
+      .astype(str)
+      .str.extract(r'(\d+)', expand=False)
+    )
+
+    # 6) Write out and store
+    return combined
+        
+
   def add_shortfall(self, shortfall_fp, insurer='Bupa'):
+    
     if insurer == 'Bupa':
       t_df = self.__bupa_shortfall(shortfall_fp)
 
+    if insurer == "AIA":
+      self.aia_file_list.append(shortfall_fp)
 
     self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
     return
+
+  def aia_identify(self):
+    if len(self.aia_file_list) != 0:
+      aia_l = pd.Series(self.aia_file_list)
+      aia_105_df = pd.DataFrame(aia_l.loc[aia_l.str.contains("AIA_105")], columns=['aia_105'])
+      if len (aia_105_df) != 0:
+        aia_105_df['policy_id'] = aia_105_df['aia_105'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
+        aia_101_df = pd.DataFrame(aia_l.loc[aia_l.str.contains("AIA_101")], columns=['aia_101'])
+        aia_101_df['policy_id'] = aia_105_df['aia_101'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
+        aia_102_df = pd.DataFrame(aia_l.loc[aia_l.str.contains("AIA_102")], columns=['aia_102'])
+        aia_102_df['policy_id'] = aia_102_df['aia_102'].str.split('/').str[-1].str.split('.').str[0].str.split('_').str[-1]
+
+        aia_fp_df = pd.merge(aia_105_df, aia_101_df, on='policy_id', how='left')
+        aia_fp_df = pd.merge(aia_fp_df, aia_102_df, on='policy_id', how='left')
+
+        self.aia_fp_df = aia_fp_df
+
+        for i in range(len(aia_fp_df)):
+          aia_105 = aia_fp_df['aia_105'].iloc[i]
+          aia_101 = aia_fp_df['aia_101'].iloc[i] if pd.notna(aia_fp_df['aia_101'].iloc[i]) else None
+          aia_102 = aia_fp_df['aia_102'].iloc[i] if pd.notna(aia_fp_df['aia_102'].iloc[i]) else None
+
+          aia_combined = self.__aia_usage_combine(aia_101, aia_102, aia_105)
+          self.df = pd.concat([self.df, aia_combined], axis=0, ignore_index=True)
+      else:
+        raise ValueError("No AIA 105 files found in the provided list.")
+    else:
+      raise ValueError("No AIA files found in the provided list.")
+
+  
   
   def remove_overall(self):
     self.full_df = self.df

@@ -519,8 +519,8 @@ if st.session_state.shortfall == True:
     # ben_fp = 'benefit_indexing.xlsx'
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
-      sf_.add_shortfall(full_file_list[n0])
-    
+      sf_.add_shortfall(full_file_list[n0], shortfall_files.split("/")[-1].split("_")[0])
+    sf_.aia_identify()
     sf_.remove_overall()
     data_download_col1, data_download_col2= st.columns([1,1]) 
 
@@ -1003,6 +1003,12 @@ if st.session_state.ocr == True:
       policy_no_ = csv_report.iloc[:, 1].loc[csv_report.iloc[:, 0].str.contains('Contract', case=False) == True].values[0]
       start_d_ = pd.to_datetime(csv_report.iloc[:, 1].loc[csv_report.iloc[:, 0].str.contains('Period', case=False) == True].values[0], format='%Y-%m-%d')
       file_name_to_csv = f"Bupa_Shortfall_{policy_no_}_{start_d_.strftime('%Y%m')}.csv"
+    elif "AIA 105" in prompt_data_options[data_selection]:
+      f"AIA_105_{csv_report.policy_id.iloc[0]}.csv"
+    elif "AIA 101" in prompt_data_options[data_selection]:
+      f"AIA_101_{csv_report.policy_id.iloc[0]}.csv"
+    elif "AIA 102" in prompt_data_options[data_selection]:
+      f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
     else:
       file_name_to_csv = "consolidated_usage_report.csv"
 
