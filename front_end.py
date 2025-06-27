@@ -1009,6 +1009,13 @@ if st.session_state.ocr == True:
       file_name_to_csv = f"AIA_101_{csv_report.policy_id.iloc[0]}.csv"
     elif "AIA 102" in prompt_data_options[data_selection]:
       file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
+    elif "BlueCross Usage" in prompt_data_options[data_selection]:
+      file_name_to_csv = "BlueCross_Usage_Report.csv"
+      from BlueCrossUsageReportConvert import *
+      BlueCross = BlueCrossUsageReportConvert(csv_data)
+      BlueCross.convert_to_final_df()
+      csv_report = BlueCross.final_df
+
     else:
       file_name_to_csv = "consolidated_usage_report.csv"
 
@@ -1017,14 +1024,14 @@ if st.session_state.ocr == True:
                         file_name=file_name_to_csv,
                         mime="application/vnd.ms-excel")
     
-    if "BlueCross Usage" in prompt_data_options[data_selection]:
-      from BlueCrossUsageReportConvert import *
-      BlueCross = BlueCrossUsageReportConvert(csv_data)
-      BlueCross.convert_to_final_df()
-      st.download_button('BlueCross Usage Excel', 
-                        data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
-                        file_name="BlueCross_Usage_Report.csv",
-                        mime="application/vnd.ms-excel")
+    # if "BlueCross Usage" in prompt_data_options[data_selection]:
+    #   from BlueCrossUsageReportConvert import *
+    #   BlueCross = BlueCrossUsageReportConvert(csv_data)
+    #   BlueCross.convert_to_final_df()
+    #   st.download_button('BlueCross Usage Excel', 
+    #                     data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
+    #                     file_name="BlueCross_Usage_Report.csv",
+    #                     mime="application/vnd.ms-excel")
 #     BlueCross.csv_convert()
 
 
