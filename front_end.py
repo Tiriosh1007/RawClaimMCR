@@ -519,7 +519,7 @@ if st.session_state.shortfall == True:
     # ben_fp = 'benefit_indexing.xlsx'
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
-      sf_.add_shortfall(full_file_list[n0], shortfall_files.split("/")[-1].split("_")[0])
+      sf_.add_shortfall(full_file_list[n0], shortfall_files.str.split("/")[-1].str.str.split("_")[0])
     sf_.aia_identify()
     sf_.remove_overall()
     data_download_col1, data_download_col2= st.columns([1,1]) 
