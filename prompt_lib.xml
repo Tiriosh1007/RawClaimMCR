@@ -47,7 +47,11 @@
         7. Drop the rows in which column “benefit” contains "total", "summary" or "Report Run On:" 
         8. Do not include date range in the client name column 
         9. If benefit = Supplementary Major Medical: incurred amt = 0 
-        10. Leave the benefit type column empty  
+        10. For benefit_type:
+            a. If benefit is Hospitalization and Surgical Benefits, or other similar terms, set benefit_type = "Hospital"
+            b. If benefit is Supplementary Major Medical, set benefit_type = "Hospital"
+            c. For benenfit is Outpatient Benefits, or other similar terms, if that row has no data, it means that the subsequent rows are the sub-benefits of the outpatient benefits. You should set the benefit type of those sub-benefits to "Clinic"
+            d. If benefit is Dental Benefits, or other similar terms, set benefit_type = "Dental"
         11. Panel = non-network, network, or affiliate network 
         12. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
 
