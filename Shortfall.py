@@ -477,6 +477,9 @@ class Shortfall():
 
 
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
+
+    self.df.policy_start_date = pd.to_datetime(self.df.policy_start_date)
+    self.df.policy_end_date = pd.to_datetime(self.df.policy_end_date)
     
     self.mcr_p20_policy(by)
     self.mcr_p20_benefit(by, benefit_type_order)
