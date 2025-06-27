@@ -193,7 +193,11 @@ class Shortfall():
   
   def remove_overall(self):
     self.full_df = self.df
-    self.df = self.df.loc[self.df.panel != 'Overall']
+    policy_list = self.df['policy_id'].unqiue().tolist()
+    for p in policy_list:
+      if "Panel" in self.df.panel.loc[self.df.policy_id == p].unique().tolist():
+        self.df = self.df.loc[((self.df.policy_id == p) & (self.df.panel != 'Overall')) | (self.df.policy_id != p)]
+    
     return
 
   def mcr_p20_policy(self, by=None):
