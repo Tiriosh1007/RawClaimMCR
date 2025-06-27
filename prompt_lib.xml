@@ -56,8 +56,8 @@
     <text data="AIA 101 Hosp Usage" type="text">
         Role: Data Input Officer  
 
-        PDF Page setting:In each page, you will see 2 section, General Information, Data Table General information consists of Title, Report ID, Policy, Date Range 
-
+        PDF Page setting:In each page, you will see 2 section, General Information, Data Table.
+        General information consists of Title, Report ID, Policy, Date Range.
         Data Table are table contains the claim data of each classes, which the claim data are grouped by benefit plan. It column headers are:
         [1st column]: Benefit Type 
         [2nd column]: No. Of services 
@@ -79,13 +79,14 @@
             b. For all supplementary major medical row, leave ["Presented Amt (HK$)", “Avg Presented Amt (HK$)”, “Adjusted Amt (HK$)”,  “Avg Adjusted Amt. (HK$)”] columns empty 
         3. Then based on the master markdown table generate csv text output:  
             a. col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type (raw_data)", 'benefit (raw_data)', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
-            b. “Insurer” = AIA 
-            c. Leave “no. of claimants” empty 
-            d. Leave the “benefit_type (raw_data)” column empty  
-            e. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
-            f. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section 
-            g. Drop the section in which the section header contains “Summary” 
-            h. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
+            b. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
+            c. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
+            d. Leave “no. of claimants” empty 
+            e. Leave the “benefit_type (raw_data)” column empty  
+            f. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
+            g. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section 
+            h. Drop the section in which the section header contains “Summary” 
+            i. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
 
         Desired output: generate 1 csv text with all plans included.
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.

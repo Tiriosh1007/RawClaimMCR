@@ -1011,14 +1011,14 @@ if st.session_state.ocr == True:
                         file_name=file_name_to_csv,
                         mime="application/vnd.ms-excel")
     
-    if "BlueCross Usage" in prompt_data_options[data_selection]:
-      from BlueCrossUsageReportConvert import *
-      BlueCross = BlueCrossUsageReportConvert(csv_data)
-      BlueCross.convert_to_final_df()
-      st.download_button('BlueCross Usage Excel', 
-                        data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
-                        file_name="BlueCross_Usage_Report.csv",
-                        mime="application/vnd.ms-excel")
+    # if "BlueCross Usage" in prompt_data_options[data_selection]:
+    #   from BlueCrossUsageReportConvert import *
+    #   BlueCross = BlueCrossUsageReportConvert(csv_data)
+    #   BlueCross.convert_to_final_df()
+    #   st.download_button('BlueCross Usage Excel', 
+    #                     data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
+    #                     file_name="BlueCross_Usage_Report.csv",
+    #                     mime="application/vnd.ms-excel")
 #     BlueCross.csv_convert()
 
 
