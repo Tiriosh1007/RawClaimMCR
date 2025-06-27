@@ -90,9 +90,11 @@
             d. Leave “no. of claimants” empty 
             e. Set “benefit_type” column = "Hospital"  
             f. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
-            g. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section 
-            h. Drop the section in which the section header contains “Summary” 
-            i. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
+            g. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section
+            h. "duration_days" = the number of days between policy_start_date and policy_end_date
+            i. set "policy_end_date" = "policy_start_date" + 365 days (don't change the duration_days)
+            j. Drop the section in which the section header contains “Summary” 
+            k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)  
 
         Desired output: generate 1 csv text with all plans included.
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
