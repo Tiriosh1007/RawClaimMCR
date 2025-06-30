@@ -242,7 +242,7 @@ class Shortfall():
     if insurer == "AIA":
       self.aia_file_list.append(shortfall_fp)
     
-    if t_df.any():
+    if type(t_df) == pd.DataFrame:
       self.df = pd.concat([self.df, t_df], axis=0, ignore_index=True)
     return
 
