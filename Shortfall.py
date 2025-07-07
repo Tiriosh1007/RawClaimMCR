@@ -29,6 +29,24 @@ class Shortfall():
         'paid_amount',
     ]
 
+    col_setup_dtype = {
+        'policy_id': str,
+        'policy_number': str,
+        'insurer': str,
+        'client_name': str,
+        'policy_start_date': str,
+        'policy_end_date': str,
+        'duration_days': str,
+        'class': str,
+        'benefit_type': str,
+        'benefit': str,
+        'panel': str,
+        'no_of_claims': int,
+        'no_of_claimants': int,
+        'incurred_amount': float,
+        'paid_amount': float,
+    }
+
 
 
     self.col_setup = col_setup
@@ -188,7 +206,7 @@ class Shortfall():
     if csv_105 is None:
       raise ValueError("csv_105 must be provided")
       return
-    df105 = pd.read_csv(csv_105)
+    df105 = pd.read_csv(csv_105, dtype=self.col_setup_dtype)
     if csv_101:
       df105 = df105.loc[~df105['benefit'].isin([
         "Hospitalization and Surgical Benefits",
@@ -199,9 +217,9 @@ class Shortfall():
 
     dfs = []
     if csv_101:
-      dfs.append(pd.read_csv(csv_101))
+      dfs.append(pd.read_csv(csv_101, dtype=self.col_setup_dtype))
     if csv_102:
-      dfs.append(pd.read_csv(csv_102))
+      dfs.append(pd.read_csv(csv_102, dtype=self.col_setup_dtype))
     dfs.append(df105)
 
     combined = pd.concat(dfs, ignore_index=True)
