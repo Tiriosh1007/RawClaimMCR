@@ -230,6 +230,8 @@ class Shortfall():
       .str.extract(r'(0*\d+.)', expand=False)
     )
 
+    combined = combined.loc[combined['benefit'].str.contains('Total', case=False) == False]
+
     # 6) Write out and store
     return combined
         
