@@ -294,7 +294,7 @@ class Shortfall():
       else:
         raise ValueError("No AIA 105 files found in the provided list.")
     else:
-      raise ValueError("No AIA files found in the provided list.")
+      print("No AIA files found in the provided list.")
 
   
   
