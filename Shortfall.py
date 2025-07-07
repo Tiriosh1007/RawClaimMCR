@@ -227,7 +227,7 @@ class Shortfall():
     combined['class'] = (
       combined['class']
       .astype(str)
-      .str.extract(r'(0*\d+)', expand=False)
+      .str.extract(r'(0*\d+.)', expand=False)
     )
 
     # 6) Write out and store
