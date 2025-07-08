@@ -31,6 +31,7 @@
         3. The Duration may not be stated by the insurers. Therefore, you shall look into any data period, for example 10/07/2024 to 09/03/2025 where its policy period is 10/07/2024 to 09/07/2025, and then calculate the duration by the number of months between the two dates. In this example, it is 8 months.
         4. Sometimes, there are more than 1 loss ratio reports in the pdf. Please export then all into one markdown table and csv. The order of the table should be first the policy number, then the benefit type.
         5. Date format, if it is in "XX/XX/XXXX" format, it DD/MM/YYYY or D/M/YYYY.
+        6. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
     </text>
 
     <text data="AIA 105 Overall Usage" type="text">
@@ -55,6 +56,7 @@
         11. Panel = non-network, network, or affiliate network 
         12. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
         13. Make sure the date format is in "YYYY-MM-DD" format.
+        14. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name 
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
@@ -97,6 +99,7 @@
             j. Drop the section in which the section header contains “Summary” 
             k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
             l. Make sure the date format is in "YYYY-MM-DD" format.
+            m. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
 
         Desired output: generate 1 csv text with all plans included.
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
@@ -118,6 +121,7 @@
         10. Panel = non-network, network, or affiliate network 
         11. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
         12. Make sure the date format is in "YYYY-MM-DD" format.
+        13. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
