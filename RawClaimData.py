@@ -1414,6 +1414,9 @@ class RawClaimData():
     )
     print(self.df.columns.tolist())
     print(self.speciality_index.columns.tolist())
+    self.df['speciality_x'] = self.df['speciality_y']
+    self.df.drop(columns=['speciality_y'], inplace=True)
+    self.df.rename(columns={'speciality_x': 'speciality'}, inplace=True)
     self.df['speciality'].fillna('no_index', inplace=True)
     
 
