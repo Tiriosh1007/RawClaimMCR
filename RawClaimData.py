@@ -2116,7 +2116,7 @@ class RawClaimData():
       p29_df_sp_specialty = p29_df_sp_specialty.loc[p29_df_sp_specialty['benefit'] == 'Specialist Consultation (SP)']
       p29_df_sp_specialty.drop(columns=['benefit'], inplace=True)
       p29_df_sp_specialty = p29_df_sp_specialty.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
-      p29_df_sp_specialty = p29_df_sp_specialty.unstack()
+      # p29_df_sp_specialty = p29_df_sp_specialty.unstack()
       p29_df_sp_specialty.sort_index(ascending=__p29_sort_order, inplace=True)
       self.p29_df_sp_specialty = p29_df_sp_specialty
       return p29_df_sp_specialty
