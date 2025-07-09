@@ -15,6 +15,9 @@ warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill, NamedStyle
+
 from ColumnNameManagement import *
 
 class RawClaimData():
@@ -50,6 +53,7 @@ class RawClaimData():
         'diagnosis_code',
         'diagnosis',
         'diagnosis_organ',
+        'speciality',
         'procedure_code',
         'procedure',
         'room_type',
@@ -78,6 +82,7 @@ class RawClaimData():
     self.upload_time = dt.datetime.now()
     self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
+    self.speciality_index = pd.read_excel('speciality_indexing.xlsx')
 
 
 
@@ -1400,6 +1405,14 @@ class RawClaimData():
 
 
     self.df.suboffice.fillna('00', inplace=True)
+    self.df = pd.merge(
+        left=self.df,
+        right=self.speciality_index,
+        left_on='diagnosis',
+        right_on='diagnosis',
+        how='left'
+    )
+    self.df['speciality'].fillna('no_index', inplace=True)
 
     return None
 
@@ -2083,6 +2096,24 @@ class RawClaimData():
     self.p28_proce_diagnosis = p28_df_proce_diagnosis
     return p28_df_proce_diagnosis
 
+  def mcr_p29_sp_speciality(self, by=None):
+      if by == None:
+        __p29_df_sp_specialty_col = ['policy_number', 'year', 'speciality', 'diagnosis', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+        __p29_group_col = ['policy_number', 'year', 'speciality', 'diagnosis']
+        __p29_sort_order = [True, True, True, True]
+      else: 
+        __p29_df_sp_specialty_col = ['policy_number', 'year'] + by + ['speciality', 'diagnosis', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+        __p29_group_col = ['policy_number', 'year'] + by + ['speciality', 'diagnosis']
+        __p29_sort_order = [True, True] + len(by) * [True] + [True, True]
+
+      p29_df_sp_specialty = self.mcr_df[__p29_df_sp_specialty_col].copy(deep=True)
+      p29_df_sp_specialty['diagnosis'].fillna('No Diagnosis Provided', inplace=True)
+      p29_df_sp_specialty = p29_df_sp_specialty.loc[p29_df_sp_specialty['benefit'].str.contains('Specialist Consultation (SP)')].drop(columns=['benefit'])
+      p29_df_sp_specialty = p29_df_sp_specialty.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+      p29_df_sp_specialty = p29_df_sp_specialty.unstack()
+      p29_df_sp_specialty.sort_index(ascending=__p29_sort_order, inplace=True)
+      self.p29_df_sp_specialty = p29_df_sp_specialty
+      return p29_df_sp_specialty
 
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     
@@ -2120,6 +2151,7 @@ class RawClaimData():
     self.mcr_p28a_doct(by)
     self.mcr_p28_proce(by)
     self.mcr_p28_proce_diagnosis(by)
+    self.mcr_p29_sp_speciality(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
     self.mcr_p18b_top_diag_op(by)
@@ -2129,7 +2161,7 @@ class RawClaimData():
       output = BytesIO()
       # mcr_filename = 'mcr.xlsx'
       mcr_filename = output
-      with pd.ExcelWriter(mcr_filename) as writer:
+      with pd.ExcelWriter(mcr_filename, engine='openpyxl') as writer:
         self.p20_policy.to_excel(writer, sheet_name='P.20_Policy', index=True, merge_cells=False)
         self.p20.to_excel(writer, sheet_name='P.20_BenefitType', index=True, merge_cells=False)
         self.p20_panel.to_excel(writer, sheet_name='P.20_Network', index=True, merge_cells=False)
@@ -2158,10 +2190,26 @@ class RawClaimData():
         self.p28_proce.to_excel(writer, sheet_name='P.28_Procedures', index=True, merge_cells=False)
         self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
+        self.p29_df_sp_specialty.to_excel(writer, sheet_name='P.29_SP_Speciality', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
+
+        ##### style
+        num_format = NamedStyle(name='num', 
+                                font=Font(name='Univers', size=14, color='000000'),
+                                alignment=Alignment(horizontal='center', vertical='center'),
+                                number_format='#,##0')
+        per_format = NamedStyle(name='per', 
+                                font=Font(name='Univers', size=14, color='000000'),
+                                alignment=Alignment(horizontal='center', vertical='center'),
+                                number_format='0%')
+
+        writer.add_named_style(num_format)
+        writer.add_named_style(per_format)
         writer.close()
         # processed_data = output.getvalue()
+
+
         return output.getvalue()
 
 
