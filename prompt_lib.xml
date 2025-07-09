@@ -194,7 +194,7 @@
             h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio”, "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
                 - For example, A1 = "Shortfall Analysis with Non-Healthnet", then Row 1 has to add 13 commas to the end of the row if the Data Table consists of 14 columns, so that that particular row and the csv consists of 14 columns is readable.
-                - "," padding including Any empty cell in the row, so that the csv is readable.
+                - "," padding including Any empty cell in the row, so that the csv is readable. (Row 2, 8, 9)
         4. Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
     </text>
 
