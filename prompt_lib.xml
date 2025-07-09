@@ -35,31 +35,49 @@
     </text>
 
     <text data="AIA 105 Overall Usage" type="text">
-        Role: Data Input Officer  
+        Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format text for copy and paste.
+        
+        [1st col: policy_id]: Policy Number Number + "_" + year &amp; month of the starting period.
+        [2nd col: policy_number]: Policy Number
+        [3rd col: insurer]: Insurer, which is AIA
+        [4th col: client_name]: Customer Name
+        [5th col: policy_start_date]: the start date of period
+        [6th col: policy_end_date]: one year after the start date of period
+        [7th col: duration_days]: The number of days between date period.
+            - Please note that the date period may not be the same as the policy start date to policy end date. For example, the report is stated the Date Range as "Jul 1 2024 to Dec 31 2024". The period is 6 months, and the policy start date is 01/07/2024 and policy end date is 30/06/2025.
+        [8th col: class]: The class or the Benefit Plan
+        [9th col: benefit_type] Benefit Type (Clinical, Dental, Hospital ...., Grand Total etc.)
+        [10th col: benefit]: Benefit (Room and Board, General Physician Services, etc.)
+        [11th col: panel]: Panel Type (panel/ non-panel)
+        [12th col: no_of_claims]: No. of Claims
+        [13th col: no_of_claimants]: No. of Claimants
+        [14th col: incurred_amount]: Presented Amount (HK$)
+        [15th col: paid_amount]: Adjusted Amount (HK$)
 
-        Task: 
-
-        1. A markdown output of the pdf: col = ["benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
-        2. Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
-        3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
-        4. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
-        5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
-        6. Leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
-        7. Drop the rows in which column “benefit” contains "total", "summary" or "Report Run On:" 
-        8. Do not include date range in the client name column 
-        9. If benefit = Supplementary Major Medical: incurred amt = 0 
-        10. For benefit_type:
-            a. If benefit is Hospitalization and Surgical Benefits, or other similar terms, set benefit_type = "Hospital"
-            b. If benefit is Supplementary Major Medical, set benefit_type = "Hospital"
-            c. For benenfit is Outpatient Benefits, or other similar terms, if that row has no data, it means that the subsequent rows are the sub-benefits of the outpatient benefits. You should set the benefit type of those sub-benefits to "Clinic"
-            d. If benefit is Dental Benefits, or other similar terms, set benefit_type = "Dental"
-        11. Panel = non-network, network, or affiliate network 
-        12. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
-        13. Make sure the date format is in "YYYY-MM-DD" format.
-        14. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
-
-        Desired output: generate 1 csv text with all plans included named policy_num-client_name 
-        Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
+        Task:
+        1. Read the pdf carefully and extract the content in the pdf by using markdown format.
+            (a) Inside the pdf, you will see 2 section, General Information, Data Table.
+            (b) General information consists of Title, Report ID, Policy, Date Range. Usually this section is at the top of the pdf.
+            (c) Data Table are table contains the claim data of each classes, which the claim data are grouped by benefit plan and the panel type (affiliate-network/ network/ non-network). It column headers are:
+                [1st column]: Benefit Plan, Panel Type, Benefit and Benefit Type. These 4 data are all stacked in one columns with border lines and indentations to indicates. Please explanation subsequent
+                [2nd column]: No. Of Claims
+                [3rd column]: Presented Amt (HK$)
+                [4th column]: Avg Presented Amt (HK$)
+                [5th column]: Adjusted Amt (HK$)
+                [6th column]: Avg Adjusted Amt. (HK$)
+                [7th column]: Reimbursement (%)
+            (d) Inside 1st column, which is the most left column in the data table, you will see the Benefit Plan, Panel, Benefit Type, and Benefit.
+                i. Benefit Plan is the first row of the table, Usually it is with the format [Benefit Plan: XXXX], where XXXX is the name of the benefit plan, e.g. "001 GENERAL STAFF".
+                ii. Panel Type is the most left aligned row with underline, which is the type of panel, e.g. "Affiliate Network", "Network", "Non-Network". It indicates that the subsequent benefits and benefit types are all under this panel type. (Sometimes one page will contains more than 1 panel type)
+                iii. Benefit Type is the first level indentation rows, which is the type of benefit, e.g. "Hospitalization and Surgical Benefits", "Supplementary Major Medical", "Outpatient Benefits", "Total" etc. It indicates that the subsequent benefits (second level indentation rows, please see next point) are all under this benefit type.
+		            - If the benefit type is "Hospitalization and Surgical Benefits", "Supplementary Major Medical”, “Dental”, the benefit type is equal to the benefit. 
+		            - If the benefit type is “Outpatient Benefits”, read the benefit in the second level indentation rows, e.g. "General Physician Services", etc.
+                    - If the benefit type is "Supplementary Major Medical", it means that there are no "Presented Amt (HK$)", "Avg Presented Amt (HK$)", data in the table, and you should leave those columns empty, extract data from “Adjusted Amt (HK$)” and fill in column “Adjusted Amount (HK$)”
+                    - If the benefit type is "Total" or "Claimed Total", it is the summary numbers of the previous session.
+	        (e) Leave “no_of_claimants” column empty
+        2. Based on the extracted markdown table output, convert to .csv format text
+            a. Keep the same format as the markdown table output 
+            b. Keep all the rows extracted from the markdown table
     </text>
 
     <text data="AIA 101 Hosp Usage" type="text">
