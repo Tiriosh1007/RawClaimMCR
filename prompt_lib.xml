@@ -149,7 +149,8 @@
     <text data="Bupa Shortfall Non-healthnet" type="text">
         Role: Data Input Officer  
 
-        Desired output: a csv format text output which combines all the data tables in the pdf into a single master table.PDF Page setting:In each page, you will see 2 section, General Information, Data Table (2 blocks: non-healthnet and overall).General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
+        Desired output: a csv format text output which combines all the data tables in the pdf into a single master table.
+        PDF Page setting:In each page, you will see 2 section, General Information, Data Table (2 blocks: non-healthnet and overall).General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
         Data Table are table contains the claim data of each classes. It column headers are:
         [1st column]: Benefit Type 
         [2nd column]: Class 
@@ -186,13 +187,13 @@
             a. A1 = “Shortfall Analysis by class” 
             b. A3 ="Customer Name: " B3= Customer name 
             c. A4 ="Contract Number:“ B4 =Contract number  
-            d. A5 =“Period:”      B5=start date  C5 =end date 
-            e. A6 =“# data as of: “ B6 = date as of 
-            f. A7 = “# Confidential” 
+            d. A5 = "Period:"      B5=start date  C5 =end date 
+            e. A6 ="# data as of: " B6 = date as of 
+            f. A7 = "# Confidential" 
             g. Skip 2 rows  
             h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio”, "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
-                - For example, A1 = "Shortfall Analysis by class", then Row 1 has to add 4 commas to the end of the row if the Data Table consists of 5 columns, so that the csv is readable.
+                - For example, A1 = "Shortfall Analysis with Non-Healthnet", then Row 1 has to add 13 commas to the end of the row if the Data Table consists of 14 columns, so that that particular row and the csv consists of 14 columns is readable.
                 - "," padding including Any empty cell in the row, so that the csv is readable.
         4. Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
     </text>
