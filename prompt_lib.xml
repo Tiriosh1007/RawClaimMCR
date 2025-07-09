@@ -172,14 +172,14 @@
             a. The pdf is a multi-page table file grouped by ["benefit type", "class"]  
             b. ["Benefit"] = int and ["Benefit description"] = text  
             c. At the end of each (["benefit type", "class"] ) item, there is a Total row, for total row: 
-                i. Leave [“Benefit Type”,“Benefit”, “”Benefit Description”, “”Number of claimants”] empty 
+                i. Leave [“Benefit Type”,“Benefit”, ”Benefit Description”, “Number of claimants”] empty 
                 ii. [“Class”] = f”{class}Total” 
             d. At the end of each benefit type section, there is a total row: 
                 i. [“Benefit Type”] = f”{benefit type}Total”  
-                ii. Leave [“Class”, “Benefit”, “”Benefit Description”, “”Number of claimants”, “Usage ratio”] empty  
+                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
             e. At the end of the table (ie. The last page), there is a grand total row: 
                 i. [“Benefit Type”] = Grand Total   
-                ii. Leave [“Class”, “Benefit”, “”Benefit Description”, “”Number of claimants”, “Usage ratio”] empty  
+                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
         2. Based on the description of the pdf, generate a markdown table output of the table: 
             a. table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio”, "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             b. For newline-separated values within cells, iterate over each line within those cells to generate individual rows 
