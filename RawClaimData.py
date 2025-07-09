@@ -1412,7 +1412,10 @@ class RawClaimData():
         right_on='diagnosis',
         how='left'
     )
+    print(self.df.columns.tolist())
+    print(self.speciality_index.columns.tolist())
     self.df['speciality'].fillna('no_index', inplace=True)
+    
 
     return None
 
