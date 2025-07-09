@@ -36,7 +36,7 @@
 
     <text data="AIA 105 Overall Usage" type="text">
         Desired Output: a markdown output of the pdf. After that, based on the markdown output, we need to convert it into an .csv format text for copy and paste.
-        
+
         [1st col: policy_id]: Policy Number Number + "_" + year &amp; month of the starting period.
         [2nd col: policy_number]: Policy Number
         [3rd col: insurer]: Insurer, which is AIA
@@ -78,6 +78,7 @@
         2. Based on the extracted markdown table output, convert to .csv format text
             a. Keep the same format as the markdown table output 
             b. Keep all the rows extracted from the markdown table
+            c. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
     </text>
 
     <text data="AIA 101 Hosp Usage" type="text">
