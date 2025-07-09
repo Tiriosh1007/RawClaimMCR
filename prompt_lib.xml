@@ -276,4 +276,52 @@
         4. Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
     </text>
 
+    <text data="SunLife Usage" type="text">
+        Role: Data Input Officer  
+
+        Desired output: markdown table output which combines all the data tables in the pdf into a single master table. 
+
+        PDF Page setting:In each page, you will see 3 section, Header, General Information, Data Table 
+        Header locates at the top center part of the pdf, which contains “Medical Claim Experience”, “(by Paid Date Basis)”General information consists of Insurance Company, Policy Code, Policy Owner, Period, Conversation. 
+        Data Table is a table contains the claim data of each classes. It column headers are:
+        [1st column]: Claim Experience 
+        [2nd column]:Hospitalization 
+        [3rd column]: Clinical 
+        [4th column]: Pregnancy 
+        [5th  column]: Major Medical  
+        [6th column]: Total 
+
+        Task:  
+        Read the table in the pdf and transpose 
+        1. rows = “Hospitalization”, “Clinical”, “Pregnancy”, “Major Medical”, “Total” 
+        2. Columns = “accrued premium”, “claims incurred”, “claims paid”, “Loss ratio”, “Usage ratio” 
+        3. Read the row “Total” from the data table, do not make up numbers  
+
+        Then based on the transposed table, generate a mastered market table output with the following requirements:  
+        1. table_headers = [“Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”, “Panel” ,“Accrued premium”, “Claims incurred”, “Claims paid”, “Loss ratio”, “Usage ratio”] 
+        2. Where [“Policy owner”, “Policy code”, “Policy Start Date”, “Policy End date”] can be found in the general information section 
+        3. For newline-separated values within cells, iterate over each line within those cells to generate individual row. 
+
+        Then based on the markdown table output generate a completed .csv file:  
+
+        Table_headers = [“Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”, “Accrued premium”, “Claims incurred”, “Claims paid”, “Loss ratio”, “Usage ratio”] 
+        
+        Note: For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+    </text>
+
+    <text data="April Usage" type="text">
+        Role: Data Input Officer  
+
+        Desired output: separated markdown output table for each page with all the data included 
+
+        PDF settings: exclude the logo at the top, there are 2 main sections in each page of the pdf: general information and data table.  
+        The general information contains: [“Policy holder", "Start date", "Reported to", "No. of days covered", "Currency", "Underwriting team", "Issue date of report" ] 
+        The data table, the headings of the data table is mentioned above the table.  
+        All the general information on the pdf for each page is the same while the format for the data table is each page is different.  
+        Read and extract the data according to the table setting on each page.  
+        Then based on the extracted content generate a markdown table: columns = [Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”,] and the columns found in the data table of each page 2. Where [“Policy owner”, “Policy code”, “Policy Start Date”, “Policy End date”] can be found in the general information section 
+        
+        Note: For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+    </text>
+
 </prompt_library>
