@@ -885,7 +885,7 @@ if st.session_state.mcr_convert == True:
 if st.session_state.ocr == True:
   # Title and description in main area
   st.markdown("""
-      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemini 2.5 Flash Preview ver.0520 OCR
+      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemini 2.5 Flash Preview (Reasoning) ver.0520 OCR
       """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
   
   def encode_pdf_to_base64(pdf_path):
@@ -964,7 +964,7 @@ if st.session_state.ocr == True:
               }
             ]
             payload = {
-              "model": "google/gemini-2.5-flash-preview-05-20",
+              "model": "google/gemini-2.5-flash-preview-05-20:thinking",
               "messages": messages,
             }
             response = requests.post(url, headers=headers, json=payload)
