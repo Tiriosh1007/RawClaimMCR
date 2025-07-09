@@ -1349,23 +1349,7 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False):
-    self.df.diagnosis = self.df.diagnosis.str.lower()
-    self.df.suboffice.fillna('00', inplace=True)
-    self.df = pd.merge(
-        left=self.df,
-        right=self.speciality_index,
-        left_on='diagnosis',
-        right_on='diagnosis',
-        how='left'
-    )
-    print(self.df.columns.tolist())
-    print(self.speciality_index.columns.tolist())
-    self.df['speciality_x'] = self.df['speciality_y']
-    self.df.drop(columns=['speciality_y'], inplace=True)
-    self.df.rename(columns={'speciality_x': 'speciality'}, inplace=True)
-    self.df['speciality'].fillna('no_index', inplace=True)
-
-
+    
 
     if aso == True:
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
@@ -1389,7 +1373,7 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
     if diagnosis == True:
-      
+      self.df.diagnosis = self.df.diagnosis.str.lower()
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('acute upper respiratory infec|common cold', case=False)] = 'acute upper respiratory infection & common cold'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)] = self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)].replace(to_replace={', unspec': '', ', unspecified': ''})
       self.df.diagnosis.loc[(self.df.diagnosis.str.contains('chlamydia', case=False)) & (self.df.insurer == 'AIA') ] = 'viral warts'
@@ -1402,9 +1386,9 @@ class RawClaimData():
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('pain in joint|pain in ankle and joints of foot|sprains and strains of ankle and foot', case=False)] = 'pain in joint and ankle'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('neck sprain|cervicalgia', case=False)] = 'cervicalgia (neck pain)'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('cataract', case=False)] = 'cataract'
-      self.df.diagnosis.loc[self.df.diagnosis.str.contains('bronchitis|bronchiolitis', case=False)] = 'bronchitis and bronchiolitis'
-      self.df.diagnosis.loc[((self.df.diagnosis.str.contains('hypertension', case=False)) & (self.df.diagnosis.str.contains('ocular', case=False) == False))|(self.df.diagnosis.str.contains('hypertensive', case=False))] = 'hypertension & hypertensive rentinopathy'
-      print('changed')
+      # self.df.diagnosis.loc[self.df.diagnosis.str.contains('bronchitis|bronchiolitis', case=False)] = 'bronchitis and bronchiolitis' # bronchitis and bronchiolitis are not the same speicality
+      self.df.diagnosis.loc[((self.df.diagnosis.str.contains('hypertension', case=False)) & (self.df.diagnosis.str.contains('ocular', case=False) == False))|((self.df.diagnosis.str.contains('hypertensive', case=False)) & (self.df.diagnosis.str.contains('retinopathy', case=False) == False))] = 'hypertension & hypertensive disease'
+      # print('changed')
     
     if common_diagnosis == True:
       self.df['common_diagnosis_flag'].fillna("others", inplace=True)
@@ -1421,9 +1405,19 @@ class RawClaimData():
     if group_optical == False:
       self.df['benefit_type'].loc[self.df['benefit_type'] == 'Optical'] = 'Clinic'
 
+    self.df.suboffice.fillna('00', inplace=True)
+    self.df = pd.merge(
+        left=self.df,
+        right=self.speciality_index,
+        left_on='diagnosis',
+        right_on='diagnosis',
+        how='left'
+    )
+    self.df['speciality_x'] = self.df['speciality_y']
+    self.df.drop(columns=['speciality_y'], inplace=True)
+    self.df.rename(columns={'speciality_x': 'speciality'}, inplace=True)
+    self.df['speciality'].fillna('no_index', inplace=True)
 
-    
-    
 
     return None
 
