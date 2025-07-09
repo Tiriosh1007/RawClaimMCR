@@ -70,11 +70,11 @@
                 i. Benefit Plan is the first row of the table, Usually it is with the format [Benefit Plan: XXXX], where XXXX is the name of the benefit plan, e.g. "001 GENERAL STAFF".
                 ii. Panel Type is the most left aligned row with underline, which is the type of panel, e.g. "Affiliate Network", "Network", "Non-Network". It indicates that the subsequent benefits and benefit types are all under this panel type. (Sometimes one page will contains more than 1 panel type)
                 iii. Benefit Type is the first level indentation rows, which is the type of benefit, e.g. "Hospitalization and Surgical Benefits", "Supplementary Major Medical", "Outpatient Benefits", "Total" etc. It indicates that the subsequent benefits (second level indentation rows, please see next point) are all under this benefit type.
-		            - If the benefit type is "Hospitalization and Surgical Benefits", "Supplementary Major Medical”, “Dental”, the benefit type is equal to the benefit. 
-		            - If the benefit type is “Outpatient Benefits”, read the benefit in the second level indentation rows, e.g. "General Physician Services", etc.
-                    - If the benefit type is "Supplementary Major Medical", it means that there are no "Presented Amt (HK$)", "Avg Presented Amt (HK$)", data in the table, and you should leave those columns empty, extract data from “Adjusted Amt (HK$)” and fill in column “Adjusted Amount (HK$)”
+		            - If the benefit type is "Hospitalization and Surgical Benefits", "Supplementary Major Medical", "Dental", the benefit type is equal to the benefit. 
+		            - If the benefit type is "Outpatient Benefits", read the benefit in the second level indentation rows, e.g. "General Physician Services", etc.
+                    - If the benefit type is "Supplementary Major Medical", it means that there are no "Presented Amt (HK$)", "Avg Presented Amt (HK$)", data in the table, and you should leave those columns empty, extract data from "Adjusted Amt (HK$)" and fill in column "Adjusted Amount (HK$)"
                     - If the benefit type is "Total" or "Claimed Total", it is the summary numbers of the previous session.
-	        (e) Leave “no_of_claimants” column empty
+	        (e) Leave "no_of_claimants" column empty
         2. Based on the extracted markdown table output, convert to .csv format text
             a. Keep the same format as the markdown table output 
             b. Keep all the rows extracted from the markdown table
@@ -98,24 +98,24 @@
         Task:  
         1. Read the table in the pdf:  
             a. The pdf id a multi-page table file grouped by ["benefit plan", "panel"] 
-            b. Identify the panel in the first row of each table: “panel” = non-network, network or affiliate network  
-            c. Section handling: for all sub-headers with the same indentation parer to prefix e.g. “Hospital Services - Minor”, “Hospital Services - Intermediate” input example as follows:  
+            b. Identify the panel in the first row of each table: "panel" = non-network, network or affiliate network  
+            c. Section handling: for all sub-headers with the same indentation parer to prefix e.g. "Hospital Services - Minor", "Hospital Services - Intermediate" input example as follows:  
                 Anesthetist Fee  
                     Minor
         2. Based on the description of the pdf, generate a master markdown table output: 
-            a. col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
-            b. For all supplementary major medical row, leave ["Presented Amt (HK$)", “Avg Presented Amt (HK$)”, “Adjusted Amt (HK$)”,  “Avg Adjusted Amt. (HK$)”] columns empty 
+            a. col = ["benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
+            b. For all supplementary major medical row, leave ["Presented Amt (HK$)", "Avg Presented Amt (HK$)", "Adjusted Amt (HK$)",  "Avg Adjusted Amt. (HK$)"] columns empty 
         3. Then based on the master markdown table generate csv text output:  
             a. col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
             b. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
-            c. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
-            d. Leave “no. of claimants” empty 
-            e. Set “benefit_type” column = "Hospital"  
-            f. no_of_claims = “No. Of services”, Incurred amount = “Presented Amt (HK$)” and paid amount = “Adjusted Amt (HK$)”. 
-            g. "policy_start_date' = first date of Date Range and “policy_end_date” = second date of Date Range in the general information section
+            c. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). "Insurer" = AIA 
+            d. Leave "no. of claimants" empty 
+            e. Set "benefit_type" column = "Hospital"  
+            f. no_of_claims = "No. Of services", Incurred amount = "Presented Amt (HK$)" and paid amount = "Adjusted Amt (HK$)". 
+            g. "policy_start_date' = first date of Date Range and "policy_end_date" = second date of Date Range in the general information section
             h. "duration_days" = the number of days between policy_start_date and policy_end_date
             i. set "policy_end_date" = "policy_start_date" + 365 days (don't change the duration_days)
-            j. Drop the section in which the section header contains “Summary” 
+            j. Drop the section in which the section header contains "Summary" 
             k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
             l. Make sure the date format is in "YYYY-MM-DD" format.
             m. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
@@ -128,15 +128,15 @@
         Role: Data Input Officer  
 
         Task: 
-        1. A markdown output of the pdf: col = [“benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
+        1. A markdown output of the pdf: col = ["benefit", "no. of claims", "presented amt", "avg presented amt", "adjusted amt", "avg adjsuted amt", "reimbursement"] 
         2. Based on this output markdown, for all supplementary major medical row, shift the value in presented amt and avg presented amt to the right for 2 cell 
         3. Generate a csv text based on the markdown output with the following columns: col_setup = [ 'policy_id', 'policy_number', 'insurer', 'client_name', 'policy_start_date', 'policy_end_date', 'duration_days', 'class', 'benefit_type", 'benefit', 'panel', 'no_of_claims', 'no_of_claimants', 'incurred_amount', 'paid_amount', ]  
         4. The policy_number is the number in the general information section right next to "Policy:", and the client_name is the policy holder in the general information section.
-        5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). “Insurer” = AIA 
+        5. "policy_id" = "policy_number" + "_" +  'policy_start_date'.format("%Y%m"). "Insurer" = AIA 
         6. For insurer, please set it to AIA and leave no of claimants as empty. no_of_claims = no. of claims, Incurred amount = presented amt and paid amount = adjusted amt. 
-        7. Drop the section in which the section header contains “Summary” 
+        7. Drop the section in which the section header contains "Summary" 
         8. Do not include date range in the client name column 
-        9. Set “benefit_type” column = "Clinic"  
+        9. Set "benefit_type" column = "Clinic"  
         10. Panel = non-network, network, or affiliate network 
         11. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
         12. Make sure the date format is in "YYYY-MM-DD" format.
@@ -150,7 +150,7 @@
         Role: Data Input Officer  
 
         Desired output: a csv format text output which combines all the data tables in the pdf into a single master table.
-        PDF Page setting:In each page, you will see 2 section, General Information, Data Table (2 blocks: non-healthnet and overall).General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
+        PDF Page setting: In each page, you will see 2 section, General Information, Data Table (2 blocks: non-healthnet and overall).General information consists of Report name, Customer Name, Contract Number, Period (data period), and data as of. 
         Data Table are table contains the claim data of each classes. It column headers are:
         [1st column]: Benefit Type 
         [2nd column]: Class 
@@ -172,26 +172,26 @@
             a. The pdf is a multi-page table file grouped by ["benefit type", "class"]  
             b. ["Benefit"] = int and ["Benefit description"] = text  
             c. At the end of each (["benefit type", "class"] ) item, there is a Total row, for total row: 
-                i. Leave [“Benefit Type”,“Benefit”, ”Benefit Description”, “Number of claimants”] empty 
-                ii. [“Class”] = f”{class}Total” 
+                i. Leave ["Benefit Type","Benefit", "Benefit Description", "Number of claimants"] empty 
+                ii. ["Class"] = f"{class}Total" 
             d. At the end of each benefit type section, there is a total row: 
-                i. [“Benefit Type”] = f”{benefit type}Total”  
-                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
+                i. ["Benefit Type"] = f"{benefit type}Total"  
+                ii. Leave ["Class", "Benefit", "Benefit Description", "Number of claimants", "Usage ratio"] empty  
             e. At the end of the table (ie. The last page), there is a grand total row: 
-                i. [“Benefit Type”] = Grand Total   
-                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
+                i. ["Benefit Type"] = Grand Total   
+                ii. Leave ["Class", "Benefit", "Benefit Description", "Number of claimants", "Usage ratio"] empty  
         2. Based on the description of the pdf, generate a markdown table output of the table: 
-            a. table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio”, "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
+            a. table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             b. For newline-separated values within cells, iterate over each line within those cells to generate individual rows 
         3. Then based on the master table markdown output, generate a csv format text output: 
-            a. A1 = “Shortfall Analysis by class” 
-            b. A3 ="Customer Name: " B3= Customer name 
-            c. A4 ="Contract Number:“ B4 =Contract number  
+            a. A1 = "Shortfall Analysis with Non-Healthnet" 
+            b. A3 = "Customer Name: " B3= Customer name 
+            c. A4 = "Contract Number:" B4 =Contract number  
             d. A5 = "Period:"      B5=start date  C5 =end date 
-            e. A6 ="# data as of: " B6 = date as of 
+            e. A6 = "# data as of: " B6 = date as of 
             f. A7 = "# Confidential" 
             g. Skip 2 rows  
-            h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio”, "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
+            h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
                 - For example, A1 = "Shortfall Analysis with Non-Healthnet", then Row 1 has to add 13 commas to the end of the row if the Data Table consists of 14 columns, so that that particular row and the csv consists of 14 columns is readable.
                 - "," padding including Any empty cell in the row, so that the csv is readable. (Row 2, 8, 9)
@@ -220,24 +220,24 @@
             a. The pdf is a multi-page table file grouped by ["benefit type", "class"]  
             b. ["Benefit"] = int and ["Benefit description"] = text  
             c. At the end of each (["benefit type", "class"] ) item, there is a Total row, for total row: 
-                i. Leave [“Benefit Type”,“Benefit”, “Benefit Description”, “Number of claimants”] empty 
-                ii. [“Class”] = f”{class}Total” 
+                i. Leave ["Benefit Type","Benefit", "Benefit Description", "Number of claimants"] empty 
+                ii. ["Class"] = f"{class}Total" 
             d. At the end of each benefit type section, there is a total row: 
-                i. [“Benefit Type”] = f”{benefit type}Total”  
-                ii. Leave [“Class”, “Benefit”, ”Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
+                i. ["Benefit Type"] = f"{benefit type}Total"  
+                ii. Leave ["Class", "Benefit", "Benefit Description", "Number of claimants", "Usage ratio"] empty  
             e. At the end of the table (ie. The last page), there is a grand total row: 
-                i. [“Benefit Type”] = Grand Total   
-                ii. Leave [“Class”, “Benefit”, “Benefit Description”, “Number of claimants”, “Usage ratio”] empty  
+                i. ["Benefit Type"] = Grand Total   
+                ii. Leave ["Class", "Benefit", "Benefit Description", "Number of claimants", "Usage ratio"] empty  
         2. Based on the description of the pdf, generate a markdown table output of the table for me: 
             a. table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             b. For newline-separated values within cells, iterate over each line within those cells to generate individual rows 
         3. Then based on the master table markdown output, generate a csv text output: 
-            a. A1 = “Shortfall Analysis by class” 
+            a. A1 = "Shortfall Analysis by class" 
             b. A3 ="Customer Name: " B3= Customer name 
-            c. A4 ="Contract Number:“ B4 =Contract number  
-            d. A5 =“Period:”      B5=start date  C5 =end date 
-            e. A6 =“# data as of: “ B6 = date as of 
-            f. A7 = “# Confidential” 
+            c. A4 ="Contract Number:" B4 =Contract number  
+            d. A5 ="Period:"      B5=start date  C5 =end date 
+            e. A6 ="# data as of: " B6 = date as of 
+            f. A7 = "# Confidential" 
             g. Skip 2 rows  
             h. A10: write the shortfall analysis using the markdown table output generated above, header included table_headers = ["Benefit Type", "Class", "Benefit", "Benefit Description", "Number of Claim Lines", "Number of Claimants", "Presented",  "Adjusted", "Usage Ratio"] 
             i. based on the number of columns starting from A10, refill the spacing by adding "," into the general information in Row 1 to Row 9 such that the csv is readable.
@@ -251,7 +251,7 @@
         Desired output: markdown table output which combines all the data tables in the pdf into a single master table. 
 
         PDF Page setting:In each page, you will see 3 section, Header, General Information and Data Table. 
-        Header locates at the top center part of the pdf, which contains “Blue Cross (Asia-Pacific) Insurance LTD.”, “Inpatient Claims Summary by Plan”, “From to”General information consists of Policy Holder, Group Code, Policy period, agent. 
+        Header locates at the top center part of the pdf, which contains "Blue Cross (Asia-Pacific) Insurance LTD.", "Inpatient Claims Summary by Plan", "From to"General information consists of Policy Holder, Group Code, Policy period, agent. 
         Data Table is a table contains the claim data of each classes. It column headers are:
         [1st column]: Benefit Description 
         [2nd column]: No. Of Visits 
@@ -268,12 +268,12 @@
             b. At the end of each level code table, there is a total row: 
             c. At the end of the table (ie. The last page), there is a grand total row: 
         2. Based on the description of the pdf, generate a markdown table output of the table for me: 
-            a. table_headers = ["Benefit Description”, “No. Of visits”, “% of total visits” "Class", “Claims Incurred”,  “Claim paid, "Usage%”, “Average claim paid”] 
+            a. table_headers = ["Benefit Description", "No. Of visits", "% of total visits" "Class", "Claims Incurred",  "Claim paid, "Usage%", "Average claim paid"] 
             b. For newline-separated values within cells, iterate over each line within those cells to generate individual row. 
         3. Then based on the markdown table output generate a completed csv text  
-            a. Table header = [“Policy number”, “Client name”, “Start date”, “End date”, ”Class" ,"Benefit Description", "Number of Claim Lines", "Presented",  "Adjusted", "Usage Ratio”].  
+            a. Table header = ["Policy number", "Client name", "Start date", "End date", "Class" ,"Benefit Description", "Number of Claim Lines", "Presented",  "Adjusted", "Usage Ratio"].  
                 i. The pdf should contain more than 1 policy holder with different policy number and agent, extract them from every page general information part 
-                ii. Drop the “$” in presented and adjusted column 
+                ii. Drop the "$" in presented and adjusted column 
         4. Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
     </text>
 
@@ -283,7 +283,7 @@
         Desired output: markdown table output which combines all the data tables in the pdf into a single master table. 
 
         PDF Page setting:In each page, you will see 3 section, Header, General Information, Data Table 
-        Header locates at the top center part of the pdf, which contains “Medical Claim Experience”, “(by Paid Date Basis)”General information consists of Insurance Company, Policy Code, Policy Owner, Period, Conversation. 
+        Header locates at the top center part of the pdf, which contains "Medical Claim Experience", "(by Paid Date Basis)"General information consists of Insurance Company, Policy Code, Policy Owner, Period, Conversation. 
         Data Table is a table contains the claim data of each classes. It column headers are:
         [1st column]: Claim Experience 
         [2nd column]:Hospitalization 
@@ -294,18 +294,18 @@
 
         Task:  
         Read the table in the pdf and transpose 
-        1. rows = “Hospitalization”, “Clinical”, “Pregnancy”, “Major Medical”, “Total” 
-        2. Columns = “accrued premium”, “claims incurred”, “claims paid”, “Loss ratio”, “Usage ratio” 
-        3. Read the row “Total” from the data table, do not make up numbers  
+        1. rows = "Hospitalization", "Clinical", "Pregnancy", "Major Medical", "Total" 
+        2. Columns = "accrued premium", "claims incurred", "claims paid", "Loss ratio", "Usage ratio" 
+        3. Read the row "Total" from the data table, do not make up numbers  
 
         Then based on the transposed table, generate a mastered market table output with the following requirements:  
-        1. table_headers = [“Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”, “Panel” ,“Accrued premium”, “Claims incurred”, “Claims paid”, “Loss ratio”, “Usage ratio”] 
-        2. Where [“Policy owner”, “Policy code”, “Policy Start Date”, “Policy End date”] can be found in the general information section 
+        1. table_headers = ["Policy Owner", "Policy code", "Policy Start Date", "Policy End date", "Panel" ,"Accrued premium", "Claims incurred", "Claims paid", "Loss ratio", "Usage ratio"] 
+        2. Where ["Policy owner", "Policy code", "Policy Start Date", "Policy End date"] can be found in the general information section 
         3. For newline-separated values within cells, iterate over each line within those cells to generate individual row. 
 
         Then based on the markdown table output generate a completed .csv file:  
 
-        Table_headers = [“Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”, “Accrued premium”, “Claims incurred”, “Claims paid”, “Loss ratio”, “Usage ratio”] 
+        Table_headers = ["Policy Owner", "Policy code", "Policy Start Date", "Policy End date", "Accrued premium", "Claims incurred", "Claims paid", "Loss ratio", "Usage ratio"] 
         
         Note: For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
     </text>
@@ -316,11 +316,11 @@
         Desired output: separated markdown output table for each page with all the data included 
 
         PDF settings: exclude the logo at the top, there are 2 main sections in each page of the pdf: general information and data table.  
-        The general information contains: [“Policy holder", "Start date", "Reported to", "No. of days covered", "Currency", "Underwriting team", "Issue date of report" ] 
+        The general information contains: ["Policy holder", "Start date", "Reported to", "No. of days covered", "Currency", "Underwriting team", "Issue date of report" ] 
         The data table, the headings of the data table is mentioned above the table.  
         All the general information on the pdf for each page is the same while the format for the data table is each page is different.  
         Read and extract the data according to the table setting on each page.  
-        Then based on the extracted content generate a markdown table: columns = [Policy Owner”, “Policy code”, “Policy Start Date”, “Policy End date”,] and the columns found in the data table of each page 2. Where [“Policy owner”, “Policy code”, “Policy Start Date”, “Policy End date”] can be found in the general information section 
+        Then based on the extracted content generate a markdown table: columns = [Policy Owner", "Policy code", "Policy Start Date", "Policy End date",] and the columns found in the data table of each page 2. Where ["Policy owner", "Policy code", "Policy Start Date", "Policy End date"] can be found in the general information section 
         
         Note: For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
     </text>
