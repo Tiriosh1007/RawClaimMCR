@@ -1349,7 +1349,7 @@ class RawClaimData():
 
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False):
-
+    self.df.diagnosis = self.df.diagnosis.str.lower()
     self.df.suboffice.fillna('00', inplace=True)
     self.df = pd.merge(
         left=self.df,
@@ -1389,7 +1389,7 @@ class RawClaimData():
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]
 
     if diagnosis == True:
-      self.df.diagnosis = self.df.diagnosis.str.lower()
+      
       self.df.diagnosis.loc[self.df.diagnosis.str.contains('acute upper respiratory infec|common cold', case=False)] = 'acute upper respiratory infection & common cold'
       self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)] = self.df.diagnosis.loc[self.df.diagnosis.str.contains(', unspec', case=False)].replace(to_replace={', unspec': '', ', unspecified': ''})
       self.df.diagnosis.loc[(self.df.diagnosis.str.contains('chlamydia', case=False)) & (self.df.insurer == 'AIA') ] = 'viral warts'
