@@ -907,7 +907,7 @@ if st.session_state.ocr == True:
   model_selection = st.pills(
     "Select Models",
     options=model_options,
-    format_func=lambda x: models_df.loc[x].values[0],
+    # format_func=lambda x: models_df.loc[x].values[0],
     selection_mode="single",
   )
 
