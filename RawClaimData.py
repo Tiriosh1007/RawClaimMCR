@@ -2143,9 +2143,6 @@ class RawClaimData():
     p29_df_grp_procedure = self.mcr_df[__p29_df_grp_procedure_col].copy(deep=True)
     p29_df_grp_procedure.dropna(subset=['minor_surgeries_grp', 'organs'], inplace=True)
 
-    # p29_df_grp_procedure['diagnosis'].fillna('No Diagnosis Provided', inplace=True)
-    # p29_df_grp_procedure = p29_df_grp_procedure.loc[p29_df_grp_procedure['benefit'] == 'Specialist Consultation (SP)']
-    # p29_df_grp_procedure.drop(columns=['benefit'], inplace=True)
     p29_df_grp_procedure = p29_df_grp_procedure.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
     # p29_df_sp_specialty = p29_df_sp_specialty.unstack()
     p29_df_grp_procedure.sort_index(ascending=__p29_sort_order, inplace=True)
