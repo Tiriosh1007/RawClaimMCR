@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <model_library>
+    <model name="gemini-2.5-flash-preview-05-20">google/gemini-2.5-flash-preview-05-20</model>
+    
     <model name="gemini-2.5-flash-preview-05-20:thinking">google/gemini-2.5-flash-preview-05-20:thinking</model>
 
-    <model name="gemini-2.5-flash-preview-05-20">google/gemini-2.5-flash-preview-05-20</model>
-
     <model name="o4-mini-high">openai/o4-mini-high</model>
-
 </model_library>
