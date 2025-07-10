@@ -2231,17 +2231,7 @@ class RawClaimData():
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
 
-        # ##### style
-        # num_format = NamedStyle(name='num', 
-        #                         font=Font(name='Univers', size=14, color='000000'),
-        #                         alignment=Alignment(horizontal='center', vertical='center'),
-        #                         number_format='#,##0')
-        # per_format = NamedStyle(name='per', 
-        #                         font=Font(name='Univers', size=14, color='000000'),
-        #                         alignment=Alignment(horizontal='center', vertical='center'),
-        #                         number_format='0%')
 
-        # writer.add_named_style(num_format)
         # writer.add_named_style(per_format)
         writer.close()
         # processed_data = output.getvalue()

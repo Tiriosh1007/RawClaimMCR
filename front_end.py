@@ -28,6 +28,7 @@ from streamlit_pdf_viewer import pdf_viewer
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
+models_df = pd.read_xml('genai_lib.xml')
 
 from RawClaimData import *
 from Shortfall import *
@@ -885,7 +886,7 @@ if st.session_state.mcr_convert == True:
 if st.session_state.ocr == True:
   # Title and description in main area
   st.markdown("""
-      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Gemini 2.5 Flash Preview (Reasoning) ver.0520 OCR
+      # <img src="data:image/png;base64,{}" width="50" style="vertical-align: -12px;"> Generative AI OCR
       """.format(base64.b64encode(open("./asset/gemma3.png", "rb").read()).decode()), unsafe_allow_html=True)
   
   def encode_pdf_to_base64(pdf_path):
@@ -899,6 +900,17 @@ if st.session_state.ocr == True:
     "Content-Type": "application/json"
   }
   
+  model_selection = st.pills(
+    "Select Models",
+    options=models_df.keys(),
+    format_func=lambda x: models_df[x],
+    selection_mode="single",
+  )
+
+  if model_selection is None:
+    model = ""
+  else:
+    model = models_df[['name', 'model']].loc[models_df.name == models_df[model_selection]].to_dict("model")[0]
 
 
   # Add clear button to top right
