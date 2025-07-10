@@ -29,6 +29,10 @@ warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
 models_df = pd.read_xml('genai_lib.xml')
+models_df.index = models_df.name
+models_df.drop(columns=['name'], inplace=True)
+model_options = models_df['model'].to_dict().keys()
+model = ""
 
 from RawClaimData import *
 from Shortfall import *
@@ -902,7 +906,7 @@ if st.session_state.ocr == True:
   
   model_selection = st.pills(
     "Select Models",
-    options=models_df.keys(),
+    options=model_options,
     format_func=lambda x: models_df[x],
     selection_mode="single",
   )
