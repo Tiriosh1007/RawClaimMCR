@@ -914,7 +914,7 @@ if st.session_state.ocr == True:
   if model_selection is None:
     model = ""
   else:
-    model = model_selection
+    model = models_df.loc[model_selection].values[0]
 
 
   # Add clear button to top right
@@ -980,7 +980,7 @@ if st.session_state.ocr == True:
               }
             ]
             payload = {
-              "model": "google/gemini-2.5-flash-preview-05-20:thinking",
+              "model": model,
               "messages": messages,
             }
             response = requests.post(url, headers=headers, json=payload)
