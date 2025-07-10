@@ -907,14 +907,14 @@ if st.session_state.ocr == True:
   model_selection = st.pills(
     "Select Models",
     options=model_options,
-    format_func=lambda x: models_df[x],
+    format_func=lambda x: models_df.loc[x].values[0],
     selection_mode="single",
   )
 
   if model_selection is None:
     model = ""
   else:
-    model = models_df[['name', 'model']].loc[models_df.name == models_df[model_selection]].to_dict("model")[0]
+    model = model_selection
 
 
   # Add clear button to top right
