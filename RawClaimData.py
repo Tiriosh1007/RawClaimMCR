@@ -83,6 +83,7 @@ class RawClaimData():
     self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
     self.speciality_index = pd.read_excel('speciality_indexing.xlsx')
+    self.minor_surg_index = pd.read_excel('minor_surgery_indexing.xlsx')
 
 
 
@@ -1417,6 +1418,14 @@ class RawClaimData():
     self.df.drop(columns=['speciality_y'], inplace=True)
     self.df.rename(columns={'speciality_x': 'speciality'}, inplace=True)
     self.df['speciality'].fillna('no_index', inplace=True)
+
+    self.df = pd.merge(
+        left=self.df,
+        right=self.minor_surg_index,
+        left_on='procedure',
+        right_on='minor_surgeries',
+        how='left'
+    )
 
 
     return None
