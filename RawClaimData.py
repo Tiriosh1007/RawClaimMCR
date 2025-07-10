@@ -83,7 +83,7 @@ class RawClaimData():
     self.upload_log = pd.DataFrame(columns=['policy_id', 'upload_time', 'insurer', 'shortfall_supplement'])
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
     self.speciality_index = pd.read_excel('speciality_indexing.xlsx')
-    self.minor_surg_index = pd.read_excel('minor_surgery_indexing.xlsx', encoding='utf-8')
+    self.minor_surg_index = pd.read_excel('minor_surgery_indexing.xlsx')
 
 
 
