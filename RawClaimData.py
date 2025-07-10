@@ -2130,6 +2130,26 @@ class RawClaimData():
       self.p29_df_sp_specialty = p29_df_sp_specialty
       return p29_df_sp_specialty
 
+  def mcr_p29_grp_procedure(self, by=None):
+    if by == None:
+      __p29_df_grp_procedure_col = ['policy_number', 'year', 'minor_surgeries_grp', 'organs', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p29_group_col = ['policy_number', 'year', 'minor_surgeries_grp', 'organs']
+      __p29_sort_order = [True, True, True, True]
+    else: 
+      __p29_df_grp_procedure_col = ['policy_number', 'year'] + by + ['minor_surgeries_grp', 'organs', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p29_group_col = ['policy_number', 'year'] + by + ['minor_surgeries_grp', 'organs']
+      __p29_sort_order = [True, True] + len(by) * [True] + [True, True]
+
+    p29_df_grp_procedure = self.mcr_df[__p29_df_grp_procedure_col].copy(deep=True)
+    p29_df_grp_procedure['diagnosis'].fillna('No Diagnosis Provided', inplace=True)
+    p29_df_grp_procedure = p29_df_grp_procedure.loc[p29_df_grp_procedure['benefit'] == 'Specialist Consultation (SP)']
+    p29_df_grp_procedure.drop(columns=['benefit'], inplace=True)
+    p29_df_grp_procedure = p29_df_grp_procedure.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    # p29_df_sp_specialty = p29_df_sp_specialty.unstack()
+    p29_df_grp_procedure.sort_index(ascending=__p29_sort_order, inplace=True)
+    self.p29_df_grp_procedure = p29_df_grp_procedure
+    return p29_df_grp_procedure
+
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     
     if type(by) is not list and by != None: by = [by]
@@ -2167,6 +2187,7 @@ class RawClaimData():
     self.mcr_p28_proce(by)
     self.mcr_p28_proce_diagnosis(by)
     self.mcr_p29_sp_speciality(by)
+    self.mcr_p29_grp_procedure(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
     self.mcr_p18b_top_diag_op(by)
@@ -2206,6 +2227,7 @@ class RawClaimData():
         self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p29_df_sp_specialty.to_excel(writer, sheet_name='P.29_SP_Speciality', index=True, merge_cells=False)
+        self.p29_df_grp_procedure.to_excel(writer, sheet_name='P.29_Grp_Procedure', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
 
