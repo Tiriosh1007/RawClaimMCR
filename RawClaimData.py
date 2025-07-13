@@ -2059,17 +2059,17 @@ class RawClaimData():
 
   def mcr_p29_grp_procedure_org(self, by=None):
 
-    __p29_df_grp_procedure_col = by + ['minor_surgeries_grp', 'organs', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+    __p29_df_grp_procedure_org_col = by + ['minor_surgeries_grp', 'organs', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
     __p29_group_col = by + ['minor_surgeries_grp', 'organs']
     __p29_sort_order = len(by) * [True] + [True, True]
 
-    p29_df_grp_procedure = self.mcr_df[__p29_df_grp_procedure_col].copy(deep=True)
-    p29_df_grp_procedure.dropna(subset=['minor_surgeries_grp', 'organs'], inplace=True)
+    p29_df_grp_procedure_org = self.mcr_df[__p29_df_grp_procedure_org_col].copy(deep=True)
+    p29_df_grp_procedure_org.dropna(subset=['minor_surgeries_grp', 'organs'], inplace=True)
 
-    p29_df_grp_procedure = p29_df_grp_procedure.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
-    p29_df_grp_procedure.sort_index(ascending=__p29_sort_order, inplace=True)
-    self.p29_df_grp_procedure = p29_df_grp_procedure
-    return p29_df_grp_procedure
+    p29_df_grp_procedure_org = p29_df_grp_procedure_org.groupby(by=__p29_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'count', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p29_df_grp_procedure_org.sort_index(ascending=__p29_sort_order, inplace=True)
+    self.p29_df_grp_procedure_org = p29_df_grp_procedure_org
+    return p29_df_grp_procedure_org
 
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     
