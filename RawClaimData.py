@@ -1459,21 +1459,17 @@ class RawClaimData():
       level_unique.append(p20_benefit_df.index.get_level_values(n00).unique().tolist())
 
     print(level_unique)
+    all_index_combinations = itertools.product(*level_unique)
+    total_rows_data = []
+    total_rows_indices = []
     
-    all_index_tuple = itertools.product(*level_unique)
-    all_index_list = []
-    for combo_tuple in all_index_tuple:
-      all_index_list.append(list(combo_tuple))
+    for indices_tuple in all_index_combinations:
+      p20_benefit_df.loc[indices_tuple, ('Total',)] = p20_benefit_df.loc[indices_tuple, :].sum()
 
-    for indices in all_index_list:
-      loc_l = indices + ['Total']
-      print(loc_l)
-      print(indices)
-      print(p20_benefit_df.index)
-      p20_benefit_df.loc[loc_l] = p20_benefit_df.loc[indices, :].sum()
 
+    # for n00 in np.arange(len(level_unique)):
+      
     
-
     # for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
     #   for __year in p20_benefit_df.index.get_level_values(1).unique():
     #       if by == None:
