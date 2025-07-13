@@ -1463,7 +1463,7 @@ class RawClaimData():
     all_index_tuple = itertools.product(*level_unique)
     all_index_list = []
     for combo_tuple in all_index_tuple:
-      all_index_list.append(list(combo_tuple))
+      all_index_list.append(list(str(combo_tuple)))
 
     for indices in all_index_list:
       loc_l = indices + ['Total']
