@@ -1842,19 +1842,19 @@ class RawClaimData():
   
   def mcr_p18a_top_diag_ip(self, by=None):
 
-    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount']
+    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
     __p18_group_col = by + ['diagnosis']
-    __p18_claimants_col = by + ['diagnosis', 'claimant']
-    __p18_claims_col = by + ['diagnosis', 'claim_id']
+    # __p18_claimants_col = by + ['diagnosis', 'claimant']
+    # __p18_claims_col = by + ['diagnosis', 'claim_id']
     __p18_sort_col = by + ['paid_amount']
     __p18_sort_order = len(by) * [True] + [False]
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p18a_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].groupby(by=__p18_group_col).sum()
-    p18a_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
-    p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claimants']
-    p18a_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
-    p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
+    p18a_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].groupby(by=__p18_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claims'})
+    # p18a_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
+    # p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claimants']
+    # p18a_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
+    # p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
     p18a_df = p18a_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
     # p18a_df = p18a_df.unstack().stack(dropna=False)
     if len(p18a_df) > 0:
@@ -1864,7 +1864,7 @@ class RawClaimData():
   
   def mcr_p18b_top_diag_op(self, by=None):
 
-    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount']
+    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
     __p18_group_col = by + ['diagnosis']
     __p18_claimants_col = by + ['diagnosis', 'claimant']
     __p18_claims_col = by + ['diagnosis', 'claim_id']
@@ -1873,11 +1873,11 @@ class RawClaimData():
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p18b_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].groupby(by=__p18_group_col).sum()
-    p18b_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
-    p18b_df['no_of_claimants'] = p18b_df_claimant['no_of_claimants']
-    p18b_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
-    p18b_df['no_of_claims'] = p18b_df_claims['no_of_claims']
+    p18b_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].groupby(by=__p18_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claims'})
+    # p18b_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
+    # p18b_df['no_of_claimants'] = p18b_df_claimant['no_of_claimants']
+    # p18b_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
+    # p18b_df['no_of_claims'] = p18b_df_claims['no_of_claims']
     p18b_df = p18b_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
     # p18a_df = p18a_df.unstack().stack(dropna=False)
     if len(p18b_df) > 0:
