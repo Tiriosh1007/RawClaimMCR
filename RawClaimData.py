@@ -1444,57 +1444,79 @@ class RawClaimData():
     return p20_policy_df
 
   def mcr_p20_benefit(self, by=None, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
-    __p20_benefit_df_col = by + ['benefit_type', 'incurred_amount', 'paid_amount', 'claimant']
-    __p20_benefit_group_col = by + ['benefit_type']
-    __p20_benefit_claims_col = by + ['benefit_type', 'incur_date']
-  
 
+    by = by or []
+    
+    cols_df   = by + ['benefit_type', 'incurred_amount', 'paid_amount', 'claimant']
+    cols_cnt  = by + ['benefit_type', 'incur_date']
+    grp_cols  = by + ['benefit_type']
+    
+    # 2) add year
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p20_benefit_df = self.mcr_df[__p20_benefit_df_col].groupby(by=__p20_benefit_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
-    level_no = len(by)
-
-    level_unique = []
-
-    for n00 in np.arange(level_no):
-      level_unique.append(p20_benefit_df.index.get_level_values(n00).unique().tolist())
-
-    print(level_unique)
-    all_index_combinations = itertools.product(*level_unique)
-    total_rows_data = []
-    total_rows_indices = []
     
-    for indices_tuple in all_index_combinations:
-      p20_benefit_df.loc[indices_tuple, ('Total',)] = p20_benefit_df.loc[indices_tuple, :].sum()
-
-
-    # for n00 in np.arange(len(level_unique)):
-      
+    # 3) sum incurred/paid and count unique claimants
+    p20 = (
+        self.mcr_df[cols_df]
+        .groupby(grp_cols, dropna=False)
+        .agg(
+            incurred_amount=('incurred_amount', 'sum'),
+            paid_amount    =('paid_amount',     'sum'),
+            no_of_claimants=('claimant',      'nunique'),
+        )
+    )
     
-    # for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
-    #   for __year in p20_benefit_df.index.get_level_values(1).unique():
-    #       if by == None:
-    #         p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
-    #       else:
-    #         for __l3 in p20_benefit_df.index.get_level_values(2).unique():
-    #           p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
-    #       # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
-
-    p20_no_claims = self.mcr_df[__p20_benefit_claims_col].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
-    p20_ip_no_claims = self.mcr_df[__p20_benefit_claims_col].loc[self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False) == True].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
-    p20_no_claims['no_of_claims'].loc[p20_no_claims.index.get_level_values(len(__p20_benefit_group_col)-1) == 'Hospital'] = p20_ip_no_claims['no_of_claims']
-
-    p20_benefit_df['usage_ratio'] = p20_benefit_df['paid_amount'] / p20_benefit_df['incurred_amount']
-    p20_benefit_df['no_of_claims'] = p20_no_claims['no_of_claims']
-    p20_benefit_df['incurred_per_claim'] = p20_benefit_df['incurred_amount'] / p20_benefit_df['no_of_claims']
-    p20_benefit_df['paid_per_claim'] = p20_benefit_df['paid_amount'] / p20_benefit_df['no_of_claims']
-    p20_benefit_df = p20_benefit_df.unstack().stack(dropna=False)
-    p20_benefit_df = p20_benefit_df.reindex(benefit_type_order, level='benefit_type')
-
-    p20_benefit_df = p20_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'incurred_per_claim', 'paid_per_claim', 'no_of_claimants']]
-
-    self.p20_benefit = p20_benefit_df
-    self.p20 = p20_benefit_df
-    return p20_benefit_df
+    # 4) build the “Total” rows by summing across benefit_type
+    if by:
+        # sum across the last level (benefit_type)
+        totals = p20.groupby(level=list(range(len(by)))).sum()
+        # expand the index to include ‘Total’ as the last level
+        new_tuples = [tuple(idx) + ('Total',) for idx in totals.index]
+        totals.index = pd.MultiIndex.from_tuples(new_tuples, names=p20.index.names)
+        # append and sort
+        p20 = pd.concat([p20, totals]).sort_index()
+    else:
+        # if no `by`, just sum everything and add one Total row
+        tot = p20.sum()
+        p20.loc[('Total',), :] = tot
+    
+    # 5) count claims
+    p20_claims = (
+        self.mcr_df[cols_cnt]
+        .groupby(grp_cols, dropna=False)
+        .count()
+        .rename(columns={'incur_date': 'no_of_claims'})
+    )
+    # override hospital to only count IP claims
+    ip_claims = (
+        self.mcr_df[self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False)][cols_cnt]
+        .groupby(grp_cols, dropna=False)
+        .count()
+        .rename(columns={'incur_date': 'no_of_claims'})
+    )
+    mask_hosp = p20_claims.index.get_level_values('benefit_type') == 'Hospital'
+    p20_claims.loc[mask_hosp, 'no_of_claims'] = ip_claims['no_of_claims']
+    
+    # 6) if you added Total rows above, reindex p20_claims to match
+    p20_claims = p20_claims.reindex(p20.index, fill_value=0)
+    
+    # 7) join, compute ratios
+    p20 = p20.join(p20_claims['no_of_claims'])
+    p20['usage_ratio']     = p20.paid_amount   / p20.incurred_amount
+    p20['incurred_per_claim'] = p20.incurred_amount / p20.no_of_claims.replace(0, pd.NA)
+    p20['paid_per_claim']     = p20.paid_amount     / p20.no_of_claims.replace(0, pd.NA)
+    
+    # 8) reorder benefit_type and columns
+    p20 = p20.reindex(benefit_type_order, level='benefit_type')
+    p20 = p20[[
+        'incurred_amount', 'paid_amount', 'usage_ratio',
+        'no_of_claims', 'incurred_per_claim', 'paid_per_claim',
+        'no_of_claimants'
+    ]]
+    
+    # 9) store and return
+    self.p20_benefit = p20
+    self.p20         = p20
+    return p20
 
   def mcr_p20_panel(self, by=None):
 
