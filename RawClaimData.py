@@ -1450,6 +1450,16 @@ class RawClaimData():
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
     p20_benefit_df = self.mcr_df[__p20_benefit_df_col].groupby(by=__p20_benefit_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
+    level_no = len(by)
+
+    level_unique = []
+
+    for n00 in np.arange(level_no):
+      level_unique.append(p20_benefit_df.index.get_level_values(n00).unique().tolist())
+
+    print(level_unique)
+
+    
     for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
       for __year in p20_benefit_df.index.get_level_values(1).unique():
           if by == None:
