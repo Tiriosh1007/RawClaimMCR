@@ -308,7 +308,7 @@ if st.session_state.raw_claim == True:
 
   by = []
   if research_toggle == False:
-    by.append('policy_id')
+    by.append('policy_number')
     by.append('year')
   else:
     by.append('year')
