@@ -1643,25 +1643,27 @@ class RawClaimData():
 
   def mcr_p24_op_benefit(self, by=None):
 
-    __p24_df_col = by + ['benefit', 'incurred_amount', 'paid_amount']
+    __p24_df_col = by + ['benefit', 'incurred_amount', 'paid_amount', 'incur_date', 'claimant']
     __p24_group_col = by + ['benefit']
-    __p24_claims_col = by + ['benefit', 'incur_date']
-    __p24_claimants_col = by + ['benefit', 'claimant']
+    # __p24_claims_col = by + ['benefit', 'incur_date']
+    # __p24_claimants_col = by + ['benefit', 'claimant']
     __p24_sort_col = by + ['paid_amount']
     __p24_sort_order = len(by) * [True] + [False]
 
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p24_op_benefit_df = self.mcr_df[__p24_df_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p24_group_col, dropna=False).sum()
+    p24_op_benefit_df = self.mcr_df[__p24_df_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p24_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'incur_date': 'count', 'claimant': 'nunique'}).rename(columns={'incur_date': 'no_of_claims', 'claimant': 'no_of_claimants'})
     p24_op_benefit_df['usage_ratio'] = p24_op_benefit_df['paid_amount'] / p24_op_benefit_df['incurred_amount']
-    p24_op_no_claims = self.mcr_df[__p24_claims_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p24_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
-    p24_op_claimant = self.mcr_df[__p24_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'benefit', 'claimant'], keep='first').groupby(by=__p24_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
-    p24_op_benefit_df['no_of_claims'] = p24_op_no_claims['no_of_claims']
+    # p24_op_no_claims = self.mcr_df[__p24_claims_col].loc[self.mcr_df['benefit_type'] == 'Clinic'].groupby(by=__p24_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
+    # p24_op_claimant = self.mcr_df[__p24_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'benefit', 'claimant'], keep='first').groupby(by=__p24_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
+    # p24_op_benefit_df['no_of_claims'] = p24_op_no_claims['no_of_claims']
     p24_op_benefit_df['incurred_per_claim'] = p24_op_benefit_df['incurred_amount'] / p24_op_benefit_df['no_of_claims']
     p24_op_benefit_df['paid_per_claim'] = p24_op_benefit_df['paid_amount'] / p24_op_benefit_df['no_of_claims']
-    p24_op_benefit_df['no_of_claimants'] = p24_op_claimant['no_of_claimants']
+    #  p24_op_benefit_df['no_of_claimants'] = p24_op_claimant['no_of_claimants']
     # p24_op_benefit_df.sort_values(by='paid_amount', ascending=False, inplace=True)
     p24_op_benefit_df = p24_op_benefit_df.unstack().stack(dropna=False)
+    p24_op_benefit_df = p24_op_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims', 'no_of_claimants', 'incurred_per_claim', 'paid_per_claim']]
+
     if len(p24_op_benefit_df) > 0:
       p24_op_benefit_df.sort_values(by=__p24_sort_col, ascending=__p24_sort_order, inplace=True)
     self.p24_op_benefit = p24_op_benefit_df
