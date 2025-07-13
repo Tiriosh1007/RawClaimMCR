@@ -1466,7 +1466,7 @@ class RawClaimData():
       all_index_list.append(list(combo_tuple))
 
     for indices in all_index_list:
-      loc_l = indices + ['Total']
+      loc_l = str(indices) + ['Total']
       print(loc_l)
       print(indices)
       p20_benefit_df.loc[loc_l] = p20_benefit_df.loc[indices, :].sum()
