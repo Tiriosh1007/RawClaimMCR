@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 import datetime as dt
 from datetime import timedelta
 import warnings
+import itertools
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize':(5,5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
@@ -1458,16 +1459,26 @@ class RawClaimData():
       level_unique.append(p20_benefit_df.index.get_level_values(n00).unique().tolist())
 
     print(level_unique)
+    
+    all_index_tuple = list(itertools.product(*level_unique))
+    all_index_list = []
+    for combo_tuple in all_index_tuple:
+      all_index_list.append(combo_tuple)
+
+    for indices in all_index_list:
+      loc_l = indices + 'Total'
+      p20_benefit_df.loc[loc_l] = p20_benefit_df.loc[indices, :].sum()
 
     
-    for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
-      for __year in p20_benefit_df.index.get_level_values(1).unique():
-          if by == None:
-            p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
-          else:
-            for __l3 in p20_benefit_df.index.get_level_values(2).unique():
-              p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
-          # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
+
+    # for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
+    #   for __year in p20_benefit_df.index.get_level_values(1).unique():
+    #       if by == None:
+    #         p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
+    #       else:
+    #         for __l3 in p20_benefit_df.index.get_level_values(2).unique():
+    #           p20_benefit_df.loc[__policy_number, __year, __l3, 'Total'] = p20_benefit_df.loc[__policy_number, __year, __l3, :].sum()
+    #       # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
 
     p20_no_claims = self.mcr_df[__p20_benefit_claims_col].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
     p20_ip_no_claims = self.mcr_df[__p20_benefit_claims_col].loc[self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False) == True].groupby(by=__p20_benefit_group_col, dropna=False).count().rename(columns={'incur_date': 'no_of_claims'})
