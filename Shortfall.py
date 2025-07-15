@@ -281,8 +281,8 @@ class Shortfall():
           aia_102 = aia_fp_df['aia_102'].iloc[i] if pd.notna(aia_fp_df['aia_102'].iloc[i]) else None
 
           aia_combined = self.__aia_usage_combine(aia_101, aia_102, aia_105)
-          aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format='%Y-%m-%d')
-          aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format='%Y-%m-%d')
+          aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], dayfirst=True)
+          aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], dayfirst=True)
           self.df = pd.concat([self.df, aia_combined], axis=0, ignore_index=True)
       else:
         raise ValueError("No AIA 105 files found in the provided list.")
