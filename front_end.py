@@ -303,6 +303,8 @@ if st.session_state.raw_claim == True:
   with mcr_by_col4:
     gender_toggle = st.toggle('MCR by gender')
   with mcr_by_col5:
+    age_toggle = st.toggle('MCR by age band')
+  with mcr_by_col6:
     diagnosis_toggle = st.toggle('MCR by diagnosis')
   
 
@@ -318,6 +320,8 @@ if st.session_state.raw_claim == True:
     by.append('suboffice')
   if gender_toggle:
     by.append('gender')
+  if age_toggle:
+    by.append('age_band')
   if diagnosis_toggle:
     by.append('diagnosis')
   if len(by) == 0:
@@ -343,7 +347,7 @@ if st.session_state.raw_claim == True:
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
     print(rej_claim_toggle)
-    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_conversion_toggle, group_optical=group_optical_toggle, research_mode=research_toggle)
+    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_conversion_toggle, group_optical=group_optical_toggle, research_mode=research_toggle, age_band=age_toggle)
 
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()

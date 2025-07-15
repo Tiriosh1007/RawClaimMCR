@@ -1350,7 +1350,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False, research_mode=False):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False, research_mode=False, age_band=False):
     
 
     if aso == True:
@@ -1433,6 +1433,13 @@ class RawClaimData():
       self.df.claim_id = self.df.policy_id + "_" + self.df.claim_id
       self.df['class'] = self.df.policy_id + "_" + self.df['class']
 
+    if age_band == True:
+      self.df['age'].fillna("No Age Provided", inplace=True)
+      self.df['age_band'] = self.df['age'].copy(deep=True)
+      bins = range(0, 101, 5)
+      labels = [f"{i}-{i+4}" for i in bins[:-1]]
+      self.df['age_band'].loc(self.df['age'].str.isnumeric() == True) = pd.cut(self.df['age'].loc[self.df['age'].str.isnumeric() == True].astype(int), bins=bins, labels=labels)
+      self.df['age_band'] = self.df['age_band'].astype(str)
 
     return None
 
