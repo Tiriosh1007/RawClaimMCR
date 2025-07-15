@@ -1982,7 +1982,7 @@ class RawClaimData():
     p28_df_prov_benefit = self.mcr_df[__p28_df_prov_col].copy(deep=True)
     p28_df_prov_benefit['provider'].fillna('No Provider Name', inplace=True)
     p28_df_prov_benefit = p28_df_prov_benefit.groupby(by=__p28_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
-    p28_df_prov_benefit = p28_df_prov_benefit.unstack()
+    # p28_df_prov_benefit = p28_df_prov_benefit.unstack()
     p28_df_prov_benefit.sort_index(ascending=__p28_sort_order, inplace=True)
     self.p28_prov_benefit = p28_df_prov_benefit
     return p28_df_prov_benefit
@@ -2059,7 +2059,7 @@ class RawClaimData():
     p28_df_proce_network= self.mcr_df[__p28_df_proce_network_col].copy(deep=True)
     p28_df_proce_network['procedure'].fillna('No Procedure Name', inplace=True)
     p28_df_proce_network = p28_df_proce_network.groupby(by=__p28_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
-    p28_df_proce_network = p28_df_proce_network.unstack()
+    # p28_df_proce_network = p28_df_proce_network.unstack()
     p28_df_proce_network.sort_index(ascending=__p28_sort_order, inplace=True)
     self.p28_proce_network = p28_df_proce_network
     return p28_df_proce_network
@@ -2185,6 +2185,7 @@ class RawClaimData():
     self.mcr_p29_sp_speciality_diag(by)
     self.mcr_p29_grp_procedure(by)
     self.mcr_p29_grp_procedure_org(by)
+    self.mcr_p29b_grp_procedure_network(by)
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
     self.mcr_p18b_top_diag_op(by)
@@ -2230,6 +2231,7 @@ class RawClaimData():
         self.p29_df_sp_specialty_diag.to_excel(writer, sheet_name='P.29_SP_Spec_Diag', index=True, merge_cells=False)
         self.p29_df_grp_procedure.to_excel(writer, sheet_name='P.29_Grp_Procedure', index=True, merge_cells=False)
         self.p29_df_grp_procedure_org.to_excel(writer, sheet_name='P.29_Grp_Proce_Org', index=True, merge_cells=False)
+        self.p29_df_grp_procedure_network.to_excel(writer, sheet_name='P.29b_Grp_Proce_Network', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
         self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
         self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
