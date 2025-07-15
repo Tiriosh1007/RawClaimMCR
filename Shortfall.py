@@ -11,7 +11,7 @@ class Shortfall():
 
   def __init__(self):
 
-    col_setup = [
+    self.col_setup = [
         'policy_id',
         'policy_number',
         'insurer',
@@ -29,7 +29,7 @@ class Shortfall():
         'paid_amount',
     ]
 
-    col_setup_dtype = {
+    self.col_setup_dtype = {
         'policy_id': str,
         'policy_number': str,
         'insurer': str,
