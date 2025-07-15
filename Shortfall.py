@@ -47,18 +47,12 @@ class Shortfall():
         'paid_amount': float,
     }
 
-
-
-    self.col_setup = col_setup
     self.df = pd.DataFrame(columns=self.col_setup)
-
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
     self.aia_file_list = []
 
 
-
   def __bupa_shortfall(self, shortfall_fp):
-
 
     if 'csv' in str(shortfall_fp):
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8')
@@ -70,7 +64,6 @@ class Shortfall():
       policy_id_ = f'{policy_no_}_{start_d_:%Y%m}'
       t_df = pd.read_csv(shortfall_fp, sep=',', encoding='utf-8', skiprows=9, dtype='str')
       
-    
     else:
       t_df = pd.read_excel(shortfall_fp, sheet_name='Report')
       client_name_ = t_df.iloc[:, 0].loc[t_df.iloc[:, 0].str.contains('Customer', case=False) == True].values[0].split(': ')[1].split('     ')[-1]
