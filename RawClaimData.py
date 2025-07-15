@@ -1436,9 +1436,9 @@ class RawClaimData():
     if age_band == True:
       self.df['age'].fillna("No Age Provided", inplace=True)
       self.df['age_band'] = self.df['age'].copy(deep=True)
-      bins = range(0, 101, 5)
-      labels = [f"{i}-{i+4}" for i in bins[:-1]]
-      self.df['age_band'].loc(self.df['age'].str.isnumeric() == True) = pd.cut(self.df['age'].loc[self.df['age'].str.isnumeric() == True].astype(int), bins=bins, labels=labels)
+      bins = range(-1, 101, 5)
+      labels = [f"{i+1}-{i+5}" for i in bins[:-1]]
+      self.df['age_band'].loc[self.df['age'].astype(str).str.isnumeric() == True] = pd.cut(self.df['age'].loc[self.df['age'].astype(str).str.isnumeric() == True].astype(int), bins=bins, labels=labels)
       self.df['age_band'] = self.df['age_band'].astype(str)
 
     return None
