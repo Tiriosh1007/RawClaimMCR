@@ -42,7 +42,7 @@ class Shortfall():
         'benefit': str,
         'panel': str,
         'no_of_claims': int,
-        'no_of_claimants': int,
+        'no_of_claimants': str,
         'incurred_amount': float,
         'paid_amount': float,
     }
