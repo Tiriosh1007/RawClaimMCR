@@ -1847,21 +1847,19 @@ class RawClaimData():
   
   def mcr_p18a_top_diag_ip(self, by=None):
 
-    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
-    __p18_group_col = by + ['diagnosis']
-    # __p18_claimants_col = by + ['diagnosis', 'claimant']
-    # __p18_claims_col = by + ['diagnosis', 'claim_id']
+    if 'diagnosis' not in by:
+      __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by + ['diagnosis']
+    else:
+      __p18_df_col = by + ['incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by
+
     __p18_sort_col = by + ['paid_amount']
     __p18_sort_order = len(by) * [True] + [False]
 
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
     p18a_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].groupby(by=__p18_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claims'})
-    # p18a_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
-    # p18a_df['no_of_claimants'] = p18a_df_claimant['no_of_claimants']
-    # p18a_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Hospital')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
-    # p18a_df['no_of_claims'] = p18a_df_claims['no_of_claims']
-    p18a_df = p18a_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
-    # p18a_df = p18a_df.unstack().stack(dropna=False)
+    p18a_df = p18a_df[['incurred_amount', 'paid_amount', 'no_of_claims', 'no_of_claimants']]
     if len(p18a_df) > 0:
       p18a_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
     self.p18a = p18a_df
@@ -1869,27 +1867,43 @@ class RawClaimData():
   
   def mcr_p18b_top_diag_op(self, by=None):
 
-    __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
-    __p18_group_col = by + ['diagnosis']
-    __p18_claimants_col = by + ['diagnosis', 'claimant']
-    __p18_claims_col = by + ['diagnosis', 'claim_id']
+    if 'diagnosis' not in by:
+      __p18_df_col = by + ['diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by + ['diagnosis']
+    else:
+      __p18_df_col = by + ['incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by
     __p18_sort_col = by + ['paid_amount']
     __p18_sort_order = len(by) * [True] + [False]
 
-
     self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
     p18b_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].groupby(by=__p18_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claims'})
-    # p18b_df_claimant = self.mcr_df[__p18_claimants_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claimant'], keep='first').groupby(by=__p18_group_col).count().rename(columns={'claimant': 'no_of_claimants'})
-    # p18b_df['no_of_claimants'] = p18b_df_claimant['no_of_claimants']
-    # p18b_df_claims = self.mcr_df[__p18_claims_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].drop_duplicates(subset=['policy_number', 'year', 'diagnosis', 'claim_id']).groupby(by=__p18_group_col).count().rename(columns={'claim_id': 'no_of_claims'})
-    # p18b_df['no_of_claims'] = p18b_df_claims['no_of_claims']
-    p18b_df = p18b_df[['no_of_claimants', 'no_of_claims', 'incurred_amount', 'paid_amount']]
-    # p18a_df = p18a_df.unstack().stack(dropna=False)
+    p18b_df = p18b_df[['incurred_amount', 'paid_amount', 'no_of_claims', 'no_of_claimants']]
     if len(p18b_df) > 0:
       p18b_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
     self.p18b = p18b_df
     return p18b_df
   
+  def mcr_p18ba_top_diag_network_op(self, by=None):
+    
+    if 'diagnosis' not in by:
+      __p18_df_col = by + ['panel', 'diagnosis', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by + ['panel','diagnosis']
+    else:
+      __p18_df_col = by + ['panel', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
+      __p18_group_col = by + ['panel']
+
+    __p18_sort_col = by + ['paid_amount']
+    __p18_sort_order = len(by) * [True] + [False]
+
+    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    p18ba_df = self.mcr_df[__p18_df_col].loc[(self.mcr_df['benefit_type'] == 'Clinic')].groupby(by=__p18_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claims'})
+    p18ba_df = p18ba_df[['incurred_amount', 'paid_amount', 'no_of_claims', 'no_of_claimants']]
+    if len(p18ba_df) > 0:
+      p18ba_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+    self.p18ba = p18ba_df
+    return p18ba_df
+
   def mcr_p27_ts(self, by=None):
 
     __p27_df_col = by + ['incur_date', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
@@ -1959,6 +1973,20 @@ class RawClaimData():
     self.p28_prov = p28_df_prov
     return p28_df_prov
 
+  def mcr_p28a_prov_benefit(self, by=None):
+
+    __p28_df_prov_col = by + ['provider', 'benefit_type', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+    __p28_group_col = by + ['provider', 'benefit_type', 'benefit']
+    __p28_sort_order = len(by) * [True] + [True, True]
+
+    p28_df_prov_benefit = self.mcr_df[__p28_df_prov_col].copy(deep=True)
+    p28_df_prov_benefit['provider'].fillna('No Provider Name', inplace=True)
+    p28_df_prov_benefit = p28_df_prov_benefit.groupby(by=__p28_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p28_df_prov_benefit = p28_df_prov_benefit.unstack()
+    p28_df_prov_benefit.sort_index(ascending=__p28_sort_order, inplace=True)
+    self.p28_prov_benefit = p28_df_prov_benefit
+    return p28_df_prov_benefit
+
   def mcr_p28_doct(self, by=None):
 
     __p28_df_doct_col = by + ['physician', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
@@ -2004,9 +2032,15 @@ class RawClaimData():
 
   def mcr_p28_proce_diagnosis(self, by=None):
 
-    __p28_df_proce_diagnosis_col = by + ['diagnosis', 'procedure', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
-    __p28_group_col = by + ['diagnosis', 'procedure', 'benefit_type']
-    __p28_sort_order = len(by) * [True] + [True, True, True]
+    if 'diagnosis' not in by:
+      __p28_df_proce_diagnosis_col = by + ['diagnosis', 'procedure', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p28_group_col = by + ['diagnosis', 'procedure', 'benefit_type']
+      __p28_sort_order = len(by) * [True] + [True, True, True]
+    else:
+      __p28_df_proce_diagnosis_col = by + ['procedure', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p28_group_col = by + ['procedure', 'benefit_type']
+      __p28_sort_order = len(by) * [True] + [True, True]
+    
 
     p28_df_proce_diagnosis = self.mcr_df[__p28_df_proce_diagnosis_col].copy(deep=True)
     p28_df_proce_diagnosis['procedure'].fillna('No Procedure Name', inplace=True)
@@ -2015,6 +2049,20 @@ class RawClaimData():
     p28_df_proce_diagnosis.sort_index(ascending=__p28_sort_order, inplace=True)
     self.p28_proce_diagnosis = p28_df_proce_diagnosis
     return p28_df_proce_diagnosis
+
+  def mcr_p28b_proce_network(self, by=None):
+
+    __p28_df_proce_network_col = by + ['panel', 'procedure', 'benefit_type', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+    __p28_group_col = by + ['panel', 'procedure', 'benefit_type', 'benefit']
+    __p28_sort_order = len(by) * [True] + [True, True, True, True]
+
+    p28_df_proce_network= self.mcr_df[__p28_df_proce_network_col].copy(deep=True)
+    p28_df_proce_network['procedure'].fillna('No Procedure Name', inplace=True)
+    p28_df_proce_network = p28_df_proce_network.groupby(by=__p28_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p28_df_proce_network = p28_df_proce_network.unstack()
+    p28_df_proce_network.sort_index(ascending=__p28_sort_order, inplace=True)
+    self.p28_proce_network = p28_df_proce_network
+    return p28_df_proce_network
 
   def mcr_p29_sp_speciality(self, by=None):
 
@@ -2034,9 +2082,14 @@ class RawClaimData():
 
   def mcr_p29_sp_speciality_diag(self, by=None):
 
-    __p29_df_sp_specialty_diag_col = by + ['speciality', 'diagnosis', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
-    __p29_group_col = by + ['speciality', 'diagnosis']
-    __p29_sort_order = len(by) * [True] + [True, True]
+    if 'diagnosis' not in by:
+      __p29_df_sp_specialty_diag_col = by + ['speciality', 'diagnosis', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p29_group_col = by + ['speciality', 'diagnosis']
+      __p29_sort_order = len(by) * [True] + [True, True]
+    else:
+      __p29_df_sp_specialty_diag_col = by + ['speciality', 'benefit', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+      __p29_group_col = by + ['speciality']
+      __p29_sort_order = len(by) * [True] + [True]
 
     p29_df_sp_specialty_diag = self.mcr_df[__p29_df_sp_specialty_diag_col].copy(deep=True)
     p29_df_sp_specialty_diag['diagnosis'].fillna('No Diagnosis Provided', inplace=True)
@@ -2108,10 +2161,12 @@ class RawClaimData():
     self.mcr_p27_ts_op(by)
     self.mcr_p28_hosp(by)
     self.mcr_p28_prov(by)
+    self.mcr_p28a_prov_benefit(by)
     self.mcr_p28_doct(by)
     self.mcr_p28a_doct(by)
     self.mcr_p28_proce(by)
     self.mcr_p28_proce_diagnosis(by)
+    self.mcr_p28b_proce_network(by)
     self.mcr_p29_sp_speciality(by)
     self.mcr_p29_sp_speciality_diag(by)
     self.mcr_p29_grp_procedure(by)
@@ -2119,6 +2174,7 @@ class RawClaimData():
     #self.mcr_p28_class_dep_ip_benefit(by)
     self.mcr_p18a_top_diag_ip(by)
     self.mcr_p18b_top_diag_op(by)
+    self.mcr_p18ba_top_diag_network_op(by)
 
     if export == True:
       from io import BytesIO
@@ -2149,17 +2205,20 @@ class RawClaimData():
         self.p27_op.to_excel(writer, sheet_name='P.27b_TimeSeries_OP', index=True, merge_cells=False)
         self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
         self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
+        self.p28_prov_benefit.to_excel(writer, sheet_name='P.28a_Provider_Benefit', index=True, merge_cells=False)
         self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
         self.p28a_doct.to_excel(writer, sheet_name='P.28a_Physician_Benefit', index=True, merge_cells=False)
         self.p28_proce.to_excel(writer, sheet_name='P.28_Procedures', index=True, merge_cells=False)
         self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
+        self.p28_proce_network.to_excel(writer, sheet_name='P.28b_Procedures_Network', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
         self.p29_df_sp_specialty.to_excel(writer, sheet_name='P.29_SP_Speciality', index=True, merge_cells=False)
         self.p29_df_sp_specialty_diag.to_excel(writer, sheet_name='P.29_SP_Spec_Diag', index=True, merge_cells=False)
         self.p29_df_grp_procedure.to_excel(writer, sheet_name='P.29_Grp_Procedure', index=True, merge_cells=False)
         self.p29_df_grp_procedure_org.to_excel(writer, sheet_name='P.29_Grp_Proce_Org', index=True, merge_cells=False)
         self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
-        self.p18b.to_excel(writer, sheet_name='P.18a_TopClinDiag', index=True, merge_cells=False)
+        self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
+        self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
 
 
         # writer.add_named_style(per_format)
