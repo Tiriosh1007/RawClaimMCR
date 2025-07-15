@@ -343,7 +343,7 @@ if st.session_state.raw_claim == True:
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
     print(rej_claim_toggle)
-    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_conversion_toggle, group_optical=group_optical_toggle)
+    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_conversion_toggle, group_optical=group_optical_toggle, research_mode=research_toggle)
 
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()

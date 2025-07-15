@@ -1350,7 +1350,7 @@ class RawClaimData():
 
 
 
-  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False):
+  def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, common_diagnosis=True, group_optical=False, research_mode=False):
     
 
     if aso == True:
@@ -1427,6 +1427,11 @@ class RawClaimData():
         right_on='minor_surgeries',
         how='left'
     )
+
+    if research_mode == True:
+      self.df.claimant = self.df.policy_id + "_" + self.df.claimant
+      self.df.claim_id = self.df.policy_id + "_" + self.df.claim_id
+      self.df['class'] = self.df.policy_id + "_" + self.df['class']
 
 
     return None
