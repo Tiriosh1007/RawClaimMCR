@@ -72,7 +72,7 @@
                 iii. Benefit Type is the first level indentation rows, which is the type of benefit, e.g. "Hospitalization and Surgical Benefits", "Supplementary Major Medical", "Outpatient Benefits", "Total" etc. It indicates that the subsequent benefits (second level indentation rows, please see next point) are all under this benefit type.
 		            - If the benefit type is "Hospitalization and Surgical Benefits", "Supplementary Major Medical", "Dental", the benefit type is equal to the benefit. 
 		            - If the benefit type is "Outpatient Benefits", read the benefit in the second level indentation rows, e.g. "General Physician Services", etc.
-                    - If the benefit type is "Supplementary Major Medical", it means that there are no "Presented Amt (HK$)", "Avg Presented Amt (HK$)", data in the table, and you should leave those columns empty, extract data from "Adjusted Amt (HK$)" and fill in column "Adjusted Amount (HK$)"
+                    - If the benefit type is "Supplementary Major Medical", it means that there are no "Presented Amt (HK$)" (incurred_amount), "Avg Presented Amt (HK$)", data in the table, and you should leave those columns empty, extract data from "Adjusted Amt (HK$)" and fill in column "Adjusted Amount (HK$)" (paid_amount)
                     - If the benefit type is "Total" or "Claimed Total", it is the summary numbers of the previous session.
 	        (e) Leave "no_of_claimants" column empty
         2. Based on the extracted markdown table output, convert to .csv format text
