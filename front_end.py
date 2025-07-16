@@ -296,6 +296,7 @@ if st.session_state.raw_claim == True:
   mcr_by_col1, mcr_by_col2, mcr_by_col3, mcr_by_col4, mcr_by_col5, mcr_by_col6 = st.columns([1,1,1,1,1,1])
   with mcr_by_col1:
     research_toggle = st.toggle('Research mode', value=False)
+    insurer_toggle = st.toggle('MCR by insurer', value=False)
   with mcr_by_col2:
     dep_toggle = st.toggle('MCR by dependent type')
   with mcr_by_col3:
@@ -314,6 +315,8 @@ if st.session_state.raw_claim == True:
     by.append('year')
   else:
     by.append('year')
+  if insurer_toggle:
+    by.append('insurer')
   if dep_toggle:
     by.append('dep_type')
   if suboffice_toggle:
