@@ -537,11 +537,11 @@ if st.session_state.shortfall == True:
     sf_ = Shortfall()
     for n0 in range(len(shortfall_files)):
       if full_file_list[n0].split("/")[-1].split("_")[0] == 'Bupa':
-        sf_.add_shortfall(full_file_list[n0], full_file_list[n0].split("/")[-1].split("_")[0], insurer='Bupa')
+        sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
       elif full_file_list[n0].split("/")[-1].split("_")[0] == 'AIA':
-        sf_.add_shortfall(full_file_list[n0], full_file_list[n0].split("/")[-1].split("_")[0], insurer='AIA')
+        sf_.add_shortfall(full_file_list[n0], insurer='AIA')
       else:
-        sf_.add_shortfall(full_file_list[n0], full_file_list[n0].split("/")[-1].split("_")[0], insurer='Bupa')
+        sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
     sf_.aia_identify()
     sf_.remove_overall()
     data_download_col1, data_download_col2= st.columns([1,1]) 
