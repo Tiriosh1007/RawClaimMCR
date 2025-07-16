@@ -252,7 +252,7 @@ class Shortfall():
     if insurer == 'Bupa':
       t_df = self.__bupa_shortfall(shortfall_fp)
 
-    if insurer == "AIA":
+    elif insurer == "AIA":
       self.aia_file_list.append(shortfall_fp)
     
     if type(t_df) == pd.DataFrame:
