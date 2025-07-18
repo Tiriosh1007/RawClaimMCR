@@ -179,6 +179,72 @@ class MemberCensus():
             #'client_name',
         }
 
+        self.axa_cols = [
+            'Policy Holder No.',
+            'Cert no',
+            "Dep. No.",
+            "Name",
+            "Sex",
+            "Date of birth",
+            "Date of employment",
+            "Aff. Name",
+            "Med/HP cls",
+            "Med. eff. date",
+            "Staff No",
+
+            "Bank code",
+            "Branch code",
+            "Account code",
+            "Marital status",
+            "Email Address",
+            "Updated Email Address",
+
+        ]
+        self.axa_cols_dtype = {
+            'Policy Holder No.': str,
+            'Cert no': str,
+            "Dep. No.": str,
+            "Name": str,
+            "Sex": str,
+            "Date of birth": str,
+            "Date of employment": str,
+            "Aff. Name": str,
+            "Med/HP cls": str,
+            "Med. eff. date": str,
+            "Staff No": str,
+
+            "Bank code": str,
+            "Branch code": str,
+            "Account code": str,
+            "Marital status": str,
+            "Email Address": str,
+            "Updated Email Address": str,
+
+        }
+
+        self.axa_cols_mapping = {
+            'Policy Holder No.': 'policy_number',
+            # 'insurer'
+            'Cert no': 'member_id',
+            "Staff No": 'staff_id',
+            "Name": 'name',
+            "Dep. No.": 'dep_type',
+            "Date of birth": 'age',
+            "Sex": 'gender',
+            #"SUB OFFICE": str,
+            #"DEPARTMENT": str,
+            "Med/HP cls": 'class',
+            #"BANK CODE": str,
+            #"BRANCH CODE": str,
+            #"Bank Account": str,
+            #"Mobile": str,
+            "Updated Email Address": 'working_email',
+
+            #'policy_start_date'
+            
+            #'client_name',
+        }
+
 
     def get_member_df(self, fp, insurer, password=None):
 
@@ -212,6 +278,20 @@ class MemberCensus():
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
                 if col not in self.hsbc_cols_mapping.values():
+                    temp_df[col] = None
+            
+            temp_df = temp_df[self.cols]
+        elif insurer == 'AXA':
+            temp_df = pd.read_excel(fp, dtype=self.axa_cols_dtype)
+            temp_df.rename(columns=self.axa_cols_mapping, inplace=True)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
+            temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
+            for col in self.cols:
+                if col not in self.axa_cols_mapping.values():
                     temp_df[col] = None
             
             temp_df = temp_df[self.cols]
