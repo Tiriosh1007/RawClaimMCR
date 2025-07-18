@@ -229,7 +229,7 @@ class MemberCensus():
             "Staff No": 'staff_id',
             "Name": 'name',
             "Dep. No.": 'dep_type',
-            "Date of birth": 'age',
+            "Date of birth": "age",
             "Sex": 'gender',
             #"SUB OFFICE": str,
             #"DEPARTMENT": str,
