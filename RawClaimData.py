@@ -1448,7 +1448,7 @@ class RawClaimData():
     __p20_policy_group_col = by
     
     self.mcr_df.policy_start_date = pd.to_datetime(self.mcr_df.policy_start_date)
-    self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
+    # self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
     p20_policy_df = self.mcr_df[__p20_policy_df_col].groupby(by=__p20_policy_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique'}).rename(columns={'claimant': 'no_of_claimants'})
     p20_policy_df['usage_ratio'] = p20_policy_df['paid_amount'] / p20_policy_df['incurred_amount']
     p20_policy_df = p20_policy_df.unstack().stack(dropna=False)

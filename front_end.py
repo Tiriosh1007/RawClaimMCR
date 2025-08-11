@@ -292,6 +292,8 @@ if st.session_state.raw_claim == True:
     diagnosis_conversion_toggle = st.toggle('Diagnosis Name Conversion', value=True)
   with mcr_filt_col5:
     group_optical_toggle = st.toggle('Group Optical', value=False)
+  with mcr_filt_col6:
+    year_incurred_toggle = st.toggle('Year by Incurred Date', value=False)
     
   mcr_by_col1, mcr_by_col2, mcr_by_col3, mcr_by_col4, mcr_by_col5, mcr_by_col6 = st.columns([1,1,1,1,1,1])
   with mcr_by_col1:
@@ -375,7 +377,7 @@ if st.session_state.raw_claim == True:
 
     with data_download_col1:
       st.download_button('MCR data', 
-                        data=raw_.mcr_pages(export=True, by=by),
+                        data=raw_.mcr_pages(export=True, by=by, year_incurred=year_incurred_toggle),
                         file_name="mcr.xlsx",
                         mime="application/vnd.ms-excel")
     
