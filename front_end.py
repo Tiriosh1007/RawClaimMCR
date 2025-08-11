@@ -192,6 +192,14 @@ if st.session_state.raw_claim == True:
         insurer_l.append('AXA single')
         policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
         password_l.append("")
+      elif 'CRD and Breakdown' in uploaded_file.name:
+        insurer_l.append('Sunlife')
+        policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
+        # password_l.append("sunlight")
+      elif'ClaimUsageReport' in uploaded_file.name:
+        insurer_l.append('Bolttech')
+        policy_sd_l.append(uploaded_file.name.split('_')[-2])
+        password_l.append("")
 
       import tempfile
       import os

@@ -1241,6 +1241,144 @@ class RawClaimData():
     t_df = t_df[self.col_setup]
     return t_df
 
+  def bolttech_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_bolttech_raw = {
+        'Policy_No': str,
+        'SubsidiaryName': str,
+        'Relationship': str,
+        'PLANDESC': str,
+        'ClaimOcc': float,
+        'Claim_Status': float,
+        'Network': str,
+        'Product_Code': str,
+        'ServiceCode': str,
+        'ServiceDesc': str,
+        'IncurredAmount': float,
+        'ActualPaid': float,
+        'RejectCode1': str,
+      }
+      bolttech_rename_col = {
+        'Policy_No': 'policy_number',
+        'SubsidiaryName': 'client_name',
+        'Relationship': 'dep_type',
+        'PLANDESC': 'class',
+        'ClaimOcc': 'claim_id',
+        'Claim_Status': 'claim_status',
+        'Network': 'panel',
+        'Product_Code': 'benefit_type',
+        'ServiceDesc': 'benefit',
+        'IncurredAmount': 'incurred_amount',
+        'ActualPaid': 'paid_amount',
+        'RejectCode1': 'claim_remark_1',
+      }
+
+    t_df = pd.read_excel(raw_claim_path, sheet_name="Raw_Claim", dtype=dtype_bolttech_raw)
+    t_df.rename(columns=bolttech_rename_col, inplace=True)
+    t_df['policy_start_date'] = policy_start_date
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'Bolttech'
+    t_df['benefit_type'].replace({'HOSP': 'Hospital', 'OUTP': 'Clinic'}, inplace=True)
+    t_df['panel'].replace({'Network': 'Panel', 'Non-Network': 'Non-Panel'}, inplace=True)
+    t_df['incur_date'] = policy_start_date
+    t_df['pay_date'] = policy_start_date
+    t_df['claimant'] = t_df['claim_id']
+    t_df['region'] = region
+    t_df['suboffice'] = '00'
+    bolttech_index = self.benefit_index[['gum_benefit', 'bolttech_benefit']]
+    t_df = pd.merge(left=t_df, right=bolttech_index, left_on='benefit', right_on='bolttech_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+    
+    
+  def sunlife_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_sunlife_raw = {
+          'claim_number': str,
+          'claim_status': str,
+          'group_policy_number': str,
+          'company_code': str,
+          'company_name_en': str,
+          'employee_code': str,
+          'dependent_code': int,
+          'employee_name': str,
+          'dependent_name': str,
+          'membership_class': str,
+          'incurred_date': str,
+          'received_date': str,
+          'payment_date': str,
+          'claim_type': str,
+          'benefit_type': str,
+          'benefit_name': str,
+          'benefit_category': str,
+          'incurred_amount': float,
+          'cob_amount': float,
+          'uncovered_amount': float,
+          'paid_amount_exclude_smm': float,
+          'paid_amount_smm': float,
+          'total_paid_amount': float,
+          'payment_gateway': str,
+      }
+      sunlife_rename_col = {
+        'claim_number': 'claim_id',
+        'claim_status': 'claim_status',
+        'group_policy_number': 'policy_number',
+        'company_name_en': 'client_name',
+        'employee_code': 'claimant',
+        'dependent_code': 'dep_type',
+        # 'employee_name': 'claimant',
+        # 'dependent_name': 'claimant',
+        'membership_class': 'class',
+        'incurred_date': 'incur_date',
+        'received_date': 'submission_date',
+        'payment_date': 'pay_date',
+        'claim_type': 'panel',
+        # 'benefit_type': 'benefit_type',
+        'benefit_name': 'benefit',
+        'benefit_category': 'benefit_type',
+        'incurred_amount': 'incurred_amount',
+        'total_paid_amount': 'paid_amount',
+      }
+    
+    date_cols = ['incur_date', 'received_date', 'payment_date']
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_sunlife_raw)
+    t_df.rename(columns=sunlife_rename_col, inplace=True)
+    t_df['policy_start_date'] = policy_start_date
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['insurer'] = 'Sunlife'
+    t_df['benefit_type'].replace({'HS': 'Hospital', 'OPCC': 'Clinic', 'UNCOVERED': 'not_covered'}, inplace=True)
+    t_df['panel'].replace({'panel': 'Panel', 'reimbursement': 'Non-Panel'}, inplace=True)
+    t_df['dep_type'].replace({0: 'EE', 1: 'SP', 2: 'CH'}, inplace=True)
+    t_df['region'] = region
+    t_df['suboffice'] = '00'
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = pd.to_datetime(t_df[col])
+      else:
+        t_df[col] = np.nan
+    sunlife_index = self.benefit_index[['gum_benefit', 'sunlife_benefit']]
+    t_df = pd.merge(left=t_df, right=sunlife_index, left_on='benefit', right_on='sunlife_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+
+
+
+
+
 
 
   def __consol_raw_claim(self, raw_claim_path):
@@ -1309,6 +1447,10 @@ class RawClaimData():
       temp_df = self.lfh_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     elif insurer == 'HSBC':
       temp_df = self.hsbc_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'Bolttech':
+      temp_df = self.bolttech_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
+    elif insurer == 'Sunlife':
+      temp_df = self.sunlife_raw_claim(raw_claim_path, password, policy_start_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
