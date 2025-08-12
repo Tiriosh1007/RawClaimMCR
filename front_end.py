@@ -298,6 +298,7 @@ if st.session_state.raw_claim == True:
     smm_toggle = st.toggle('SMM Claims Incurred to zero', value=True)
   with mcr_filt_col4:
     diagnosis_conversion_toggle = st.toggle('Diagnosis Name Conversion', value=True)
+    provider_grouping_toggle = st.toggle('Provider Grouping', value=True)
   with mcr_filt_col5:
     group_optical_toggle = st.toggle('Group Optical', value=False)
   with mcr_filt_col6:
@@ -360,7 +361,14 @@ if st.session_state.raw_claim == True:
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
     print(rej_claim_toggle)
-    raw_.preprocessing(policy_id=None, rejected_claim=rej_claim_toggle, aso=aso_toggle, smm=smm_toggle, diagnosis=diagnosis_conversion_toggle, group_optical=group_optical_toggle, research_mode=research_toggle, age_band=age_toggle)
+    raw_.preprocessing(policy_id=None, 
+                       rejected_claim=rej_claim_toggle, 
+                        aso=aso_toggle, smm=smm_toggle, 
+                        diagnosis=diagnosis_conversion_toggle,
+                        provider_grouping=provider_grouping_toggle,
+                        group_optical=group_optical_toggle, 
+                        research_mode=research_toggle, 
+                        age_band=age_toggle)
 
     if len(upload_raw_shortfall_l) > 0:
       sf_ = Shortfall()
