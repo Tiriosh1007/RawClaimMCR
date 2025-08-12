@@ -887,6 +887,8 @@ class RawClaimData():
         # 'suboffice',
         # 'region',
 
+        'LEVEL CODE': 'level_code'
+
       }
       date_cols = ['incur_date']
     
@@ -1249,8 +1251,8 @@ class RawClaimData():
         'SubsidiaryName': str,
         'Relationship': str,
         'PLANDESC': str,
-        'ClaimOcc': float,
-        'Claim_Status': float,
+        'ClaimOcc': str,
+        'Claim_Status': str,
         'Network': str,
         'Product_Code': str,
         'ServiceCode': str,
@@ -1276,13 +1278,17 @@ class RawClaimData():
 
     t_df = pd.read_excel(raw_claim_path, sheet_name="Raw_Claim", dtype=dtype_bolttech_raw)
     t_df.rename(columns=bolttech_rename_col, inplace=True)
+    
     t_df['policy_start_date'] = policy_start_date
+    t_df['policy_start_date'] = pd.to_datetime(t_df['policy_start_date'], format='%Y%m%d')
     t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f"{t_df['policy_number'].values[0]}_{_start_date:%Y%m}"
     t_df['insurer'] = 'Bolttech'
     t_df['benefit_type'].replace({'HOSP': 'Hospital', 'OUTP': 'Clinic'}, inplace=True)
     t_df['panel'].replace({'Network': 'Panel', 'Non-Network': 'Non-Panel'}, inplace=True)
-    t_df['incur_date'] = policy_start_date
-    t_df['pay_date'] = policy_start_date
+    t_df['incur_date'] = t_df['policy_start_date']
+    t_df['pay_date'] = t_df['policy_start_date']
     t_df['claimant'] = t_df['claim_id']
     t_df['region'] = region
     t_df['suboffice'] = '00'
@@ -1297,6 +1303,9 @@ class RawClaimData():
       if col not in t_df.columns.tolist():
         t_df[col] = np.nan
     t_df = t_df[self.col_setup]
+
+    
+    return t_df
     
     
   def sunlife_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, client_name=None, region='HK', col_mapper=None):
@@ -1348,12 +1357,16 @@ class RawClaimData():
         'total_paid_amount': 'paid_amount',
       }
     
-    date_cols = ['incur_date', 'received_date', 'payment_date']
+    date_cols = ['incur_date', 'submission_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_sunlife_raw)
+    t_df.drop(columns=['benefit_type'], inplace=True)
     t_df.rename(columns=sunlife_rename_col, inplace=True)
-    t_df['policy_start_date'] = policy_start_date
-    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    
     t_df['insurer'] = 'Sunlife'
+    t_df['policy_start_date'] = pd.to_datetime(policy_start_date)
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f"{t_df['policy_number'].values[0]}_{_start_date:%Y%m}"
     t_df['benefit_type'].replace({'HS': 'Hospital', 'OPCC': 'Clinic', 'UNCOVERED': 'not_covered'}, inplace=True)
     t_df['panel'].replace({'panel': 'Panel', 'reimbursement': 'Non-Panel'}, inplace=True)
     t_df['dep_type'].replace({0: 'EE', 1: 'SP', 2: 'CH'}, inplace=True)
@@ -1364,6 +1377,7 @@ class RawClaimData():
         t_df[col] = pd.to_datetime(t_df[col])
       else:
         t_df[col] = np.nan
+  
     sunlife_index = self.benefit_index[['gum_benefit', 'sunlife_benefit']]
     t_df = pd.merge(left=t_df, right=sunlife_index, left_on='benefit', right_on='sunlife_benefit', how='left')
     t_df.benefit = t_df.gum_benefit
@@ -1375,11 +1389,7 @@ class RawClaimData():
       if col not in t_df.columns.tolist():
         t_df[col] = np.nan
     t_df = t_df[self.col_setup]
-
-
-
-
-
+    return t_df
 
 
   def __consol_raw_claim(self, raw_claim_path):
@@ -1537,6 +1547,7 @@ class RawClaimData():
     
     if provider_grouping == True:
       provider_grouping_df = pd.read_csv(self.provider_grouping_path, dtype={'provider_name': str, 'mapped_name': str})
+      self.df['provider'].fillna('No Provider Provided', inplace=True)
       self.df = pd.merge(
           left=self.df,
           right=provider_grouping_df,
@@ -1804,7 +1815,7 @@ class RawClaimData():
 
   def mcr_p24_op_benefit(self, by=None):
 
-    __p24_df_col = by + ['benefit', 'incurred_amount', 'paid_amount', 'claimant', 'no_of_claim_id']
+    __p24_df_col = by + ['benefit', 'incurred_amount', 'paid_amount', 'claimant', 'claim_id']
     __p24_group_col = by + ['benefit']
     __p24_sort_col = by + ['paid_amount']
     __p24_sort_order = len(by) * [True] + [False]
@@ -2040,7 +2051,9 @@ class RawClaimData():
     __p27_sort_order = len(by) * [True] + [True]
 
     # self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
-    p27_df = self.mcr_df[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_df = self.mcr_df.dropna(subset=['incur_date'])
+    p27_df['incur_date'] = pd.to_datetime(p27_df['incur_date'])
+    p27_df = p27_df[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
     p27_df = p27_df.unstack()
     p27_df.sort_index(ascending=__p27_sort_order, inplace=True)
     self.p27 = p27_df
