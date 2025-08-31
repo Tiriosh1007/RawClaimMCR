@@ -7,4 +7,6 @@
 
     <model name="gemini-2.5-pro">google/gemini-2.5-pro</model>
 
+    <model name="gpt5">openai/gpt-5</model>
+
 </model_library>
