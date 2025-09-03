@@ -305,7 +305,7 @@ class Shortfall():
     self.df.benefit_type.loc[self.df.benefit_type.str.contains('mat', case=False)] = 'Maternity'
 
     self.df.dropna(subset=['class'], inplace=True)
-    self.df.drop_duplicates(subset=self.df.columns, keep='first')
+    self.df.drop_duplicates(subset=self.df.columns, keep='first', inplace=True)
     
     return
 
