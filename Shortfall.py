@@ -320,7 +320,32 @@ class Shortfall():
   def mcr_p20_benefit(self, by=None, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     if by == None:
       self.df['year'] = self.df.policy_start_date.dt.year
-      p20_benefit_df = self.df[['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount', 'no_of_claims']].groupby(by=['policy_number', 'year', 'benefit_type'], dropna=False).sum()
+      
+      # Separate hospital and non-hospital data
+      df_hospital = self.df[self.df['benefit_type'] == 'Hospital'].copy()
+      df_non_hospital = self.df[self.df['benefit_type'] != 'Hospital'].copy()
+
+      # Process non-hospital data as before
+      p20_non_hospital = df_non_hospital[['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount', 'no_of_claims']].groupby(by=['policy_number', 'year', 'benefit_type'], dropna=False).sum()
+
+      # Process hospital data with new logic for no_of_claims
+      if not df_hospital.empty:
+          # Group by policy, year, and benefit type for amounts
+          p20_hospital_amounts = df_hospital.groupby(['policy_number', 'year', 'benefit_type'])[['incurred_amount', 'paid_amount']].sum()
+          
+          # Filter for surgical-related benefits and calculate claims sum
+          surg_claims_df = df_hospital[df_hospital['benefit'].str.contains('surg|day proc|day centre', case=False, na=False)]
+          p20_hospital_claims = surg_claims_df.groupby(['policy_number', 'year', 'benefit_type'])['no_of_claims'].sum().to_frame()
+
+          # Merge amounts and claims, filling missing claims with 0
+          p20_hospital = p20_hospital_amounts.merge(p20_hospital_claims, left_index=True, right_index=True, how='left')
+          p20_hospital['no_of_claims'] = p20_hospital['no_of_claims'].fillna(0)
+          
+          # Combine hospital and non-hospital data
+          p20_benefit_df = pd.concat([p20_non_hospital, p20_hospital])
+      else:
+          p20_benefit_df = p20_non_hospital
+
       for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
         for __year in p20_benefit_df.index.get_level_values(1).unique():
             p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
