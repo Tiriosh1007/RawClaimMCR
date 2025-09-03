@@ -305,7 +305,7 @@ class Shortfall():
     self.df.benefit_type.loc[self.df.benefit_type.str.contains('mat', case=False)] = 'Maternity'
 
     self.df.dropna(subset=['class'], inplace=True)
-    self.df.drop_duplicates(keep='first')
+    self.df.drop_duplicates(subset=self.df.columns, bykeep='first')
     
     return
 
@@ -335,7 +335,7 @@ class Shortfall():
           p20_hospital_amounts = df_hospital.groupby(['policy_number', 'year', 'benefit_type'])[['incurred_amount', 'paid_amount']].sum()
           
           # Filter for surgical-related benefits and calculate claims sum
-          surg_claims_df = df_hospital[df_hospital['benefit'].str.contains('surg|day proc|day centre', case=False, na=False)]
+          surg_claims_df = df_hospital[df_hospital['benefit'].str.contains('surg|day proc|day centre|Hospitalization and Surgical Benefits', case=False, na=False)]
           p20_hospital_claims = surg_claims_df.groupby(['policy_number', 'year', 'benefit_type'])['no_of_claims'].sum().to_frame()
 
           # Merge amounts and claims, filling missing claims with 0
