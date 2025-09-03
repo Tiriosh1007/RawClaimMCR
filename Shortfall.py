@@ -312,15 +312,17 @@ class Shortfall():
   def mcr_p20_benefit(self, by=None, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total']):
     if by == None:
       self.df['year'] = self.df.policy_start_date.dt.year
-      p20_benefit_df = self.df[['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount']].groupby(by=['policy_number', 'year', 'benefit_type'], dropna=False).sum()
+      p20_benefit_df = self.df[['policy_number', 'year', 'benefit_type', 'incurred_amount', 'paid_amount', 'no_of_claims']].groupby(by=['policy_number', 'year', 'benefit_type'], dropna=False).sum()
       for __policy_number in p20_benefit_df.index.get_level_values(0).unique():
         for __year in p20_benefit_df.index.get_level_values(1).unique():
             p20_benefit_df.loc[__policy_number, __year, 'Total'] = p20_benefit_df.loc[__policy_number, __year, :].sum()
             # print(p20_benefit_df.loc[__policy_number, :].loc[__year, :].sum())
 
       p20_benefit_df['usage_ratio'] = p20_benefit_df['paid_amount'] / p20_benefit_df['incurred_amount']
+      p20_benefit_df.rename(columns={'no_of_claims': 'no_of_cases'}, inplace=True)
       p20_benefit_df = p20_benefit_df.unstack().stack(dropna=False)
       p20_benefit_df = p20_benefit_df.reindex(benefit_type_order, level='benefit_type')
+      p20_benefit_df = p20_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases']]
       self.p20_benefit = p20_benefit_df
       self.p20 = p20_benefit_df
     return p20_benefit_df
@@ -461,6 +463,7 @@ class Shortfall():
       p26_op_panel_df = p26_op_panel_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims']]
       p26_op_panel_df['incurred_per_claim'] = p26_op_panel_df['incurred_amount'] / p26_op_panel_df['no_of_claims']
       p26_op_panel_df['paid_per_claim'] = p26_op_panel_df['paid_amount'] / p26_op_panel_df['no_of_claims']
+      p26_op_panel_df.rename(columns={'no_of_claims': 'no_of_claim_id'}, inplace=True)
       p26_op_panel_df = p26_op_panel_df.unstack().stack(dropna=False)
       if len(p26_op_panel_df.index) > 0:
         p26_op_panel_df.sort_values(by=['policy_number', 'year', 'panel', 'paid_amount'], ascending=[True, True, True, False], inplace=True)
