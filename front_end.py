@@ -1048,7 +1048,7 @@ if st.session_state.ocr == True:
     #   file_name_to_csv = "shortfall_usage_converted.csv"
 
     # else:
-    csv_report = pd.read_csv(csv_data, sep=',', header=0, dtype='str')
+    csv_report = pd.read_csv(csv_data, sep=',', header=0, parse_dates=False)
     
     # st.write(csv_data)
     st.dataframe(csv_report)
