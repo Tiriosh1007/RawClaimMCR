@@ -297,6 +297,12 @@ class Shortfall():
     for p in policy_list:
       if "Panel" in self.df.panel.loc[self.df.policy_id == p].unique().tolist():
         self.df = self.df.loc[((self.df.policy_id == p) & (self.df.panel != 'Overall')) | (self.df.policy_id != p)]
+
+    self.df.benefit_type.loc[self.df.benefit_type.str.contains('hosp|ip', case=False)] = 'Hospital'
+    self.df.benefit_type.loc[self.df.benefit_type.str.contains('clin|outp', case=False)] = 'Clinic'
+    self.df.benefit_type.loc[self.df.benefit_type.str.contains('dent', case=False)] = 'Dental'
+    self.df.benefit_type.loc[self.df.benefit_type.str.contains('opt', case=False)] = 'Optical'
+    self.df.benefit_type.loc[self.df.benefit_type.str.contains('mat', case=False)] = 'Maternity'
     
     return
 
