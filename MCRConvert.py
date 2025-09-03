@@ -271,10 +271,10 @@ class MCRConvert():
         nonpanel_previous_start_row = nonpanel_current_start_row = 28
 
         rows = {
-            ('Panel', self.current_year): {'row': panel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'incurred_per_case', 'paid_per_case']},
-            ('Panel', self.previous_year): {'row': panel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'incurred_per_case', 'paid_per_case']},
-            ('Non-Panel', self.current_year): {'row': nonpanel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'incurred_per_case', 'paid_per_case']},
-            ('Non-Panel', self.previous_year): {'row': nonpanel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'incurred_per_case', 'paid_per_case']}
+            ('Panel', self.current_year): {'row': panel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']},
+            ('Panel', self.previous_year): {'row': panel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']},
+            ('Non-Panel', self.current_year): {'row': nonpanel_previous_start_row, 'cols': [2, 9, 10, 11, 12, 13, 14], 'values': ['benefit', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']},
+            ('Non-Panel', self.previous_year): {'row': nonpanel_current_start_row, 'cols': [3, 4, 5, 6, 7, 8], 'values': ['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']}
         }
 
         current_rows = {
