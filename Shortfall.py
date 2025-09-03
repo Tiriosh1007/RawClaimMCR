@@ -303,6 +303,8 @@ class Shortfall():
     self.df.benefit_type.loc[self.df.benefit_type.str.contains('dent', case=False)] = 'Dental'
     self.df.benefit_type.loc[self.df.benefit_type.str.contains('opt', case=False)] = 'Optical'
     self.df.benefit_type.loc[self.df.benefit_type.str.contains('mat', case=False)] = 'Maternity'
+
+    self.df.dropna(subset=['class'], inplace=True)
     
     return
 
