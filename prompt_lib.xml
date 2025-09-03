@@ -79,6 +79,7 @@
             a. Keep the same format as the markdown table output 
             b. Keep all the rows extracted from the markdown table
             c. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+            d. Make sure the date format is in "YYYY-MM-DD" format.
     </text>
 
     <text data="AIA 101 Hosp Usage" type="text">

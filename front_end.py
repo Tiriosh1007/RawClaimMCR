@@ -1073,7 +1073,7 @@ if st.session_state.ocr == True:
       file_name_to_csv = "consolidated_usage_report.csv"
 
     st.download_button('Shortfall/ Usage Converted', 
-                        data=csv_report.to_csv(index=False).encode('utf-8'),
+                        data=csv_report.to_csv(index=False, date_format='%Y-%m-%d').encode('utf-8'),
                         file_name=file_name_to_csv,
                         mime="application/vnd.ms-excel")
     
