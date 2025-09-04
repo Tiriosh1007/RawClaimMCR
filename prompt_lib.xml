@@ -78,7 +78,7 @@
         2. Based on the extracted markdown table output, convert to .csv format text
             a. Keep the same format as the markdown table output 
             b. Keep all the rows extracted from the markdown table
-            c. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+            c. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space "_" to avoid the csv format error.
             d. Make sure the date format is in "YYYY-MM-DD" format.
     </text>
 
@@ -119,7 +119,7 @@
             j. Drop the section in which the section header contains "Summary" 
             k. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
             l. Make sure the date format is in "YYYY-MM-DD" format.
-            m. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+            m. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space "_" to avoid the csv format error.
 
         Desired output: generate 1 csv text with all plans included.
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
@@ -141,7 +141,7 @@
         10. Panel = non-network, network, or affiliate network 
         11. Format the class column as title-case the existing names (e.g. 001 President, 002 Office Staff-Director Or Above, etc.)
         12. Make sure the date format is in "YYYY-MM-DD" format.
-        13. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
+        13. For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space "_" to avoid the csv format error.
 
         Desired output: generate 1 csv text with all plans included named policy_num-client_name
         Check the csv text to make sure that all the columns are correctly formatted and aligned. If the number of columns of each row are not the same, please adjust the padding, or reassess the value if they are placed at the right position.
