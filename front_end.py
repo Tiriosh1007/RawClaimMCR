@@ -984,7 +984,8 @@ if st.session_state.ocr == True:
   with st.sidebar:
     st.header("Upload PDF")
     uploaded_file = st.file_uploader("Choose pdf...",
-                                    type=['pdf'], accept_multiple_files=False) 
+                                    # type=['pdf'], 
+                                    accept_multiple_files=False) 
       
     if uploaded_file is not None:
 
