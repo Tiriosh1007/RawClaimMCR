@@ -1598,7 +1598,7 @@ class RawClaimData():
     if research_mode == True:
       self.df.claimant = self.df.policy_id + "_" + self.df.claimant
       self.df.claim_id = self.df.policy_id + "_" + self.df.claim_id
-      self.df['class'] = self.df.policy_id + "_" + self.df['class']
+      # self.df['class'] = self.df.policy_id + "_" + self.df['class']
 
     if age_band == True:
       self.df['age'].fillna("No Age Provided", inplace=True)
