@@ -307,6 +307,8 @@ class Shortfall():
     self.df.dropna(subset=['class'], inplace=True)
     self.df = self.df.loc[self.df.benefit_type.isin(['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity'])]
     self.df.drop_duplicates(subset=self.df.columns, keep='first', inplace=True)
+
+    self.full_df = self.df
     
     
     return
