@@ -16,7 +16,8 @@ from pathlib import Path
 # OCR Setup
 # ========================================================================================================
 
-open_rounter_api_key = st.secrets['api_key']
+# open_rounter_api_key = st.secrets['api_key']
+open_rounter_api_key = "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"
 prompt_lib_xml = 'prompt_lib.xml'
 prompt_lib = pd.read_xml('prompt_lib.xml')
 prompt = ""
@@ -161,6 +162,7 @@ if st.session_state.raw_claim == True:
   insurer_l = []
   password_l = []
   policy_sd_l = []
+  policy_dd_l = []
   
   uploaded_file_list = []
   full_file_list = []
@@ -173,24 +175,31 @@ if st.session_state.raw_claim == True:
       if 'EB' in uploaded_file.name:
         insurer_l.append('AXA')
         policy_sd_l.append(uploaded_file.name.split('_')[3])
+        policy_dd_l.append(''.join([uploaded_file.name.split('_')[4].split(' - ')[0][:6], '01']))
         password_l.append("".join(['axa', str(dt.date.today().year)]))
       elif 'HSD' in uploaded_file.name or 'GMD' in uploaded_file.name:
         insurer_l.append('AIA')
         __d = uploaded_file.name.split('(')[-1].split("-")[0]
         __d = "".join([__d[-4:], __d[0:2], __d[2:4]])
         policy_sd_l.append(__d)
+        __d = uploaded_file.name.split('(')[-1].split("-")[1].split(")")[0]
+        __d = "".join([__d[-4:], __d[0:2], '01'])
+        policy_dd_l.append(__d)
         password_l.append("")
       elif 'Claims Raw' in uploaded_file.name:
         insurer_l.append('Bupa')
         policy_sd_l.append("".join([uploaded_file.name.split('-')[0].split(' ')[-1],'01']))
+        policy_dd_l.append("".join([uploaded_file.name.split('-')[1][0:6],'01']))
         password_l.append("")
       elif 'Consolidation Report' in uploaded_file.name:
         insurer_l.append('Blue Cross')
         policy_sd_l.append(uploaded_file.name.split('_')[-1].split(' to ')[0])
+        policy_dd_l.append(uploaded_file.name.split('_')[-1].split(' to ')[1][0:8])
         password_l.append("")
       elif 'AXA_single' in uploaded_file.name:
         insurer_l.append('AXA single')
         policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
+        policy_dd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[1][0:6],'01']))
         password_l.append("")
       elif 'CRD and Breakdown' in uploaded_file.name:
         insurer_l.append('Sunlife')
@@ -213,10 +222,9 @@ if st.session_state.raw_claim == True:
   insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
   password_df = pd.DataFrame(password_l, columns=['Password'])
   policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
+  policy_dd_df = pd.DataFrame(policy_dd_l, columns=['Policy data date'])
 
-  
-
-  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df], axis=1, ignore_index=False)
+  file_config = pd.concat([file_config, insurer_df, password_df, policy_sd_df, policy_dd_df], axis=1, ignore_index=False)
   file_config['Password'].loc[file_config['Insurer'] != 'AXA'] = None
   
 
@@ -243,6 +251,7 @@ if st.session_state.raw_claim == True:
   gb.configure_column('Insurer', editable=True)
   gb.configure_column('Password', editable=True)
   gb.configure_column('Policy start date', editable=True)
+  gb.configure_column('Policy data date', editable=True)
   gb.configure_column('Client Name', editable=True)
   gb.configure_column('Region', editable=True)
 
@@ -292,8 +301,11 @@ if st.session_state.raw_claim == True:
   mcr_filt_col1, mcr_filt_col2, mcr_filt_col3, mcr_filt_col4, mcr_filt_col5, mcr_filt_col6 = st.columns([1,1,1,1,1,1])
   with mcr_filt_col1:
     rej_claim_toggle = st.toggle('Filter Rejected Claims', value=True)
-  with mcr_filt_col2:
     aso_toggle = st.toggle('Filter ASO Claims', value=True)
+  with mcr_filt_col2:
+    st.write('No of Claimant will not be adjusted for IBNR and Annualization')
+    annualize_toggle = st.toggle('Annualize MCR', value=True)
+    ibnr_toggle = st.toggle('IBNR in MCR', value=True)
   with mcr_filt_col3:
     smm_toggle = st.toggle('SMM Claims Incurred to zero', value=True)
   with mcr_filt_col4:
@@ -322,6 +334,7 @@ if st.session_state.raw_claim == True:
 
   by = []
   if research_toggle == False:
+    by.append('policy_id')
     by.append('policy_number')
     by.append('year')
   else:
@@ -358,6 +371,7 @@ if st.session_state.raw_claim == True:
                         insurer=file_config['Insurer'].iloc[n0], 
                         password=file_config['Password'].iloc[n0], 
                         policy_start_date=file_config['Policy start date'].iloc[n0], 
+                        policy_data_date=file_config['Policy data date'].iloc[n0],
                         client_name=file_config['Client Name'].iloc[n0], 
                         region=file_config['Region'].iloc[n0])
     print(rej_claim_toggle)
@@ -393,7 +407,7 @@ if st.session_state.raw_claim == True:
 
     with data_download_col1:
       st.download_button('MCR data', 
-                        data=raw_.mcr_pages(export=True, by=by, year_incurred=year_incurred_toggle),
+                        data=raw_.mcr_pages(export=True, by=by, year_incurred=year_incurred_toggle, annualize=annualize_toggle, ibnr=ibnr_toggle),
                         file_name="mcr.xlsx",
                         mime="application/vnd.ms-excel")
     
@@ -984,8 +998,7 @@ if st.session_state.ocr == True:
   with st.sidebar:
     st.header("Upload PDF")
     uploaded_file = st.file_uploader("Choose pdf...",
-                                    type=['pdf'], 
-                                    accept_multiple_files=False) 
+                                    type=['pdf'], accept_multiple_files=False) 
       
     if uploaded_file is not None:
 
@@ -1002,8 +1015,7 @@ if st.session_state.ocr == True:
       
       
       binary_data = uploaded_file.getvalue()
-      if 'pdf' in uploaded_file.type:
-        pdf_viewer(input=pdf_path_full, width=700)
+      pdf_viewer(input=pdf_path_full, width=700)
       
       if st.button("Extract Text 🔍", type="primary"):
         with st.spinner("Processing image..."):
