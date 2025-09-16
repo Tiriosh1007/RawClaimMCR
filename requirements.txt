@@ -7,7 +7,6 @@ plotly
 seaborn
 streamlit-aggrid
 openpyxl
-openpyxl.styles
 dateutil.relativedelta
 pygwalker
 chart_studio
