@@ -16,7 +16,8 @@ from pathlib import Path
 # OCR Setup
 # ========================================================================================================
 
-open_rounter_api_key = st.secrets['api_key']
+# open_rounter_api_key = st.secrets['api_key']
+open_rounter_api_key = "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"
 prompt_lib_xml = 'prompt_lib.xml'
 prompt_lib = pd.read_xml('prompt_lib.xml')
 prompt = ""
@@ -40,6 +41,7 @@ from ColumnNameManagement import *
 from MemberCensus import *
 from MCRConvert import *
 from BlueCrossUsageReportConvert import *
+from IBNRTool import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -50,8 +52,8 @@ if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
 if 'shortfall' not in st.session_state:
   st.session_state.shortfall = False
-if 'col_management' not in st.session_state:
-  st.session_state.col_management = False
+if 'ibnr_tool' not in st.session_state:
+  st.session_state.ibnr_tool = False
 if 'member_census' not in st.session_state:
   st.session_state.member_census = False
 if 'mcr_convert' not in st.session_state:
@@ -76,20 +78,21 @@ with function_col1:
     st.session_state.dep_type_paid_class = False
     st.session_state.pygwalker = False
     st.session_state.mcr_data = False
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.member_census = False
     st.session_state.member_census_proceed = False
     st.session_state.mcr_convert = False
     st.session_state.mcr_convert_uploaded = False
     st.session_state.ocr = False
     st.session_state.ocr_result = False
+    st.session_state.ibnr_calculate = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
     st.session_state.raw_claim = True
     st.session_state.shortfall = False
     st.session_state.shortfall_process = False
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
@@ -99,14 +102,14 @@ with function_col3:
     st.session_state.shortfall = True
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
 
 with function_col4:
-  if st.button('Column Management'):
-    st.session_state.col_management = True
+  if st.button('IBNR Tool'):
+    st.session_state.ibnr_tool = True
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
@@ -116,7 +119,7 @@ with function_col4:
 
 with function_col5:
   if st.button('Member Census'):
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
@@ -126,7 +129,7 @@ with function_col5:
 
 with function_col6:
   if st.button('Convert MCR'):
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
@@ -136,7 +139,7 @@ with function_col6:
 
 with function_col7:
   if st.button('OCR'):
-    st.session_state.col_management = False
+    st.session_state.ibnr_tool = False
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
     st.session_state.raw_process = False
@@ -303,8 +306,8 @@ if st.session_state.raw_claim == True:
     aso_toggle = st.toggle('Filter ASO Claims', value=True)
   with mcr_filt_col2:
     st.write('No of Claimant will not be adjusted for IBNR and Annualization')
-    annualize_toggle = st.toggle('Annualize MCR', value=True)
-    ibnr_toggle = st.toggle('IBNR in MCR', value=True)
+    annualize_toggle = st.toggle('Annualize MCR', value=False)
+    ibnr_toggle = st.toggle('IBNR in MCR', value=False)
   with mcr_filt_col3:
     smm_toggle = st.toggle('SMM Claims Incurred to zero', value=True)
   with mcr_filt_col4:
@@ -594,118 +597,45 @@ if st.session_state.shortfall == True:
     
 
 # ========================================================================================================
-# Column Name Management Session (to be fixed)
+# IBNR
 # ========================================================================================================
 
 
 
-if st.session_state.col_management == True:
-  
+if st.session_state.ibnr_tool == True:
+
+  if 'ibnr_calculate' not in st.session_state:
+    st.session_state.ibnr_calculate = False
+
   st.write("""
   # Gain Miles Assurance Consultancy Ltd
 
   """)
   st.write("---")
 
-  st.header('Column Management Tool')
-
-  col_manage = ColNameMgnt()
-  filter_col1, filter_col2, filter_col3 = st.columns([1,1,1])
-
-  insurer_l = col_manage.col_df['insurer'].unique()
-  col_name_l = col_manage.col_df['col_name'].unique()
-  with filter_col1:
-    insurer_filter = st.selectbox(
-    "Insurer Filter",
-    options=insurer_l,
-    index=None,
-    placeholder="Select Insurer",
-    )
-  with filter_col2:
-    col_filter = st.selectbox(
-      "Column Filter",
-      options=col_name_l,
-      index=None,
-      placeholder="Select Our Column Name",
-    )
-
-  for_display = col_manage.col_df.copy(deep=True)
-  if insurer_filter != None:
-    for_display = for_display[col_manage.col_df['insurer'] == insurer_filter]
-  if col_filter != None:
-    for_display = for_display[col_manage.col_df['col_name'] == col_filter]
-  st.dataframe(for_display)
+  st.header('IBNR Calculation Tool')
   st.write("---")
-  st.write("Update Column Name: [link](https://docs.google.com/spreadsheets/d/18nqxO0SIYJ2d9r0_Gz1IKySDb-7KdhswpTH8K85dp-o/edit?usp=sharing)")
-  if False:"""st.write('#### Add Column Name')
-  df_to_add = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])
-  add_col_name_col1, add_col_name_col2, add_col_name_col3, add_col_name_col4 = st.columns([1,1,1,1])
-  with add_col_name_col1:
-    add_insurer = st.selectbox(
-      "Insurer",
-      options=insurer_l,
-      index=None,
-      placeholder="Insurer",
-    )
-  with add_col_name_col2:
-    add_ins_col_name = st.text_input('Insurer Column Name')
-  with add_col_name_col3:
-    add_our_col_name = st.selectbox(
-      "Our Column Name",
-      options=col_name_l,
-      index=None,
-      placeholder="Our Column Name",
-    )
-  with add_col_name_col4:
-    add_col_data_type = st.selectbox(
-      "Data Type (Please select 'object' for Dates)",
-      options=['object', 'int', 'float'],
-      index=None,
-      placeholder="Data Type",
-    )
-  if st.button('Add Column Name'):
-    df_to_add = pd.concat([df_to_add, pd.DataFrame([[add_insurer, add_ins_col_name, add_our_col_name, add_col_data_type]], columns=['insurer', 'ins_col_name', 'col_name', 'data_type'])])
-  if len(df_to_add) > 0:
-    st.dataframe(df_to_add)
+  ibnr_file = st.file_uploader("Upload Processed Raw Claims file", accept_multiple_files=False)
+  no_of_month = st.slider("Month for IBNR estimation:", 1, 12, 8)
+  no_of_lag = st.slider("Lag months to consider:", 0, 11, 0)
 
-  st.write('---')
-  st.write('#### Remove Column Name')
-  remove_col_name_col1, remove_col_name_col2, remove_col_name_col3 = st.columns([1,1,1])
-  df_to_remove = pd.DataFrame(columns=['insurer', 'ins_col_name', 'col_name'])
-  with remove_col_name_col1:
-    remove_insurer = st.selectbox(
-      "Remove Insurer",
-      options=insurer_l,
-      index=None,
-      placeholder="Insurer",
-    )
-  with remove_col_name_col2:
-    remove_col_name = st.selectbox(
-      "Remove Our Column Name",
-      options=col_name_l,
-      index=None,
-      placeholder="Our Column Name",
-    )
-  remove_ins_col_l = col_manage.col_df['ins_col_name'].loc[(col_manage.col_df['insurer'] == remove_insurer) & (col_manage.col_df['col_name'] == remove_col_name)].unique()
-  with remove_col_name_col3:
-    remove_ins_col = st.selectbox(
-      "Remove Insurer Column Name",
-      options=remove_ins_col_l,
-      index=None,
-      placeholder="Insurer Column Name",
-    )
-  if st.button('Remove Column Name'):
-    df_to_remove = pd.concat([df_to_remove, pd.DataFrame([[remove_insurer, remove_ins_col, remove_col_name]], columns=['insurer', 'ins_col_name', 'col_name'])])
-  if len(df_to_remove) > 0:
-    st.dataframe(df_to_remove)
+  if st.button('File Upload Confirm, Proceed!'):
+    st.session_state.ibnr_calculate = True
 
+  if st.session_state.ibnr_calculate == True:
+    import tempfile
+    import os
+    temp_dir = tempfile.mkdtemp()
+    path = os.path.join(temp_dir, ibnr_file.name)
+    with open(path, "wb") as f:
+      f.write(ibnr_file.getvalue())
 
-  st.write('---')
-  if st.button('Confirm Update Column Name'):
-    col_manage.add_col_mapper(df_to_add)
-    col_manage.remove_col_mapper(df_to_remove)
-    st.write('Column Name Updated!')
-    st.session_state.col_management = False"""
+    ibnr_tool_ = IBNRTool(path, no_of_month, no_of_lag)
+    st.download_button('IBNR Verification Report', 
+                        data=ibnr_tool_.run(),
+                        file_name="ibnr_verification_report.xlsx",
+                        mime="application/vnd.ms-excel")
+  
 
 
 # ========================================================================================================

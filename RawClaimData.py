@@ -1629,6 +1629,7 @@ class RawClaimData():
       self.df['age_band'] = self.df['age_band'].astype(str)
 
     self.df['policy_end_date'] = self.df['policy_start_date'] + pd.DateOffset(years=1) - pd.DateOffset(days=1)
+    
 
     return None
 
@@ -3508,6 +3509,7 @@ class RawClaimData():
     if type(by) is list:
       if 'dep_type' in by:
         self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
+    
     
     self.mcr_policy_info(by)
     self.mcr_p20_policy(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
