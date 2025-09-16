@@ -16,8 +16,7 @@ from pathlib import Path
 # OCR Setup
 # ========================================================================================================
 
-# open_rounter_api_key = st.secrets['api_key']
-open_rounter_api_key = "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"
+open_rounter_api_key = st.secrets['api_key']
 prompt_lib_xml = 'prompt_lib.xml'
 prompt_lib = pd.read_xml('prompt_lib.xml')
 prompt = ""
