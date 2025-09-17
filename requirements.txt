@@ -7,7 +7,6 @@ plotly
 seaborn
 streamlit-aggrid
 openpyxl
-dateutil
 pygwalker
 chart_studio
 xlrd
