@@ -348,6 +348,9 @@ class MemberCensus():
             temp_df = temp_df[self.cols]
         elif insurer == 'AIA':
             temp_df = pd.read_excel(fp, dtype=self.aia_cols_dtype)
+
+            if 'ProdName' in temp_df.columns:
+                temp_df = temp_df.drop_duplicates(subset=['PolNo', 'MemberID', 'BenplnCd', 'DepType', 'Name'], keep='last')
             temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
