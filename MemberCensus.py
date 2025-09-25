@@ -26,6 +26,8 @@ class MemberCensus():
             # 'staff_id',
             'working_email',
             'client_name',
+
+            'suboffice'
         ]
         self.col_mapping_setting()
         self.member_df = pd.DataFrame(columns=self.cols)
@@ -245,6 +247,55 @@ class MemberCensus():
             #'client_name',
         }
 
+        self.aia_cols = [
+            'PolNo',
+            'SuboffCode',
+            "SubOffName",
+            "MemberID",
+            "CertNo",
+            "ProdName",
+            "BenplnCd",
+            "CovgCode",
+            "DepType",
+            "Name",
+            "DoB",
+            "Sex",
+            "Marital",
+            "BankAc",
+        ]
+        self.aia_cols_dtype = {
+            'PolNo': str,
+            'SuboffCode': str,
+            "SubOffName": str,
+            "MemberID": str,
+            "CertNo": str,
+            "ProdName": str,
+            "BenplnCd": str,
+            "CovgCode": str,
+            "DepType": str,
+            "Name": str,
+            "DoB": str,
+            "Sex": str,
+            "Marital": str,
+            "BankAc": str,
+        }
+        self.aia_cols_mapping = {
+            'PolNo': 'policy_number',
+            # 'insurer'
+            'MemberID': 'member_id',
+            'DepType': 'dep_type',
+            'BenplnCd': 'class',
+            'Name': 'name',
+            'Sex': 'gender',
+            'DoB': 'age',
+            # 'policy_start_date',
+            # 'staff_id',
+            # 'working_email',
+            'SubOffName': 'client_name',
+            'SuboffCode': 'suboffice'
+        }
+
+
 
     def get_member_df(self, fp, insurer, password=None):
 
@@ -295,10 +346,26 @@ class MemberCensus():
                     temp_df[col] = None
             
             temp_df = temp_df[self.cols]
+        elif insurer == 'AIA':
+            temp_df = pd.read_excel(fp, dtype=self.aia_cols_dtype)
+            temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            temp_df['policy_start_date'] = None
+            temp_df['age'] = pd.to_datetime(temp_df['age'])
+            ref_date = datetime.datetime.now()
+            temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
+            for col in self.cols:
+                if col not in self.aia_cols_mapping.values():
+                    temp_df[col] = None
+            
+            temp_df = temp_df[self.cols]
 
         self.member_df = pd.concat([self.member_df, temp_df], axis=0)
         return self.member_df
-    
+        
+            
     def member_df_processing(self):
         gender_mapping = {'Male': 'M',
                           'Female': 'F'}
