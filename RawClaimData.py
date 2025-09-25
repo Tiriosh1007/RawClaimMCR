@@ -1528,7 +1528,7 @@ class RawClaimData():
       self.df = self.df.loc[self.df.benefit_type != 'ASO']
 
     if rejected_claim == True:
-      reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form']
+      reject_claim_words = ['submit', 'resumit', 'submission', 'receipt', 'signature', 'photo', 'provide', 'form', 'Amount claimed for was already processed by another insurer']
       self.df.claim_remark_1.fillna('no_remark', inplace=True)
       # Bupa claim remark = Reject Code so it must be rejected
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark_1 != 'no_remark')] = 'R'
