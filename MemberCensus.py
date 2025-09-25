@@ -351,7 +351,7 @@ class MemberCensus():
             temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
-            temp_df['policy_start_date'] = None
+            temp_df['policy_start_date'] = datetime.datetime.now()
             temp_df['age'] = pd.to_datetime(temp_df['age'])
             ref_date = datetime.datetime.now()
             temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
