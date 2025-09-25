@@ -812,6 +812,7 @@ class RawClaimData():
     t_df = t_df[self.col_setup]
 
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('aso', case=False)] = 'ASO'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HMO-HS', case=False)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('hosp', case=False)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('clin', case=False)] = 'Clinic'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('dent', case=False)] = 'Dental'
