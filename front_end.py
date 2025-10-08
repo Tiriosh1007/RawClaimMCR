@@ -799,12 +799,17 @@ if st.session_state.mcr_convert == True:
     with open(path, "wb") as f:
       f.write(mcr_file_uploaded.getvalue())
 
+  presentation_mode = st.toggle('Presentation Mode', value=False, key='presentation_mode')
+
   if st.button('Confirm MCR Analysis File Upload'):
     st.session_state.mcr_convert_uploaded = True
   
   if st.session_state.mcr_convert_uploaded == True:
     st.write("---")
-    mcr_convert_  = MCRConvert(path)
+    if presentation_mode == False:
+      mcr_convert_  = MCRConvert(path)
+    else:
+      mcr_convert_  = PresentationConvert(path)
     st.dataframe(mcr_convert_.policy_info)
     mcr_covert_policy_info_df = mcr_convert_.policy_info.copy(deep=True)
     
