@@ -533,14 +533,14 @@ class PresentationConvert():
 
 
 
-    def save(self, output_file):
-        #from io import BytesIO
-        #output_file = BytesIO()
+    def save(self):
+        from io import BytesIO
+        output_file = BytesIO()
         try:
-            self.template_wb.save(output_file) 
-            print(f"File saved successfully as '{output_file}'") 
-            #self.template_wb.save(output_file)
-            #return output_file.getvalue()
+            # self.template_wb.save(output_file)
+            # print(f"File saved successfully as '{output_file}'")
+            self.template_wb.save(output_file)
+            return output_file.getvalue()
         except Exception as e:
             print(f"An error occurred while saving the file into the BytesIO: {e}")
 
