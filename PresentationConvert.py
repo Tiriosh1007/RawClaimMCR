@@ -402,7 +402,7 @@ class PresentationConvert():
         top_prev = prev_df.nlargest(10, 'paid_amount').reset_index(drop=True)
         top_curr = curr_df.nlargest(10, 'paid_amount').reset_index(drop=True)
 
-        template_p18 = self.template_wb["P18_TopHospDiag"]
+        template_p18 = self.template_wb["P.18_TopHospDiag"]
 
         start_row = 3
 
@@ -484,7 +484,7 @@ class PresentationConvert():
         top_prev = prev_df.nlargest(10, 'paid_amount').reset_index(drop=True)
         top_curr = curr_df.nlargest(10, 'paid_amount').reset_index(drop=True)
 
-        template_p19 = self.template_wb["P19_TopClinDiag"]
+        template_p19 = self.template_wb["P.19_TopClinDiag"]
 
         start_row = 3
 
