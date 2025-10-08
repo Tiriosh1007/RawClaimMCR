@@ -50,8 +50,8 @@ class PresentationConvert():
             print(f"An error occurred: {e}")
 
     def set_policy_input(self,
-                         previous_year_start_date, previous_year_end_date, previous_year, 
-                         current_year_start_date, current_year_end_date, current_year, previous_policy_num, current_policy_num
+                         previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
+                         current_policy_num, current_year_start_date, current_year_end_date, current_year
                          ):
         
         self.previous_year, self.current_year = previous_year, current_year
