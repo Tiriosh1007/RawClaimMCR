@@ -179,7 +179,7 @@ class PresentationConvert():
         P22_format_row_num = [13,20,27,34,45,52,59,66,77,84,91,98]
 
         plan_num, P22_format_row_num = pd.Series(plan_num).astype(str), pd.Series(P22_format_row_num)
-        current_plan_row_df = pd.concat([plan_num, P22_format_row_num],axis=1, ignore_index=True).dropna()
+        current_plan_row_df = pd.concat([plan_num, P22_format_row_num],axis=1, ignore_index=True).fillna("N/A")
         current_plan_row_df.columns = ['plan', "start_row"]
         
         previous_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
@@ -301,7 +301,7 @@ class PresentationConvert():
         # creating dataframe for handling non-panel data
         P25_nonpanel_row_num = [13,27,41,60,74,88,107,121,135,154,168,182]
         plan_num, P25_nonpanel_row_num = pd.Series(plan_num).astype(str), pd.Series(P25_nonpanel_row_num)
-        nonpanel_plan_row_df = pd.concat([plan_num, P25_nonpanel_row_num],axis=1, ignore_index=True).dropna()
+        nonpanel_plan_row_df = pd.concat([plan_num, P25_nonpanel_row_num],axis=1, ignore_index=True).fillna("N/A")
         nonpanel_plan_row_df.columns = ['plan', "start_row"]
 
         previous_nonpanel_row_dict = nonpanel_plan_row_df.set_index('plan')['start_row'].to_dict()
@@ -310,7 +310,7 @@ class PresentationConvert():
         # creating dataframe for handling panel data
         P25_panel_row_num  = [20,34,48,67,81,95,114,128,142,161,175,189]
         plan_num, P25_panel_row_num = pd.Series(plan_num).astype(str), pd.Series(P25_panel_row_num)
-        panel_plan_row_df = pd.concat([plan_num, P25_panel_row_num],axis=1, ignore_index=True).dropna()
+        panel_plan_row_df = pd.concat([plan_num, P25_panel_row_num],axis=1, ignore_index=True).fillna("N/A")
         panel_plan_row_df.columns = ['plan', "start_row"]
         
         previous_panel_row_dict = panel_plan_row_df.set_index('plan')['start_row'].to_dict()
@@ -355,7 +355,7 @@ class PresentationConvert():
 
     def P26_by_class(self):
         input_p26 = self.mcr_p26_op_panel_benefit.loc[((self.mcr_p26_op_panel_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p26_op_panel_benefit["year"] == self.current_year)) | 
-                                                      ((self.mcr_p26_op_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p26_op_panel_benefit["year"] == self.previous_year))].dropna()
+                                                      ((self.mcr_p26_op_panel_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p26_op_panel_benefit["year"] == self.previous_year))].fillna("N/A")
         template_p26 = self.template_wb["P26_Usage_Clinical by Network"]
 
         panel_previous_start_row = panel_current_start_row = 7
