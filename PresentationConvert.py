@@ -119,14 +119,14 @@ class PresentationConvert():
                 if row["year"] == self.previous_year:
                     previous_start_row +=1
                     previous_num_of_claim +=1
-                    template_p20.cell(row=previous_num_of_claim, column=2).value = row['no_of_claims']
+                    template_p20.cell(row=previous_num_of_claim, column=2).value = row['no_of_claim_id']
                     for col, val in zip([2,3,4], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):                      
                         template_p20.cell(row=previous_start_row, column=col).value = val
 
                 elif row["year"] == self.current_year:
                     current_start_row += 1
                     current_num_of_claim += 1
-                    template_p20.cell(row=current_num_of_claim, column=6).value = row['no_of_claims']
+                    template_p20.cell(row=current_num_of_claim, column=6).value = row['no_of_claim_id']
                     for col, val in zip([6,7,8], [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
                         template_p20.cell(row=current_start_row, column=col).value = val
 
