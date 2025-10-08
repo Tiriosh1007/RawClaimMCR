@@ -151,7 +151,7 @@ class PresentationConvert():
     
     def P21_by_class(self):
         input_p21 = self.mcr_p21_class.loc[((self.mcr_p21_class["policy_number"] == self.current_policy_num) & (self.mcr_p21_class["year"] == self.current_year)) | 
-                                           ((self.mcr_p21_class["policy_number"] == self.previous_policy_num) & (self.mcr_p21_class["year"] == self.previous_year))].dropna()
+                                           ((self.mcr_p21_class["policy_number"] == self.previous_policy_num) & (self.mcr_p21_class["year"] == self.previous_year))].fillna("N/A")
         template_p21 = self.template_wb["P21_Usage by Class"]
 
         current_start_row = previous_start_row = 7
@@ -170,7 +170,7 @@ class PresentationConvert():
 
     def P22_by_class(self):
         input_p22 = self.mcr_p22_class_benefit.loc[((self.mcr_p22_class_benefit["policy_number"] == self.current_policy_num) & (self.mcr_p22_class_benefit["year"] == self.current_year)) | 
-                                                   ((self.mcr_p22_class_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p22_class_benefit["year"] == self.previous_year))]
+                                                   ((self.mcr_p22_class_benefit["policy_number"] == self.previous_policy_num) & (self.mcr_p22_class_benefit["year"] == self.previous_year))].fillna("N/A")
         template_p22 = self.template_wb["P22_Usage by Class by Ben"]
 
         input_p22.fillna(0, inplace=True)
