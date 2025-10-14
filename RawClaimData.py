@@ -1917,6 +1917,48 @@ class RawClaimData():
       p20_panel_clin_df = p20_panel_clin_df[['incurred_amount', 'paid_amount', 'usage_ratio',]]
     self.p20_panel_clin = p20_panel_clin_df
     return p20_panel_clin_df
+  
+  def mcr_p20_day_procedure(self, by=None, annualize=False, ibnr=False, research_mode=False):
+
+
+    __p20_dp_df_col = by + ['day_procedure_flag', 'incurred_amount', 'paid_amount']
+    __p20_dp_group_col = by.copy() + ['day_procedure_flag']
+    
+    p20_dp_df = self.mcr_df[__p20_dp_df_col].groupby(by=__p20_dp_group_col, dropna=False).sum()
+    p20_dp_df['usage_ratio'] = p20_dp_df['paid_amount'] / p20_dp_df['incurred_amount']
+    p20_dp_df = p20_dp_df.unstack().stack(dropna=False)
+
+    if annualize == True or ibnr == True:
+      p20_dp_df = pd.merge(p20_dp_df, self.mcr_factor_df, how='left', left_index=True, right_index=True)
+      p20_panel_factoring = p20_dp_df.copy(deep=True)
+      if annualize == True:
+        p20_panel_factoring['incurred_amount'] = p20_panel_factoring['incurred_amount'] * (12 / p20_panel_factoring['data_month'])
+        p20_panel_factoring['paid_amount']     = p20_panel_factoring['paid_amount']     * (12 / p20_panel_factoring['data_month'])
+      if ibnr == True:
+        p20_panel_factoring['incurred_amount'] = p20_panel_factoring['incurred_amount'] * (1 + p20_panel_factoring['ibnr'])
+        p20_panel_factoring['paid_amount']     = p20_panel_factoring['paid_amount']     * (1 + p20_panel_factoring['ibnr'])
+      p20_panel_diff = p20_panel_factoring[['incurred_amount', 'paid_amount',]] - p20_dp_df[['incurred_amount', 'paid_amount',]]
+      temp_by = __p20_dp_group_col.copy()
+      temp_by.remove('year') if 'year' in temp_by else temp_by
+      temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
+      p20_panel_diff = p20_panel_diff.reset_index(drop=False)[temp_by + ['incurred_amount', 'paid_amount',]].groupby(by=temp_by, dropna=False).sum()
+      p20_dp_df.reset_index().set_index(temp_by, inplace=True)
+      p20_dp_df.loc[p20_dp_df.factoring == True, ['incurred_amount', 'paid_amount',]] = p20_dp_df.loc[p20_dp_df.factoring == True, ['incurred_amount', 'paid_amount',]].add(p20_panel_diff)
+      temp_by = __p20_dp_group_col.copy()
+      temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
+      p20_dp_df = p20_dp_df.reset_index()[temp_by + ['incurred_amount', 'paid_amount',]].groupby(by=temp_by, dropna=False).sum()
+      p20_dp_df['usage_ratio'] = p20_dp_df['paid_amount'] / p20_dp_df['incurred_amount']
+
+    __p20_dp_group_col.remove('policy_id') if 'policy_id' in __p20_dp_group_col else __p20_dp_group_col
+    p20_dp_df = p20_dp_df.reset_index().set_index(__p20_dp_group_col)
+    p20_dp_df = p20_dp_df[['incurred_amount', 'paid_amount', 'usage_ratio',]]
+
+    if research_mode == True:
+      p20_dp_df = p20_dp_df.reset_index().groupby(by=__p20_dp_group_col, dropna=False).sum()
+      p20_dp_df['usage_ratio'] = p20_dp_df['paid_amount'] / p20_dp_df['incurred_amount']
+      p20_dp_df = p20_dp_df[['incurred_amount', 'paid_amount', 'usage_ratio',]]
+    self.p20_dp = p20_dp_df
+    return p20_dp_df
 
   def mcr_p21_class(self, by=None, annualize=False, ibnr=False, research_mode=False):
 
@@ -3524,6 +3566,7 @@ class RawClaimData():
     self.mcr_p20_benefit(by, benefit_type_order, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p20_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p20_panel_clin(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    self.mcr_p20_day_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p21_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p22_class_benefit(by, benefit_type_order, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p23_ip_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
@@ -3570,6 +3613,7 @@ class RawClaimData():
         self.p20.to_excel(writer, sheet_name='P.20_BenefitType', index=True, merge_cells=False)
         self.p20_panel.to_excel(writer, sheet_name='P.20_Network', index=True, merge_cells=False)
         self.p20_panel_clin.to_excel(writer, sheet_name='P.20_Network_Clinic', index=True, merge_cells=False)
+        self.p20_dp.to_excel(writer, sheet_name='P.20_Day_Prod', index=True, merge_cells=False)
         self.p21.to_excel(writer, sheet_name='P.21_Class', index=True, merge_cells=False)
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
         self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
