@@ -1630,12 +1630,15 @@ class RawClaimData():
       self.df['age_band'] = self.df['age_band'].astype(str)
 
     self.df['policy_end_date'] = self.df['policy_start_date'] + pd.DateOffset(years=1) - pd.DateOffset(days=1)
-
+    self.df['day_procedure_flag'] = False
     self.df['day_procedure_flag'] = (
     self.df['claim_id'].isin(
         self.df.loc[self.df['benefit'].str.contains(r"Surgeon Fee - Minor|day centre", case=False, na=False),'claim_id'].unique())
     & ~self.df['benefit'].isin(['Daily Room & Board'])
     )
+    self.df['day_procedure_flag'].loc[self.df['day_procedure_flag'] == True] = "day_procedure_case"
+    self.df['day_procedure_flag'].loc[(self.df['day_procedure_flag'] == False) & (self.df['benefit_type'].str.contains('hosp', case=False))] = "other_hospital"
+    self.df['day_procedure_flag'].loc[self.df['day_procedure_flag'] == False] = "other_clicic_dental"
     return None
 
   def mcr_policy_info(self, by=None):
