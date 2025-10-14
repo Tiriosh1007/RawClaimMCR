@@ -1630,7 +1630,12 @@ class RawClaimData():
       self.df['age_band'] = self.df['age_band'].astype(str)
 
     self.df['policy_end_date'] = self.df['policy_start_date'] + pd.DateOffset(years=1) - pd.DateOffset(days=1)
-    
+
+    ##### Day Procedure Flag
+
+    self.df['day_procedure_flag'] = False
+
+    self.df['day_procedure_flag'].loc[self.df.benefit.loc[self.df.claim_id.isin(self.df.claim_id.loc[self.df.benefit.str.contains("Surgeon Fee - Minor|day centre", case=False)])].isin(['Daily Room & Board']) == False] = True
 
     return None
 
