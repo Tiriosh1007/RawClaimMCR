@@ -236,7 +236,7 @@ class Shortfall():
       combined['class']
       .astype(str)
       .str.extract(r'(0*\d+.)', expand=False)
-    )
+    ).str.lower()
 
     combined = combined.loc[combined['benefit'].str.contains('Total', case=False) == False]
 
