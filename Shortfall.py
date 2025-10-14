@@ -201,12 +201,9 @@ class Shortfall():
       return
     df105 = pd.read_csv(csv_105, dtype=self.col_setup_dtype)
     if csv_101:
-      df105 = df105.loc[~df105['benefit'].isin([
-        "Hospitalization and Surgical Benefits",
-        "Top-up/SMM"
-      ])]
+      df105 = df105.loc[~df105['benefit'].str.contains("Hospitalization and Surgical Benefits|Top-up|SMM|Hosp|IP|inpatient", case=False)]
     if csv_102:
-      df105 = df105.loc[~df105['benefit_type'].isin(["OUTPATIENT BENEFITS/CLINICAL"])]
+      df105 = df105.loc[~df105['benefit_type'].str.contains("OUTPATIENT|CLINICAL|OP", case=False)]
 
     dfs = []
     if csv_101:
