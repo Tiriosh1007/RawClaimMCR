@@ -405,7 +405,7 @@ class Shortfall():
       # p23_ip_benefit_df['no_of_claims'] = p23_ip_no_claims['no_of_claims']
       p23_ip_benefit_df = p23_ip_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claims']]
       p23_ip_benefit_df = p23_ip_benefit_df.unstack().stack(dropna=False)
-      p23_ip_benefit_df = p23_ip_benefit_df.reindex(self.ip_order, level='benefit')
+      # p23_ip_benefit_df = p23_ip_benefit_df.reindex(self.ip_order, level='benefit')
       self.p23_ip_benefit = p23_ip_benefit_df
       self.p23 = p23_ip_benefit_df
     return p23_ip_benefit_df
