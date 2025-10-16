@@ -1633,7 +1633,7 @@ class RawClaimData():
     self.df['day_procedure_flag'] = False
     self.df['day_procedure_flag'] = (
     self.df['claim_id'].isin(
-        self.df.loc[self.df['benefit'].str.contains(r"Surgeon Fee - Minor|day centre", case=False, na=False),'claim_id'].unique())
+        self.df.loc[self.df['benefit'].str.contains(r"Surgeon Fee - Minor|day centre|Surgeon Fee - Non Classified (AXA)", case=False, na=False),'claim_id'].unique())
     & ~self.df['benefit'].isin(['Daily Room & Board'])
     )
     self.df['day_procedure_flag'].loc[self.df['day_procedure_flag'] == True] = "day_procedure_case"
