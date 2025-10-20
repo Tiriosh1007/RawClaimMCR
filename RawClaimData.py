@@ -3710,10 +3710,10 @@ class RawClaimData():
     # __dep.claimant = __dep.policy_number.str.cat(__dep.year.astype(str), sep='_').str.cat(__dep.claimant, sep='_')
     __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice', 'age', 'gender']]
     __dep.drop_duplicates(subset=['claimant', 'suboffice'], keep='first', inplace=True)
-    __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date']].dropna()
-    __freq_df_panel = __freq_df.loc[(__freq_df.benefit.isin(freq_op_list))&(__freq_df.panel == "Panel")].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
-    __freq_df_non_panel = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)&(__freq_df.panel == "Non-Panel")].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
-    __freq_df = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
+    __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date', 'panel']].dropna()
+    __freq_df_panel = __freq_df.loc[(__freq_df.benefit.isin(freq_op_list))&(__freq_df.panel == "Panel")].drop(columns='panel').groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
+    __freq_df_non_panel = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)&(__freq_df.panel == "Non-Panel")].drop(columns='panel').groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
+    __freq_df = __freq_df.drop(columns='panel').loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
     
     # print(__freq_df)
     __freq_df = __freq_df.unstack()
