@@ -3711,56 +3711,132 @@ class RawClaimData():
     __dep = __dep[['claimant', 'dep_type', 'class', 'suboffice', 'age', 'gender']]
     __dep.drop_duplicates(subset=['claimant', 'suboffice'], keep='first', inplace=True)
     __freq_df = self.df[['policy_number', 'year', 'claimant', 'benefit', 'incur_date']].dropna()
+    __freq_df_panel = __freq_df.loc[(__freq_df.benefit.isin(freq_op_list))&(__freq_df.panel == "Panel")].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
+    __freq_df_non_panel = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)&(__freq_df.panel == "Non-Panel")].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
     __freq_df = __freq_df.loc[__freq_df.benefit.isin(freq_op_list)].groupby(['policy_number', 'year', 'claimant', 'benefit']).count()
+    
     # print(__freq_df)
     __freq_df = __freq_df.unstack()
+    __freq_df_panel = __freq_df_panel.unstack()
+    __freq_df_non_panel = __freq_df_non_panel.unstack()
     __dep.index = __dep['claimant'].values.tolist()
     __freq_df.columns = __freq_df.columns.droplevel()
+    __freq_df_panel.columns = __freq_df_panel.columns.droplevel()
+    __freq_df_non_panel.columns = __freq_df_non_panel.columns.droplevel()
 
     for col in total_visit_col:
       if col not in __freq_df.columns:
         __freq_df[col] = np.nan
+      if col not in __freq_df_panel.columns:
+        __freq_df_panel[col] = np.nan
+      if col not in __freq_df_non_panel.columns:
+        __freq_df_non_panel[col] = np.nan
     __freq_df['total_claims'] = __freq_df[total_visit_col].sum(axis=1)
+    __freq_df_panel['total_claims'] = __freq_df_panel[total_visit_col].sum(axis=1)
+    __freq_df_non_panel['total_claims'] = __freq_df_non_panel[total_visit_col].sum(axis=1)
     # __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=False)
     # print(__dep)
     # print(__freq_df)
     #__freq_df = pd.merge(left=__freq_df, right=__dep, left_index=True, right_index=True, how='left')
     __freq_df = pd.merge(left=__freq_df, right=__dep, left_on='claimant', right_index=True, how='left').drop(columns=['claimant'])
     __freq_df = __freq_df.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__dep, left_on='claimant', right_index=True, how='left').drop(columns=['claimant'])
+    __freq_df_panel = __freq_df_panel.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__dep, left_on='claimant', right_index=True, how='left').drop(columns=['claimant'])
+    __freq_df_non_panel = __freq_df_non_panel.sort_values(by=['policy_number', 'year', 'total_claims'], ascending=[True, True, False])
 
     __freq_df['GP + SP'] = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)']].sum(axis=1)
     __freq_df['Physio + Chiro'] = __freq_df[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
+    __freq_df_panel['GP + SP'] = __freq_df_panel[['General Consultation (GP)', 'Specialist Consultation (SP)']].sum(axis=1)
+    __freq_df_panel['Physio + Chiro'] = __freq_df_panel[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
+    __freq_df_non_panel['GP + SP'] = __freq_df_non_panel[['General Consultation (GP)', 'Specialist Consultation (SP)']].sum(axis=1)
+    __freq_df_non_panel['Physio + Chiro'] = __freq_df_non_panel[['Chiro (CT)', 'Physio (PT)']].sum(axis=1)
 
     __freq_df = __freq_df.reset_index()
+    __freq_df_panel = __freq_df_panel.reset_index()
+    __freq_df_non_panel = __freq_df_non_panel.reset_index()
+
     __freq_sum_benefit_df = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().stack(dropna=False)
     __freq_sum_benefit_df = __freq_sum_benefit_df.reindex(total_visit_col, level='benefit').unstack()
-    print(__freq_sum_benefit_df.columns.get_level_values(1).to_list())
+    __freq_sum_benefit_df_panel = self.df[['claimant', 'benefit', 'paid_amount']].loc[(self.df.benefit.isin(total_visit_col))&(self.df.panel == "Panel")].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().stack(dropna=False)
+    __freq_sum_benefit_df_panel = __freq_sum_benefit_df_panel.reindex(total_visit_col, level='benefit').unstack()
+    __freq_sum_benefit_df_non_panel = self.df[['claimant', 'benefit', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)&(self.df.panel == "Non-Panel")].groupby(['claimant', 'benefit']).mean().rename(columns={'paid_amount': 'total_paid'}).unstack().stack(dropna=False)
+    __freq_sum_benefit_df_non_panel = __freq_sum_benefit_df_non_panel.reindex(total_visit_col, level='benefit').unstack()
+
     __freq_sum_benefit_df.columns = __freq_sum_benefit_df.columns.get_level_values(1).to_list()
+    __freq_sum_benefit_df_panel.columns = __freq_sum_benefit_df_panel.columns.get_level_values(1).to_list()
+    __freq_sum_benefit_df_non_panel.columns = __freq_sum_benefit_df_non_panel.columns.get_level_values(1).to_list()
     for col in total_visit_col:
       if col not in __freq_sum_benefit_df.columns:
         __freq_sum_benefit_df[col] = np.nan
+      if col not in __freq_sum_benefit_df_panel.columns:
+        __freq_sum_benefit_df_panel[col] = np.nan
+      if col not in __freq_sum_benefit_df_non_panel.columns:
+        __freq_sum_benefit_df_non_panel[col] = np.nan
     __freq_sum_benefit_df = __freq_sum_benefit_df[total_visit_col]
+    __freq_sum_benefit_df_panel = __freq_sum_benefit_df_panel[total_visit_col]
+    __freq_sum_benefit_df_non_panel = __freq_sum_benefit_df_non_panel[total_visit_col]
 
     __freq_sum_benefit_df.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
+    __freq_sum_benefit_df_panel.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
+    __freq_sum_benefit_df_non_panel.columns = [f'{b}_paid_per_claim' for b in total_visit_col]
     __freq_inc_benefit_df = self.df[['claimant', 'benefit', 'incurred_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant', 'benefit']).mean().rename(columns={'incurred_amount': 'total_incurred'}).unstack().stack(dropna=False)
     __freq_inc_benefit_df = __freq_inc_benefit_df.reindex(total_visit_col, level='benefit').unstack()
+    __freq_inc_benefit_df_panel = self.df[['claimant', 'benefit', 'incurred_amount']].loc[(self.df.benefit.isin(total_visit_col))&(self.df.panel == "Panel")].groupby(['claimant', 'benefit']).mean().rename(columns={'incurred_amount': 'total_incurred'}).unstack().stack(dropna=False)
+    __freq_inc_benefit_df_panel = __freq_inc_benefit_df_panel.reindex(total_visit_col, level='benefit').unstack()
+    __freq_inc_benefit_df_non_panel = self.df[['claimant', 'benefit', 'incurred_amount']].loc[self.df.benefit.isin(total_visit_col)&(self.df.panel == "Non-Panel")].groupby(['claimant', 'benefit']).mean().rename(columns={'incurred_amount': 'total_incurred'}).unstack().stack(dropna=False)
+    __freq_inc_benefit_df_non_panel = __freq_inc_benefit_df_non_panel.reindex(total_visit_col, level='benefit').unstack()
 
     __freq_inc_benefit_df.columns = __freq_inc_benefit_df.columns.get_level_values(1).to_list()
+    __freq_inc_benefit_df_panel.columns = __freq_inc_benefit_df_panel.columns.get_level_values(1).to_list()
+    __freq_inc_benefit_df_non_panel.columns = __freq_inc_benefit_df_non_panel.columns.get_level_values(1).to_list()
     for col in total_visit_col:
       if col not in __freq_inc_benefit_df.columns:
         __freq_inc_benefit_df[col] = np.nan
+      if col not in __freq_inc_benefit_df_panel.columns:
+        __freq_inc_benefit_df_panel[col] = np.nan
+      if col not in __freq_inc_benefit_df_non_panel.columns:
+        __freq_inc_benefit_df_non_panel[col] = np.nan
     __freq_inc_benefit_df = __freq_inc_benefit_df[total_visit_col]
+    __freq_inc_benefit_df_panel = __freq_inc_benefit_df_panel[total_visit_col]
+    __freq_inc_benefit_df_non_panel = __freq_inc_benefit_df_non_panel[total_visit_col]
 
     __freq_inc_benefit_df.columns = [f'{b}_incurred_per_claim' for b in total_visit_col]
+    __freq_inc_benefit_df_panel.columns = [f'{b}_incurred_per_claim' for b in total_visit_col]
+    __freq_inc_benefit_df_non_panel.columns = [f'{b}_incurred_per_claim' for b in total_visit_col]
     __freq_sum_df = self.df[['claimant', 'paid_amount']].loc[self.df.benefit.isin(total_visit_col)].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
+    __freq_sum_df_panel = self.df[['claimant', 'paid_amount']].loc[(self.df.benefit.isin(total_visit_col))&(self.df.panel == "Panel")].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
+    __freq_sum_df_non_panel = self.df[['claimant', 'paid_amount']].loc[(self.df.benefit.isin(total_visit_col))&(self.df.panel == "Non-Panel")].groupby(['claimant']).sum().rename(columns={'paid_amount': 'total_paid'})
+    
     __freq_df = pd.merge(left=__freq_df, right=__freq_inc_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_benefit_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df = pd.merge(left=__freq_df, right=__freq_sum_df, left_on='claimant', right_on='claimant', how='left')
+
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__freq_inc_benefit_df_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__freq_sum_benefit_df_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__freq_sum_df_panel, left_on='claimant', right_on='claimant', how='left')
+
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__freq_inc_benefit_df_non_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__freq_sum_benefit_df_non_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__freq_sum_df_non_panel, left_on='claimant', right_on='claimant', how='left')
+
     __freq_dx_df = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[self.df.benefit.str.contains('DX', case=False)].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'paid_amount': 'Diagnostic: X-Ray & Lab Test (DX)_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_dx_df, left_on='claimant', right_on='claimant', how='left')
     __freq_pm_df = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[self.df.benefit.str.contains('PM', case=False)].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Prescribed Medicine (PM)_incurred', 'paid_amount': 'Prescribed Medicine (PM)_paid'})
     __freq_df = pd.merge(left=__freq_df, right=__freq_pm_df, left_on='claimant', right_on='claimant', how='left')
     __freq_df['paid_per_claim'] = __freq_df['total_paid'] / __freq_df['total_claims']
+
+    __freq_dx_df_panel = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[(self.df.benefit.str.contains('DX', case=False))&(self.df.panel == "Panel")].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'paid_amount': 'Diagnostic: X-Ray & Lab Test (DX)_paid'})
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__freq_dx_df_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_pm_df_panel = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[(self.df.benefit.str.contains('PM', case=False))&(self.df.panel == "Panel")].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Prescribed Medicine (PM)_incurred', 'paid_amount': 'Prescribed Medicine (PM)_paid'})
+    __freq_df_panel = pd.merge(left=__freq_df_panel, right=__freq_pm_df_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_panel['paid_per_claim'] = __freq_df_panel['total_paid'] / __freq_df_panel['total_claims']
+
+    __freq_dx_df_non_panel = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[(self.df.benefit.str.contains('DX', case=False))&(self.df.panel == "Non-Panel")].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'paid_amount': 'Diagnostic: X-Ray & Lab Test (DX)_paid'})
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__freq_dx_df_non_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_pm_df_non_panel = self.df[['claimant', 'incurred_amount', 'paid_amount']].loc[(self.df.benefit.str.contains('PM', case=False))&(self.df.panel == "Non-Panel")].groupby(['claimant']).agg({'incurred_amount': 'sum', 'paid_amount': 'sum'}).rename(columns={'incurred_amount': 'Prescribed Medicine (PM)_incurred', 'paid_amount': 'Prescribed Medicine (PM)_paid'})
+    __freq_df_non_panel = pd.merge(left=__freq_df_non_panel, right=__freq_pm_df_non_panel, left_on='claimant', right_on='claimant', how='left')
+    __freq_df_non_panel['paid_per_claim'] = __freq_df_non_panel['total_paid'] / __freq_df_non_panel['total_claims']
 
     if 'Diagnostic: X-Ray & Lab Test (DX)' in __freq_df.columns.to_list():
       __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df['Diagnostic: X-Ray & Lab Test (DX)']
@@ -3777,6 +3853,36 @@ class RawClaimData():
       __freq_df['Prescribed Medicine (PM)_paid'] = np.nan
     __freq_df = __freq_df.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
 
+    if 'Diagnostic: X-Ray & Lab Test (DX)' in __freq_df_panel.columns.to_list():
+      __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)']
+    else:
+      __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = np.nan
+      __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)'] = np.nan
+      __freq_df_panel['Diagnostic: X-Ray & Lab Test (DX)_paid'] = np.nan
+    
+    if 'Prescribed Medicine (PM)' in __freq_df_panel.columns.to_list():
+      __freq_df_panel['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df_panel['Prescribed Medicine (PM)_paid'] / __freq_df_panel['Prescribed Medicine (PM)']
+    else:
+      __freq_df_panel['Prescribed Medicine (PM)_paid_per_claim'] = np.nan
+      __freq_df_panel['Prescribed Medicine (PM)'] = np.nan
+      __freq_df_panel['Prescribed Medicine (PM)_paid'] = np.nan
+    __freq_df_panel = __freq_df_panel.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
+
+    if 'Diagnostic: X-Ray & Lab Test (DX)' in __freq_df_non_panel.columns.to_list():
+      __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)_paid'] / __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)']
+    else:
+      __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim'] = np.nan
+      __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)'] = np.nan
+      __freq_df_non_panel['Diagnostic: X-Ray & Lab Test (DX)_paid'] = np.nan
+    
+    if 'Prescribed Medicine (PM)' in __freq_df_non_panel.columns.to_list():
+      __freq_df_non_panel['Prescribed Medicine (PM)_paid_per_claim'] = __freq_df_non_panel['Prescribed Medicine (PM)_paid'] / __freq_df_non_panel['Prescribed Medicine (PM)']
+    else:
+      __freq_df_non_panel['Prescribed Medicine (PM)_paid_per_claim'] = np.nan
+      __freq_df_non_panel['Prescribed Medicine (PM)'] = np.nan
+      __freq_df_non_panel['Prescribed Medicine (PM)_paid'] = np.nan
+    __freq_df_non_panel = __freq_df_non_panel.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
+
     # __freq_df.reset_index(inplace=True)
     __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
@@ -3786,6 +3892,26 @@ class RawClaimData():
                             'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
                             'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
+    __freq_df_panel = __freq_df_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+                            'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
+                            'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
+                            'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_incurred', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
+    __freq_df_non_panel = __freq_df_non_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+                            'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
+                            'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
+                            'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_incurred', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
+    __freq_df_panel.columns = [f'panel_{col}' for col in __freq_df_panel.columns.to_list()]
+    __freq_df_panel.columns = [f'non_panel_{col}' for col in __freq_df_non_panel.columns.to_list()]
+    __freq_df = pd.merge(left = __freq_df, right=__freq_df_panel, left_index=True, right_index=True, how='inner')
+    __freq_df = pd.merge(left = __freq_df, right=__freq_df_non_panel, left_index=True, right_index=True, how='inner')
 
     self.frequent_analysis = __freq_df
 
