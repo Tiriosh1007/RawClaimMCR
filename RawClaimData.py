@@ -3910,8 +3910,8 @@ class RawClaimData():
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
     __freq_df_panel.columns = [f'panel_{col}' for col in __freq_df_panel.columns.to_list()]
     __freq_df_non_panel.columns = [f'non_panel_{col}' for col in __freq_df_non_panel.columns.to_list()]
-    __freq_df = pd.merge(left = __freq_df, right=__freq_df_panel, left_index=True, right_index=True, how='inner')
-    __freq_df = pd.merge(left = __freq_df, right=__freq_df_non_panel, left_index=True, right_index=True, how='inner')
+    __freq_df = pd.merge(left = __freq_df, right=__freq_df_panel, left_index=True, right_index=True, how='left')
+    __freq_df = pd.merge(left = __freq_df, right=__freq_df_non_panel, left_index=True, right_index=True, how='left')
 
     self.frequent_analysis = __freq_df
 
