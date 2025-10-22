@@ -2482,7 +2482,8 @@ class RawClaimData():
     p24_class_wellness_benefit_df['usage_ratio'] = p24_class_wellness_benefit_df['paid_amount'] / p24_class_wellness_benefit_df['incurred_amount']
     p24_class_wellness_benefit_df['incurred_per_claim'] = p24_class_wellness_benefit_df['incurred_amount'] / p24_class_wellness_benefit_df['no_of_claim_id']
     p24_class_wellness_benefit_df['paid_per_claim'] = p24_class_wellness_benefit_df['paid_amount'] / p24_class_wellness_benefit_df['no_of_claim_id']
-    p24_class_wellness_benefit_df = p24_class_wellness_benefit_df.unstack().stack(dropna=False)
+    if len(p24_class_wellness_benefit_df) > 0:
+      p24_class_wellness_benefit_df = p24_class_wellness_benefit_df.unstack().stack(dropna=False)
     p24_class_wellness_benefit_df = p24_class_wellness_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']]
 
     if len(p24_class_wellness_benefit_df) > 0:
