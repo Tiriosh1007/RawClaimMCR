@@ -2375,8 +2375,9 @@ class RawClaimData():
 
     p24_dent_benefit_df['incurred_per_claim'] = p24_dent_benefit_df['incurred_amount'] / p24_dent_benefit_df['no_of_claim_id']
     p24_dent_benefit_df['paid_per_claim'] = p24_dent_benefit_df['paid_amount'] / p24_dent_benefit_df['no_of_claim_id']
-    print(p24_dent_benefit_df.columns)
+    
     p24_dent_benefit_df = p24_dent_benefit_df.unstack().stack(dropna=False)
+    print(p24_dent_benefit_df.columns)
     
     p24_dent_benefit_df = p24_dent_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']]
     if len(p24_dent_benefit_df) > 0:
