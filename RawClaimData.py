@@ -2370,11 +2370,11 @@ class RawClaimData():
 
     p24_dent_benefit_df = self.mcr_df[__p24d_df_col].loc[self.mcr_df['benefit_type'] == 'Dental'].groupby(by=__p24d_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id'})
     p24_dent_benefit_df['usage_ratio'] = p24_dent_benefit_df['paid_amount'] / p24_dent_benefit_df['incurred_amount']
-  
+    print(p24_dent_benefit_df.columns)
     p24_dent_benefit_df['incurred_per_claim'] = p24_dent_benefit_df['incurred_amount'] / p24_dent_benefit_df['no_of_claim_id']
     p24_dent_benefit_df['paid_per_claim'] = p24_dent_benefit_df['paid_amount'] / p24_dent_benefit_df['no_of_claim_id']
     p24_dent_benefit_df = p24_dent_benefit_df.unstack().stack(dropna=False)
-    print(p24_dent_benefit_df.columns)
+    
     p24_dent_benefit_df = p24_dent_benefit_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claim_id', 'incurred_per_claim', 'paid_per_claim']]
     if len(p24_dent_benefit_df) > 0:
       p24_dent_benefit_df.sort_values(by=__p24d_sort_col, ascending=__p24d_sort_order, inplace=True)
