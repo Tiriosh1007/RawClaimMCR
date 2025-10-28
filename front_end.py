@@ -60,7 +60,8 @@ if 'mcr_convert' not in st.session_state:
   st.session_state.mcr_convert = False  
 if 'ocr' not in st.session_state:
   st.session_state.ocr = False
-
+if 'other_file_convert' not in st.session_state:
+  st.session_state.other_file_convert = False
   
 function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8= st.columns([1,1,1, 1, 1,1,1,1])
 
@@ -86,6 +87,7 @@ with function_col1:
     st.session_state.ocr = False
     st.session_state.ocr_result = False
     st.session_state.ibnr_calculate = False
+    st.session_state.other_file_convert = False
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -96,6 +98,7 @@ with function_col2:
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
+    st.session_state.other_file_convert = False
 
 with function_col3:
   if st.button('Shortfall'):
@@ -106,6 +109,7 @@ with function_col3:
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
+    st.session_state.other_file_convert = False
 
 with function_col4:
   if st.button('IBNR Tool'):
@@ -116,6 +120,7 @@ with function_col4:
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
+    st.session_state.other_file_convert = False
 
 with function_col5:
   if st.button('Member Census'):
@@ -126,6 +131,7 @@ with function_col5:
     st.session_state.member_census = True
     st.session_state.mcr_convert = False
     st.session_state.ocr = False
+    st.session_state.other_file_convert = False
 
 with function_col6:
   if st.button('Convert MCR'):
@@ -136,6 +142,7 @@ with function_col6:
     st.session_state.member_census = False
     st.session_state.mcr_convert = True
     st.session_state.ocr = False
+    st.session_state.other_file_convert = False
 
 with function_col7:
   if st.button('OCR'):
@@ -146,6 +153,17 @@ with function_col7:
     st.session_state.member_census = False
     st.session_state.mcr_convert = False
     st.session_state.ocr = True
+    st.session_state.other_file_convert = False
+
+with function_col8:
+    st.session_state.ibnr_tool = False
+    st.session_state.shortfall = False
+    st.session_state.raw_claim = False
+    st.session_state.raw_process = False
+    st.session_state.member_census = False
+    st.session_state.mcr_convert = False
+    st.session_state.ocr = False
+    st.session_state.other_file_convert = True
 
 
 # ========================================================================================================
@@ -1034,9 +1052,11 @@ if st.session_state.ocr == True:
     #                     data=BlueCross.final_df.to_csv(index=False).encode('utf-8'),
     #                     file_name="BlueCross_Usage_Report.csv",
     #                     mime="application/vnd.ms-excel")
-#     BlueCross.csv_convert()
+    #     BlueCross.csv_convert()
 
+# ========================================================================================================
+# AIA Loss Ratio Convert
+# ========================================================================================================
 
-
-    
+# if st.session_state.other_file_convert = True
 
