@@ -1148,41 +1148,54 @@ if st.session_state.other_file_convert == True:
     def _parse_policy_dates(series: pd.Series) -> pd.Series:
         """
         Robust parsing for policy_start_date.
-        1) Try day-first (common for your AIA output: D/M/YY)
-        2) If many NaT, try month-first
-        3) Fallback: infer with errors='coerce'
+        - Trim whitespace
+        - Try day-first (D/M/YY) common in your outputs
+        - If still many NaT, try month-first
+        - Fallback: infer format
         """
-        s = pd.to_datetime(series, dayfirst=True, errors="coerce")
-        if s.isna().mean() > 0.5:  # too many NaT; try the other way
-            s2 = pd.to_datetime(series, dayfirst=False, errors="coerce")
+        s_raw = series.astype(str).str.strip()
+        s = pd.to_datetime(s_raw, dayfirst=True, errors="coerce")
+        if s.isna().mean() > 0.5:
+            s2 = pd.to_datetime(s_raw, dayfirst=False, errors="coerce")
             s = s.where(~s.isna(), s2)
         if s.isna().mean() > 0.5:
-            s3 = pd.to_datetime(series, errors="coerce", infer_datetime_format=True)
+            s3 = pd.to_datetime(s_raw, errors="coerce", infer_datetime_format=True)
             s = s.where(~s.isna(), s3)
         return s
 
     def _sort_df(df: pd.DataFrame, mode: str) -> pd.DataFrame:
-        """Sort by benefit_type order (always preserved) and either benefit_type-first or policy_start_date-first."""
+        """
+        Sort with guaranteed benefit_type order and stable tie-breaking.
+        When mode == "Policy Start Date":
+            order by: parsed_date, client_name, policy_number, benefit_type(order)
+        When mode == "Benefit Type":
+            order by: benefit_type(order), parsed_date, client_name, policy_number
+        """
         desired_order = ["Hospital", "Clinical", "Dental", "Optical", "Maternity", "Top-Up/ SMM"]
-        present = [b for b in desired_order if b in df.get("benefit_type", pd.Series(dtype=str)).unique().tolist()]
         df = df.copy()
 
-        # Benefit type categorical
+        # Benefit type categorical (skip missing types gracefully)
+        present = [b for b in desired_order if b in df.get("benefit_type", pd.Series(dtype=str)).unique().tolist()]
         if present:
             cat = pd.api.types.CategoricalDtype(categories=present, ordered=True)
             df["__bt_order__"] = df["benefit_type"].astype(cat)
         else:
             df["__bt_order__"] = df["benefit_type"]
 
-        # Robust policy_start_date parsing for sorting (non-destructive)
+        # Robust parsed date (non-destructive)
         df["__psd__"] = _parse_policy_dates(df.get("policy_start_date"))
 
-        # Stable sorting
-        if mode == "Benefit Type":
-            df = df.sort_values(["__bt_order__", "__psd__", "policy_number"], kind="mergesort")
-        else:  # "Policy Start Date"
-            df = df.sort_values(["__psd__", "__bt_order__", "policy_number"], kind="mergesort")
+        # Ensure tie-break columns exist (avoid KeyErrors)
+        for col in ("client_name", "policy_number"):
+            if col not in df.columns:
+                df[col] = ""
 
+        if mode == "Benefit Type":
+            sort_cols = ["__bt_order__", "__psd__", "client_name", "policy_number"]
+        else:  # "Policy Start Date"
+            sort_cols = ["__psd__", "client_name", "policy_number", "__bt_order__"]
+
+        df = df.sort_values(sort_cols, kind="mergesort")
         return df.drop(columns=["__bt_order__", "__psd__"], errors="ignore")
 
     # =========================================
