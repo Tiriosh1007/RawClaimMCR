@@ -514,7 +514,7 @@ if st.session_state.raw_claim == True:
     st.download_button('Frequent Claimant Analysis', 
                         data=raw_.frequent_claimant_analysis(),
                         file_name="freq_claimant.xlsx",
-                        mime="application/vnd.ms-excel")
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     st.write('---')
     st.header('Fair IBNR estimation based on historical data')

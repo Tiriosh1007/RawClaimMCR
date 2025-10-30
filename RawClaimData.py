@@ -3986,15 +3986,13 @@ class RawClaimData():
     if export == True:
       from io import BytesIO
       output = BytesIO()
-      # mcr_filename = 'mcr.xlsx'
-      freq_claimant_file = output
-      with pd.ExcelWriter(freq_claimant_file) as writer_2:
+      # Write to an in-memory buffer using a deterministic engine for .xlsx
+      with pd.ExcelWriter(output, engine='openpyxl') as writer_2:
         self.frequent_analysis.to_excel(writer_2, sheet_name='Claimant Visits', index=True, merge_cells=False)
         self.frequent_analysis_stat.to_excel(writer_2, sheet_name='Claimant Statistics', index=True, merge_cells=False)
         self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=True, merge_cells=False)
         self.ip_usage_incurred.to_excel(writer_2, sheet_name='Claimant IP Usage Incurred', index=True, merge_cells=False)
         # self.ip_usage_for_cal.to_excel(writer_2, sheet_name='Claimant IP Usage for Calculation', index=True, merge_cells=False)
-        writer_2.close()
       return output.getvalue()
 
   def fair_ibnr_estimation(self, months=9):
