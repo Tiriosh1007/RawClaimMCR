@@ -1135,7 +1135,7 @@ if st.session_state.other_file_convert == True:
     def _init_state():
         st.session_state.setdefault("aia_view_active", False)            # whether the AIA module view is open
         st.session_state.setdefault("aia_sheet_name", "Sheet1")          # selected sheet
-        st.session_state.setdefault("aia_add_filename", True)            # add 'source_file' column to preview DataFrame
+        st.session_state.setdefault("aia_add_filename", True)            # add 'source_file' to preview DataFrame
         st.session_state.setdefault("aia_include_source_in_download", True)  # include 'source_file' in downloaded CSVs
         st.session_state.setdefault("aia_sort_mode", "Benefit Type")     # 'Benefit Type' or 'Policy Start Date'
         st.session_state.setdefault("aia_uploads", [])                   # list of {"name": str, "bytes": b"...", "hash": str}
@@ -1151,24 +1151,20 @@ if st.session_state.other_file_convert == True:
     def _uploads_to_filelikes(uploads):
         """Rehydrate saved bytes into BytesIO objects suitable for parser.parse"""
         for u in uploads:
-            yield u["name"], io.BytesIO(u["bytes"])
+            if isinstance(u, dict) and "bytes" in u and "name" in u:
+                yield u["name"], io.BytesIO(u["bytes"])
 
     def _sort_df(df: pd.DataFrame, mode: str) -> pd.DataFrame:
-        """Sort DataFrame by benefit_type order (always respected) and either by benefit_type first
-        or by policy_start_date first, per user selection."""
-        # Benefit type order (skip those not present)
+        """Sort by benefit_type order and either benefit_type-first or policy_start_date-first."""
         desired_order = ["Hospital", "Clinical", "Dental", "Optical", "Maternity", "Top-Up/ SMM"]
         present = [b for b in desired_order if b in df.get("benefit_type", pd.Series(dtype=str)).unique().tolist()]
+        df = df.copy()
         if present:
             cat = pd.api.types.CategoricalDtype(categories=present, ordered=True)
-            df = df.copy()
             df["__bt_order__"] = df["benefit_type"].astype(cat)
         else:
-            # If no known benefits present, fallback to original
             df["__bt_order__"] = df["benefit_type"]
 
-        # Parse policy_start_date (format like D/M/YY) for sorting only
-        # We won't modify the displayed string column
         df["__psd__"] = pd.to_datetime(df.get("policy_start_date"), dayfirst=True, errors="coerce")
 
         if mode == "Benefit Type":
@@ -1176,7 +1172,6 @@ if st.session_state.other_file_convert == True:
         else:  # "Policy Start Date"
             df = df.sort_values(["__psd__", "__bt_order__", "policy_number"], kind="mergesort")
 
-        # Clean temp cols
         return df.drop(columns=["__bt_order__", "__psd__"], errors="ignore")
 
     _init_state()
@@ -1227,7 +1222,7 @@ if st.session_state.other_file_convert == True:
                 help="Choose how the CSV rows are ordered. Benefit type order is always preserved."
             )
 
-        # File uploader: persist uploads immediately into session_state to avoid resets losing files
+        # File uploader
         new_files = st.file_uploader(
             "Upload one or more AIA Excel report files",
             type=["xlsx", "xls"],
@@ -1235,6 +1230,17 @@ if st.session_state.other_file_convert == True:
             key="uploader_aia"
         )
 
+        # --- Guard: ensure aia_uploads is a list of dicts ---
+        if not isinstance(st.session_state.aia_uploads, list):
+            st.session_state.aia_uploads = []
+        else:
+            # Clean any corrupted entries
+            st.session_state.aia_uploads = [
+                u for u in st.session_state.aia_uploads
+                if isinstance(u, dict) and "hash" in u and "bytes" in u and "name" in u
+            ]
+
+        # Persist new uploads into session (as bytes) so reruns don't lose them
         if new_files:
             existing_hashes = {u["hash"] for u in st.session_state.aia_uploads}
             for f in new_files:
@@ -1316,7 +1322,7 @@ if st.session_state.other_file_convert == True:
             if not st.session_state.aia_include_source_in_download and "source_file" in df_download.columns:
                 df_download = df_download.drop(columns=["source_file"], errors="ignore")
 
-            # Apply the same sorting again just in case the user changed the sort option after conversion
+            # Re-apply sort in case user changes sort option after conversion
             df_download = _sort_df(df_download, st.session_state.aia_sort_mode)
 
             combined_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
