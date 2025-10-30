@@ -15,6 +15,5 @@ openai
 pillow
 streamlit_pdf_viewer
 lxml
-re
 typing
 collections
