@@ -996,7 +996,14 @@ if st.session_state.ocr == True:
   if data_selection is None:
     prompt = ""
   else:
-    prompt = prompt_lib[['type', 'text']].loc[prompt_lib.data == prompt_data_options[data_selection]].to_dict("records")[0]
+      # map your selection to the target 'data' value
+      target = prompt_data_options.get(data_selection)
+      # build a 'text' alias from 'content' and fetch the first match
+      recs = (prompt_lib.assign(text=prompt_lib['content'])
+                      .loc[prompt_lib['data'] == target, ['type', 'text']]
+                      .to_dict('records'))
+      prompt = recs[0] if recs else ""
+
   
 
   prompt_text = st.text_area("Prompt Text", value=prompt, height=200)
