@@ -1158,9 +1158,9 @@ if st.session_state.other_file_convert == True:
 
     # Future expansion: 8-button row of placeholders (all 'Coming Soon')
     cols = st.columns(8)
-    for i, c in enumerate(cols, start=1):
+    for i, c in enumerate(cols, start=2):
         with c:
-            st.button("Coming Soon", disabled=True, key=f"coming_soon_{i}", help="Reserved for future converter")
+          st.button("Coming Soon", disabled=True, key=f"coming_soon_{i}", help="Reserved for future converter")
 
     st.divider()
 
