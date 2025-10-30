@@ -1354,157 +1354,157 @@ if st.session_state.other_file_convert == True:
         else:
             st.info("Upload one or more Excel files to begin (AIA).")
 
-    # =========================================
-    # LOSS RATIO COMBINE SESSION
-    # =========================================
-    st.divider()
-    st.subheader("🧩 Loss Ratio Combine")
+        # =========================================
+        # LOSS RATIO COMBINE SESSION
+        # =========================================
+        st.divider()
+        st.subheader("🧩 Loss Ratio Combine")
 
-    # ---- State init (combine) ----
-    def _lrc_init_state():
-        st.session_state.setdefault("lrc_add_filename", True)               # show 'source_file' in PREVIEW
-        st.session_state.setdefault("lrc_include_source_in_download", True) # include 'source_file' in DOWNLOAD
-        st.session_state.setdefault("lrc_sort_mode", "Benefit Type")        # 'Benefit Type' or 'Policy Start Date'
-        st.session_state.setdefault("lrc_uploads", [])                      # list of {"name","bytes","hash"}
-        st.session_state.setdefault("lrc_errors", [])
-        st.session_state.setdefault("lrc_combined_df", None)
-        st.session_state.setdefault("lrc_parsed_once", False)
+        # ---- State init (combine) ----
+        def _lrc_init_state():
+            st.session_state.setdefault("lrc_add_filename", True)               # show 'source_file' in PREVIEW
+            st.session_state.setdefault("lrc_include_source_in_download", True) # include 'source_file' in DOWNLOAD
+            st.session_state.setdefault("lrc_sort_mode", "Benefit Type")        # 'Benefit Type' or 'Policy Start Date'
+            st.session_state.setdefault("lrc_uploads", [])                      # list of {"name","bytes","hash"}
+            st.session_state.setdefault("lrc_errors", [])
+            st.session_state.setdefault("lrc_combined_df", None)
+            st.session_state.setdefault("lrc_parsed_once", False)
 
-    _lrc_init_state()
+        _lrc_init_state()
 
-    # Sidebar options (COMBINE)
-    with st.sidebar:
-        st.markdown("#### Loss Ratio Combine Options")
-        st.session_state.lrc_add_filename = st.toggle(
-            "Add 'source_file' column to preview table (combine)",
-            value=st.session_state.lrc_add_filename,
-            key="lrc_add_filename_toggle",
-            help="If a CSV has no 'source_file' column, we can add it using the filename for preview."
+        # Sidebar options (COMBINE)
+        with st.sidebar:
+            st.markdown("#### Loss Ratio Combine Options")
+            st.session_state.lrc_add_filename = st.toggle(
+                "Add 'source_file' column to preview table (combine)",
+                value=st.session_state.lrc_add_filename,
+                key="lrc_add_filename_toggle",
+                help="If a CSV has no 'source_file' column, we can add it using the filename for preview."
+            )
+            st.session_state.lrc_include_source_in_download = st.toggle(
+                "Include 'source_file' in downloaded CSV (combine)",
+                value=st.session_state.lrc_include_source_in_download,
+                key="lrc_include_source_in_download_toggle",
+                help="Controls whether the combined CSV includes the 'source_file' column."
+            )
+            st.session_state.lrc_sort_mode = st.radio(
+                "Sort output by (combine)",
+                options=["Benefit Type", "Policy Start Date"],
+                index=0 if st.session_state.lrc_sort_mode == "Benefit Type" else 1,
+                key="lrc_sort_mode_radio",
+                help="Benefit type order is always preserved."
+            )
+
+        # File uploader (CSV)
+        uploaded_csvs = st.file_uploader(
+            "Upload one or more Loss Ratio CSV files",
+            type=["csv"],
+            accept_multiple_files=True,
+            key="lrc_uploader"
         )
-        st.session_state.lrc_include_source_in_download = st.toggle(
-            "Include 'source_file' in downloaded CSV (combine)",
-            value=st.session_state.lrc_include_source_in_download,
-            key="lrc_include_source_in_download_toggle",
-            help="Controls whether the combined CSV includes the 'source_file' column."
-        )
-        st.session_state.lrc_sort_mode = st.radio(
-            "Sort output by (combine)",
-            options=["Benefit Type", "Policy Start Date"],
-            index=0 if st.session_state.lrc_sort_mode == "Benefit Type" else 1,
-            key="lrc_sort_mode_radio",
-            help="Benefit type order is always preserved."
-        )
 
-    # File uploader (CSV)
-    uploaded_csvs = st.file_uploader(
-        "Upload one or more Loss Ratio CSV files",
-        type=["csv"],
-        accept_multiple_files=True,
-        key="lrc_uploader"
-    )
+        # Guard: ensure uploads state is list of dicts
+        if not isinstance(st.session_state.lrc_uploads, list):
+            st.session_state.lrc_uploads = []
+        else:
+            st.session_state.lrc_uploads = [
+                u for u in st.session_state.lrc_uploads
+                if isinstance(u, dict) and "hash" in u and "bytes" in u and "name" in u
+            ]
 
-    # Guard: ensure uploads state is list of dicts
-    if not isinstance(st.session_state.lrc_uploads, list):
-        st.session_state.lrc_uploads = []
-    else:
-        st.session_state.lrc_uploads = [
-            u for u in st.session_state.lrc_uploads
-            if isinstance(u, dict) and "hash" in u and "bytes" in u and "name" in u
-        ]
+        # Persist uploads
+        if uploaded_csvs:
+            existing_hashes = {u["hash"] for u in st.session_state.lrc_uploads}
+            for f in uploaded_csvs:
+                entry = _bytes_entry(f)
+                if entry["hash"] not in existing_hashes:
+                    st.session_state.lrc_uploads.append(entry)
+                    existing_hashes.add(entry["hash"])
 
-    # Persist uploads
-    if uploaded_csvs:
-        existing_hashes = {u["hash"] for u in st.session_state.lrc_uploads}
-        for f in uploaded_csvs:
-            entry = _bytes_entry(f)
-            if entry["hash"] not in existing_hashes:
-                st.session_state.lrc_uploads.append(entry)
-                existing_hashes.add(entry["hash"])
+        # Show staged files
+        if st.session_state.lrc_uploads:
+            st.success(f"{len(st.session_state.lrc_uploads)} CSV file(s) staged.")
+            with st.expander("Show staged files (Combine)"):
+                for u in st.session_state.lrc_uploads:
+                    st.write(f"- {u['name']}")
 
-    # Show staged files
-    if st.session_state.lrc_uploads:
-        st.success(f"{len(st.session_state.lrc_uploads)} CSV file(s) staged.")
-        with st.expander("Show staged files (Combine)"):
-            for u in st.session_state.lrc_uploads:
-                st.write(f"- {u['name']}")
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                if st.button("Clear All Staged Files (Combine)", key="lrc_clear_all"):
+                    st.session_state.lrc_uploads = []
+                    st.session_state.lrc_combined_df = None
+                    st.session_state.lrc_errors = []
+                    st.session_state.lrc_parsed_once = False
+                    st.rerun()
+            with c2:
+                if st.button("Remove Last File (Combine)", key="lrc_remove_last") and st.session_state.lrc_uploads:
+                    st.session_state.lrc_uploads.pop()
+                    st.session_state.lrc_combined_df = None
+                    st.session_state.lrc_errors = []
+                    st.session_state.lrc_parsed_once = False
+                    st.rerun()
 
-        c1, c2 = st.columns([1, 1])
-        with c1:
-            if st.button("Clear All Staged Files (Combine)", key="lrc_clear_all"):
-                st.session_state.lrc_uploads = []
-                st.session_state.lrc_combined_df = None
+        # Combine action
+        with st.form("lrc_combine_form", clear_on_submit=False):
+            combine_clicked = st.form_submit_button("Combine CSVs", type="primary")
+            if combine_clicked:
                 st.session_state.lrc_errors = []
-                st.session_state.lrc_parsed_once = False
-                st.rerun()
-        with c2:
-            if st.button("Remove Last File (Combine)", key="lrc_remove_last") and st.session_state.lrc_uploads:
-                st.session_state.lrc_uploads.pop()
                 st.session_state.lrc_combined_df = None
-                st.session_state.lrc_errors = []
                 st.session_state.lrc_parsed_once = False
-                st.rerun()
 
-    # Combine action
-    with st.form("lrc_combine_form", clear_on_submit=False):
-        combine_clicked = st.form_submit_button("Combine CSVs", type="primary")
-        if combine_clicked:
-            st.session_state.lrc_errors = []
-            st.session_state.lrc_combined_df = None
-            st.session_state.lrc_parsed_once = False
+                if not st.session_state.lrc_uploads:
+                    st.warning("Please upload at least one CSV file.")
+                else:
+                    dfs = []
+                    with st.spinner("Combining files..."):
+                        for fname, fobj in _uploads_to_filelikes(st.session_state.lrc_uploads):
+                            try:
+                                # Read as strings, then coerce numerics where appropriate
+                                df = pd.read_csv(fobj, dtype=str)
+                                df.columns = [c.strip() for c in df.columns]
 
-            if not st.session_state.lrc_uploads:
-                st.warning("Please upload at least one CSV file.")
-            else:
-                dfs = []
-                with st.spinner("Combining files..."):
-                    for fname, fobj in _uploads_to_filelikes(st.session_state.lrc_uploads):
-                        try:
-                            # Read as strings, then coerce numerics where appropriate
-                            df = pd.read_csv(fobj, dtype=str)
-                            df.columns = [c.strip() for c in df.columns]
+                                for col in ["actual_premium", "actual_paid_w_ibnr", "loss_ratio"]:
+                                    if col in df.columns:
+                                        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-                            for col in ["actual_premium", "actual_paid_w_ibnr", "loss_ratio"]:
-                                if col in df.columns:
-                                    df[col] = pd.to_numeric(df[col], errors="coerce")
+                                # Add source_file for PREVIEW if requested and missing
+                                if st.session_state.lrc_add_filename and "source_file" not in df.columns:
+                                    df.insert(0, "source_file", fname)
 
-                            # Add source_file for PREVIEW if requested and missing
-                            if st.session_state.lrc_add_filename and "source_file" not in df.columns:
-                                df.insert(0, "source_file", fname)
+                                dfs.append(df)
+                            except Exception as e:
+                                st.session_state.lrc_errors.append((fname, str(e)))
 
-                            dfs.append(df)
-                        except Exception as e:
-                            st.session_state.lrc_errors.append((fname, str(e)))
+                    if st.session_state.lrc_errors:
+                        st.error("Some files could not be parsed:")
+                        for fname, msg in st.session_state.lrc_errors:
+                            st.write(f"- **{fname}**: {msg}")
 
-                if st.session_state.lrc_errors:
-                    st.error("Some files could not be parsed:")
-                    for fname, msg in st.session_state.lrc_errors:
-                        st.write(f"- **{fname}**: {msg}")
+                    if dfs:
+                        combined = pd.concat(dfs, ignore_index=True)
+                        combined = _sort_df(combined, st.session_state.lrc_sort_mode)
+                        st.session_state.lrc_combined_df = combined
+                        st.session_state.lrc_parsed_once = True
 
-                if dfs:
-                    combined = pd.concat(dfs, ignore_index=True)
-                    combined = _sort_df(combined, st.session_state.lrc_sort_mode)
-                    st.session_state.lrc_combined_df = combined
-                    st.session_state.lrc_parsed_once = True
+        # Preview & download for combine
+        if st.session_state.lrc_parsed_once and st.session_state.lrc_combined_df is not None:
+            st.markdown("#### Preview (Combine)")
+            st.dataframe(st.session_state.lrc_combined_df, use_container_width=True)
 
-    # Preview & download for combine
-    if st.session_state.lrc_parsed_once and st.session_state.lrc_combined_df is not None:
-        st.markdown("#### Preview (Combine)")
-        st.dataframe(st.session_state.lrc_combined_df, use_container_width=True)
+            df_download = st.session_state.lrc_combined_df.copy()
+            if not st.session_state.lrc_include_source_in_download and "source_file" in df_download.columns:
+                df_download = df_download.drop(columns=["source_file"], errors="ignore")
+            df_download = _sort_df(df_download, st.session_state.lrc_sort_mode)
 
-        df_download = st.session_state.lrc_combined_df.copy()
-        if not st.session_state.lrc_include_source_in_download and "source_file" in df_download.columns:
-            df_download = df_download.drop(columns=["source_file"], errors="ignore")
-        df_download = _sort_df(df_download, st.session_state.lrc_sort_mode)
-
-        csv_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
-        st.download_button(
-            label="⬇️ Download Combined CSV (Combine)",
-            data=csv_bytes,
-            file_name="loss_ratio_combined.csv",
-            mime="text/csv",
-            key="lrc_download_combined"
-        )
-    elif st.session_state.lrc_uploads:
-        st.info("Files are staged. Click **Combine CSVs** to process them.")
-    else:
-        st.info("Upload one or more loss ratio CSV files to begin (Combine).")
+            csv_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
+            st.download_button(
+                label="⬇️ Download Combined CSV (Combine)",
+                data=csv_bytes,
+                file_name="loss_ratio_combined.csv",
+                mime="text/csv",
+                key="lrc_download_combined"
+            )
+        elif st.session_state.lrc_uploads:
+            st.info("Files are staged. Click **Combine CSVs** to process them.")
+        else:
+            st.info("Upload one or more loss ratio CSV files to begin (Combine).")
