@@ -1200,7 +1200,7 @@ if st.session_state.other_file_convert == True:
         with st.sidebar:
             st.markdown("#### Converter Options")
             st.session_state.aia_sheet_name = st.text_input(
-                "Sheet name", value=st.session_state.aia_sheet_name, key="aia_sheet_input"
+                "Sheet name", value="Sheet1", key="aia_sheet_input"
             )
             st.session_state.aia_add_filename = st.toggle(
                 "Add 'source_file' column to preview table",
