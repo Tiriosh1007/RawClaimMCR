@@ -1189,7 +1189,7 @@ if st.session_state.other_file_convert == True:
     # Row of launcher buttons
     c0, c1, c2, c3, c4, c5, c6, c7 = st.columns(8)
     with c0:
-        if st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio_open"):
+        if st.button("Loss Ratio Master", type="primary", key="btn_aia_loss_ratio_open"):
             st.session_state.aia_view_active = True
     for idx, col in enumerate([c1, c2, c3, c4, c5, c6, c7], start=1):
         with col:
