@@ -209,6 +209,7 @@ with function_col7:
     st.session_state.other_file_convert = False
 
 with function_col8:
+  if st.button('Other Files Handling'):
     st.session_state.ibnr_tool = False
     st.session_state.shortfall = False
     st.session_state.raw_claim = False
