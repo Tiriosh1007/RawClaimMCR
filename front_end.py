@@ -143,6 +143,16 @@ with function_col1:
     st.session_state.ocr_result = False
     st.session_state.ibnr_calculate = False
     st.session_state.other_file_convert = False
+    st.session_state.aia_view_active = False
+    st.session_state.aia_sheet_name = False
+    st.session_state.aia_add_filename = False
+    st.session_state.aia_include_source_in_download = False
+    st.session_state.aia_uploads = False
+    st.session_state.aia_errors = False
+    st.session_state.aia_combined_df = False
+    st.session_state.aia_perfile_dfs = False
+    st.session_state.aia_parsed_once = False
+
 
 with function_col2:
   if st.button('Raw Claim Data'):
@@ -1123,22 +1133,19 @@ if st.session_state.ocr == True:
 
 if st.session_state.other_file_convert == True:
     def _init_state():
-        st.session_state.setdefault("aia_view_active", False)           # whether the AIA module view is open
-        st.session_state.setdefault("aia_sheet_name", "Sheet1")         # selected sheet
-        st.session_state.setdefault("aia_add_filename", True)           # add filename column
-        st.session_state.setdefault("aia_uploads", [])                  # list of {"name": str, "bytes": b"...", "hash": str}
-        st.session_state.setdefault("aia_errors", [])                   # list of (filename, error)
-        st.session_state.setdefault("aia_combined_df", None)            # combined dataframe
-        st.session_state.setdefault("aia_perfile_dfs", [])              # list of (filename, df)
-        st.session_state.setdefault("aia_parsed_once", False)           # whether conversion has been run
+        st.session_state.setdefault("aia_view_active", False)            # whether the AIA module view is open
+        st.session_state.setdefault("aia_sheet_name", "Sheet1")          # selected sheet
+        st.session_state.setdefault("aia_add_filename", True)            # add 'source_file' column to preview DataFrame
+        st.session_state.setdefault("aia_include_source_in_download", True)  # include 'source_file' in downloaded CSVs
+        st.session_state.setdefault("aia_uploads", [])                   # list of {"name": str, "bytes": b"...", "hash": str}
+        st.session_state.setdefault("aia_errors", [])                    # list of (filename, error)
+        st.session_state.setdefault("aia_combined_df", None)             # combined dataframe
+        st.session_state.setdefault("aia_perfile_dfs", [])               # list of (filename, df)
+        st.session_state.setdefault("aia_parsed_once", False)            # whether conversion has been run
 
     def _bytes_entry(file_obj) -> dict:
         data = file_obj.getvalue()
-        return {
-            "name": file_obj.name,
-            "bytes": data,
-            "hash": hashlib.md5(data).hexdigest()
-        }
+        return {"name": file_obj.name, "bytes": data, "hash": hashlib.md5(data).hexdigest()}
 
     def _uploads_to_filelikes(uploads):
         """Rehydrate saved bytes into BytesIO objects suitable for parser.parse"""
@@ -1151,16 +1158,15 @@ if st.session_state.other_file_convert == True:
     st.markdown("### 🔧 Converters")
     st.caption("Pick a converter. ‘AIA Loss Ratio’ is available; other slots reserved for future modules.")
 
-    # Primary action to open AIA converter
-    open_aia = st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio_open")
-    if open_aia:
+    # Open AIA module
+    if st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio_open"):
         st.session_state.aia_view_active = True
 
-    # Future expansion: 8-button row of placeholders (all 'Coming Soon')
+    # Future expansion: 8-button row placeholders (all 'Coming Soon')
     cols = st.columns(8)
-    for i, c in enumerate(cols, start=2):
+    for i, c in enumerate(cols, start=1):
         with c:
-          st.button("Coming Soon", disabled=True, key=f"coming_soon_{i}", help="Reserved for future converter")
+            st.button("Coming Soon", disabled=True, key=f"coming_soon_{i}", help="Reserved for future converter")
 
     st.divider()
 
@@ -1175,11 +1181,56 @@ if st.session_state.other_file_convert == True:
                 "Sheet name", value=st.session_state.aia_sheet_name, key="aia_sheet_input"
             )
             st.session_state.aia_add_filename = st.toggle(
-                "Add source filename column", value=st.session_state.aia_add_filename, key="aia_add_filename_toggle"
+                "Add 'source_file' column to preview table",
+                value=st.session_state.aia_add_filename,
+                key="aia_add_filename_toggle",
+                help="Controls whether the preview DataFrame contains the 'source_file' column."
             )
-            st.markdown("---")
+            st.session_state.aia_include_source_in_download = st.toggle(
+                "Include 'source_file' in downloaded CSV",
+                value=st.session_state.aia_include_source_in_download,
+                key="aia_include_source_in_download_toggle",
+                help="Controls whether the CSV download includes the first 'source_file' column."
+            )
 
-        # File uploader: keep UI responsive, but copy into session_state immediately to avoid “page reset” loss
+            st.markdown("---")
+            # ---- Reset / Clear Cache section ----
+            st.markdown("#### Reset & Cache")
+
+            # List all states used in this module (for your reset button reference)
+            state_keys = [
+                "aia_view_active",
+                "aia_sheet_name",
+                "aia_add_filename",
+                "aia_include_source_in_download",
+                "aia_uploads",
+                "aia_errors",
+                "aia_combined_df",
+                "aia_perfile_dfs",
+                "aia_parsed_once",
+            ]
+            st.caption("**States used in this module:**")
+            for k in state_keys:
+                st.code(k, language="text")
+
+            if st.button("🔄 Reset State & Clear Cache", key="aia_reset_button"):
+                # Clear state
+                for k in state_keys:
+                    if k in st.session_state:
+                        del st.session_state[k]
+                # Clear caches (safe even if not used)
+                try:
+                    st.cache_data.clear()
+                except Exception:
+                    pass
+                try:
+                    st.cache_resource.clear()
+                except Exception:
+                    pass
+                st.success("State and cache cleared.")
+                st.rerun()
+
+        # File uploader: persist uploads immediately into session_state to avoid resets losing files
         new_files = st.file_uploader(
             "Upload one or more AIA Excel report files",
             type=["xlsx", "xls"],
@@ -1187,9 +1238,7 @@ if st.session_state.other_file_convert == True:
             key="uploader_aia"
         )
 
-        # Persist new uploads into session (as bytes) so reruns don't lose them
         if new_files:
-            # avoid duplicates using content hash
             existing_hashes = {u["hash"] for u in st.session_state.aia_uploads}
             for f in new_files:
                 entry = _bytes_entry(f)
@@ -1204,7 +1253,7 @@ if st.session_state.other_file_convert == True:
                 for u in st.session_state.aia_uploads:
                     st.write(f"- {u['name']}")
 
-            # Manage staged files (clear or remove last)
+            # Manage staged files
             c1, c2 = st.columns([1, 1])
             with c1:
                 if st.button("Clear All Staged Files", key="aia_clear_all"):
@@ -1223,7 +1272,7 @@ if st.session_state.other_file_convert == True:
                     st.session_state.aia_errors = []
                     st.rerun()
 
-        # Convert action (use a form to keep controls stable and avoid intermediate resets)
+        # Convert action (form keeps controls stable across reruns)
         with st.form("aia_convert_form", clear_on_submit=False):
             convert_clicked = st.form_submit_button("Convert to CSV", type="primary")
             if convert_clicked:
@@ -1262,8 +1311,12 @@ if st.session_state.other_file_convert == True:
             st.markdown("#### Preview")
             st.dataframe(st.session_state.aia_combined_df, use_container_width=True)
 
-            # Combined CSV download (in-memory)
-            combined_bytes = st.session_state.aia_combined_df.to_csv(index=False).encode("utf-8-sig")
+            # Build combined CSV (respect 'include source_file' toggle)
+            df_download = st.session_state.aia_combined_df.copy()
+            if not st.session_state.aia_include_source_in_download and "source_file" in df_download.columns:
+                df_download = df_download.drop(columns=["source_file"], errors="ignore")
+
+            combined_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
             st.download_button(
                 label="⬇️ Download Combined CSV",
                 data=combined_bytes,
@@ -1272,10 +1325,13 @@ if st.session_state.other_file_convert == True:
                 key="aia_download_combined"
             )
 
-            # Optional per-file downloads
+            # Optional per-file downloads (respect toggle)
             with st.expander("Per-file CSV downloads (optional)"):
                 for fname, df in st.session_state.aia_perfile_dfs:
-                    csv_one = df.to_csv(index=False).encode("utf-8-sig")
+                    df_one = df.copy()
+                    if not st.session_state.aia_include_source_in_download and "source_file" in df_one.columns:
+                        df_one = df_one.drop(columns=["source_file"], errors="ignore")
+                    csv_one = df_one.to_csv(index=False).encode("utf-8-sig")
                     st.download_button(
                         label=f"Download CSV for {fname}",
                         data=csv_one,
