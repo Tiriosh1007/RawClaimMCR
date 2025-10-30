@@ -95,6 +95,7 @@ from MCRConvert import *
 from PresentationConvert import *
 from BlueCrossUsageReportConvert import *
 from IBNRTool import *
+from AIALossRatioConvert import *
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
@@ -1119,5 +1120,96 @@ if st.session_state.ocr == True:
 # AIA Loss Ratio Convert
 # ========================================================================================================
 
-# if st.session_state.other_file_convert = True
+if st.session_state.other_file_convert == True:
+  st.markdown("### 🔧 Converters")
+  st.caption("Pick a converter below. More will be added here later.")
+  # --- Future expansion slots (button toolbar) ---
+  c1, c2, c3, c4 = st.columns([1, 1, 1, 1])
+  with c1:
+      run_aia = st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio")
+  with c2:
+      st.button("AXA Loss Ratio", disabled=True, key="btn_axa_placeholder", help="Coming soon")
+  with c3:
+      st.button("Bupa Loss Ratio", disabled=True, key="btn_bupa_placeholder", help="Coming soon")
+  with c4:
+      st.button("Custom Mapping", disabled=True, key="btn_custom_mapping_placeholder", help="Coming soon")
 
+  st.divider()
+
+  # --- AIA Loss Ratio converter UI ---
+  if run_aia:
+    st.subheader("AIA Loss Ratio Converter")
+    st.caption("Upload one or more Excel reports. We’ll parse all periods, aggregate benefit types, and output a clean CSV in-memory.")
+
+    # Options
+    with st.sidebar:
+      st.markdown("#### Converter Options")
+      sheet_name = st.text_input("Sheet name", value="Sheet1")
+      add_filename_col = st.toggle("Add source filename column", value=True)
+      st.markdown("---")
+
+    # File uploader (in-memory; Streamlit Cloud friendly)
+    uploaded_files = st.file_uploader(
+      "Upload AIA Excel report files",
+      type=["xlsx", "xls"],
+      accept_multiple_files=True,
+      key="uploader_aia"
+    )
+
+    # Parser instance (benefit mapping can be customized later if needed)
+    parser = AIALossRatioConvert(sheet_name=sheet_name)
+
+    # Action row
+    convert_clicked = st.button("Convert to CSV", key="convert_aia")
+
+    if convert_clicked:
+      if not uploaded_files:
+        st.warning("Please upload at least one Excel file.")
+      else:
+          all_rows = []
+          errors = []
+
+          with st.spinner("Parsing files..."):
+            for f in uploaded_files:
+              try:
+                # Parse directly from the in-memory UploadedFile (BytesIO-like)
+                df = parser.parse(f)
+                if add_filename_col:
+                  df.insert(0, "source_file", f.name)
+                all_rows.append(df)
+              except Exception as e:
+                errors.append((f.name, str(e)))
+
+          if errors:
+            st.error("Some files could not be parsed:")
+            for fname, msg in errors:
+              st.write(f"- **{fname}**: {msg}")
+
+          if all_rows:
+            combined = pd.concat(all_rows, ignore_index=True)
+
+            # Show preview
+            st.markdown("#### Preview")
+            st.dataframe(combined, use_container_width=True)
+
+            # Prepare in-memory CSV with UTF-8 BOM so Excel opens cleanly
+            csv_bytes = combined.to_csv(index=False).encode("utf-8-sig")
+            st.download_button(
+              label="⬇️ Download Combined CSV",
+              data=csv_bytes,
+              file_name="claim_ratio_combined.csv",
+              mime="text/csv",
+              key="download_aia_combined"
+            )
+
+            # Optional: per-file downloads under an expander
+            with st.expander("Per-file CSV downloads (optional)"):
+              for f, df in zip(uploaded_files, all_rows):
+                csv_one = df.to_csv(index=False).encode("utf-8-sig")
+                st.download_button(
+                  label=f"Download CSV for {f.name}",
+                  data=csv_one,
+                  file_name=f"{f.name.rsplit('.',1)[0]}_converted.csv",
+                  mime="text/csv",
+                  key=f"download_{f.name}"
+                  )

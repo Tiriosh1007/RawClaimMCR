@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
-class ClaimRatioParser:
+class AIALossRatioConvert:
     """
     API for converting insurer 'Group Medical Claim Ratio' Excel reports
     into a normalized CSV with aggregated benefit types and multi-period support.
