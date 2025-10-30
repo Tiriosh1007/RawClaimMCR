@@ -17,20 +17,73 @@ from pathlib import Path
 # ========================================================================================================
 
 open_rounter_api_key = st.secrets['api_key']
+
+import xml.etree.ElementTree as ET
+
+def _resolve_path(fn: str) -> str:
+    """Try local path first, then /mnt/data (where your uploads live)."""
+    p = Path(fn)
+    if p.exists():
+        return str(p)
+    p2 = Path("/mnt/data") / fn
+    return str(p2)
+
+def read_prompt_library_etree(xml_file: str) -> pd.DataFrame:
+    """
+    Parse prompt_lib.xml into a DataFrame with columns:
+    ['data', 'type', 'content'] so that `df.data` mirrors your old usage.
+    """
+    path = _resolve_path(xml_file)
+    tree = ET.parse(path)
+    root = tree.getroot()
+    rows = []
+    for el in root.findall(".//text"):
+        rows.append({
+            "data": el.attrib.get("data"),
+            "type": el.attrib.get("type"),
+            "content": "".join(el.itertext()).strip()
+        })
+    return pd.DataFrame(rows)
+
+def read_model_library_etree(xml_file: str) -> pd.DataFrame:
+    """
+    Parse genai_lib.xml into a DataFrame matching your prior shape:
+    index = 'name', column = 'model' (so .to_dict().keys() yields model names).
+    """
+    path = _resolve_path(xml_file)
+    tree = ET.parse(path)
+    root = tree.getroot()
+    rows = []
+    for el in root.findall(".//model"):
+        rows.append({
+            "name": el.attrib.get("name"),
+            "model": "".join(el.itertext()).strip()
+        })
+    df = pd.DataFrame(rows)
+    df.index = df["name"]
+    df.drop(columns=["name"], inplace=True)
+    return df
+
+import warnings
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 prompt_lib_xml = 'prompt_lib.xml'
-prompt_lib = pd.read_xml('prompt_lib.xml')
-prompt = ""
+prompt_lib = read_prompt_library_etree(prompt_lib_xml) 
 prompt_data_options = prompt_lib.data.to_dict()
+
 import base64
 import json
 import io
 from streamlit_pdf_viewer import pdf_viewer
+
 warnings.filterwarnings('ignore')
-sns.set(rc={'figure.figsize':(5,5)})
+sns.set(rc={'figure.figsize': (5, 5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
-models_df = pd.read_xml('genai_lib.xml')
-models_df.index = models_df.name
-models_df.drop(columns=['name'], inplace=True)
+
+models_df = read_model_library_etree('genai_lib.xml')
+models_df.index = models_df.index
+
 model_options = models_df['model'].to_dict().keys()
 model = ""
 

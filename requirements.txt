@@ -14,4 +14,3 @@ openpyxl
 openai
 pillow
 streamlit_pdf_viewer
-lxml
