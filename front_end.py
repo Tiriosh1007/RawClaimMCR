@@ -1239,7 +1239,7 @@ if st.session_state.other_file_convert == True:
             st.markdown("#### Master: Convert Options")
             st.session_state.aia_sheet_name = st.text_input(
                 "Sheet name",
-                value=st.session_state.aia_sheet_name,  # default "Sheet1"
+                value="Sheet1",  # default "Sheet1"
                 key="aia_sheet_input"
             )
             st.session_state.aia_add_filename = st.toggle(
