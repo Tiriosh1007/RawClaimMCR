@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import datetime as dt
+import hashlib
 from datetime import timedelta
 import warnings
 # import ollama
