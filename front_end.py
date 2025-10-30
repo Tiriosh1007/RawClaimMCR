@@ -1142,6 +1142,7 @@ if st.session_state.other_file_convert == True:
         st.session_state.setdefault("aia_combined_df", None)             # combined dataframe
         st.session_state.setdefault("aia_perfile_dfs", [])               # list of (filename, df)
         st.session_state.setdefault("aia_parsed_once", False)            # whether conversion has been run
+        st.session_state.setdefault("aia_sort_choice", "Benefit Type")   # output sort preference
 
     def _bytes_entry(file_obj) -> dict:
         data = file_obj.getvalue()
@@ -1151,6 +1152,35 @@ if st.session_state.other_file_convert == True:
         """Rehydrate saved bytes into BytesIO objects suitable for parser.parse"""
         for u in uploads:
             yield u["name"], io.BytesIO(u["bytes"])
+
+    def _parse_date_series(s: pd.Series) -> pd.Series:
+        """Parse D/M/YY strings to datetime (day-first), safe for NaNs."""
+        return pd.to_datetime(s, dayfirst=True, errors="coerce")
+
+    def _apply_sort(df: pd.DataFrame, sort_choice: str) -> pd.DataFrame:
+        df = df.copy()
+        if sort_choice == "Benefit Type":
+            # Desired order; skip any not present
+            order = ["Hospital", "Clinical", "Dental", "Optical", "Maternity", "Top-Up/ SMM"]
+            present = [b for b in order if b in df.get("benefit_type", pd.Series([])).unique().tolist()]
+            if "benefit_type" in df.columns and present:
+                cat = pd.Categorical(df["benefit_type"], categories=present, ordered=True)
+                # Secondary key: policy_start_date ascending (parsed)
+                if "policy_start_date" in df.columns:
+                    dts = _parse_date_series(df["policy_start_date"])
+                    df = df.assign(_bt_cat=cat, _dt=dts).sort_values(["_bt_cat", "_dt", "policy_number"], kind="mergesort")
+                    df = df.drop(columns=["_bt_cat", "_dt"])
+                else:
+                    df = df.assign(_bt_cat=cat).sort_values(["_bt_cat", "policy_number"], kind="mergesort").drop(columns=["_bt_cat"])
+            return df
+        else:  # "Policy Start Date"
+            if "policy_start_date" in df.columns:
+                dts = _parse_date_series(df["policy_start_date"])
+                # Secondary key: benefit_type alphabetically to keep deterministic
+                by = ["_dt"]
+                df = df.assign(_dt=dts).sort_values(by + (["benefit_type"] if "benefit_type" in df.columns else []), kind="mergesort")
+                df = df.drop(columns=["_dt"])
+            return df
 
     _init_state()
 
@@ -1192,43 +1222,13 @@ if st.session_state.other_file_convert == True:
                 key="aia_include_source_in_download_toggle",
                 help="Controls whether the CSV download includes the first 'source_file' column."
             )
-
-            st.markdown("---")
-            # ---- Reset / Clear Cache section ----
-            st.markdown("#### Reset & Cache")
-
-            # List all states used in this module (for your reset button reference)
-            state_keys = [
-                "aia_view_active",
-                "aia_sheet_name",
-                "aia_add_filename",
-                "aia_include_source_in_download",
-                "aia_uploads",
-                "aia_errors",
-                "aia_combined_df",
-                "aia_perfile_dfs",
-                "aia_parsed_once",
-            ]
-            st.caption("**States used in this module:**")
-            for k in state_keys:
-                st.code(k, language="text")
-
-            if st.button("🔄 Reset State & Clear Cache", key="aia_reset_button"):
-                # Clear state
-                for k in state_keys:
-                    if k in st.session_state:
-                        del st.session_state[k]
-                # Clear caches (safe even if not used)
-                try:
-                    st.cache_data.clear()
-                except Exception:
-                    pass
-                try:
-                    st.cache_resource.clear()
-                except Exception:
-                    pass
-                st.success("State and cache cleared.")
-                st.rerun()
+            st.session_state.aia_sort_choice = st.radio(
+                "Sort output by",
+                options=["Benefit Type", "Policy Start Date"],
+                index=(0 if st.session_state.aia_sort_choice == "Benefit Type" else 1),
+                key="aia_sort_choice_radio",
+                help="Choose how the output CSV is sorted."
+            )
 
         # File uploader: persist uploads immediately into session_state to avoid resets losing files
         new_files = st.file_uploader(
@@ -1309,10 +1309,13 @@ if st.session_state.other_file_convert == True:
         # Render results from state (stable across reruns)
         if st.session_state.aia_parsed_once and st.session_state.aia_combined_df is not None:
             st.markdown("#### Preview")
-            st.dataframe(st.session_state.aia_combined_df, use_container_width=True)
 
-            # Build combined CSV (respect 'include source_file' toggle)
-            df_download = st.session_state.aia_combined_df.copy()
+            # Preview sorted (same as download, but does not remove 'source_file' column)
+            preview_df = _apply_sort(st.session_state.aia_combined_df, st.session_state.aia_sort_choice)
+            st.dataframe(preview_df, use_container_width=True)
+
+            # Build combined CSV (respect 'include source_file' toggle + sorting)
+            df_download = preview_df.copy()
             if not st.session_state.aia_include_source_in_download and "source_file" in df_download.columns:
                 df_download = df_download.drop(columns=["source_file"], errors="ignore")
 
@@ -1325,13 +1328,13 @@ if st.session_state.other_file_convert == True:
                 key="aia_download_combined"
             )
 
-            # Optional per-file downloads (respect toggle)
+            # Optional per-file downloads (respect toggle + sorting)
             with st.expander("Per-file CSV downloads (optional)"):
                 for fname, df in st.session_state.aia_perfile_dfs:
-                    df_one = df.copy()
-                    if not st.session_state.aia_include_source_in_download and "source_file" in df_one.columns:
-                        df_one = df_one.drop(columns=["source_file"], errors="ignore")
-                    csv_one = df_one.to_csv(index=False).encode("utf-8-sig")
+                    df_one_sorted = _apply_sort(df, st.session_state.aia_sort_choice)
+                    if not st.session_state.aia_include_source_in_download and "source_file" in df_one_sorted.columns:
+                        df_one_sorted = df_one_sorted.drop(columns=["source_file"], errors="ignore")
+                    csv_one = df_one_sorted.to_csv(index=False).encode("utf-8-sig")
                     st.download_button(
                         label=f"Download CSV for {fname}",
                         data=csv_one,
