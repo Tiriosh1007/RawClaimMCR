@@ -1132,6 +1132,9 @@ if st.session_state.ocr == True:
 # ========================================================================================================
 
 if st.session_state.other_file_convert == True:
+    # =========================================
+    # Shared helpers
+    # =========================================
     def _bytes_entry(file_obj) -> dict:
         data = file_obj.getvalue()
         return {"name": file_obj.name, "bytes": data, "hash": hashlib.md5(data).hexdigest()}
@@ -1142,21 +1145,39 @@ if st.session_state.other_file_convert == True:
             if isinstance(u, dict) and "bytes" in u and "name" in u:
                 yield u["name"], io.BytesIO(u["bytes"])
 
+    def _parse_policy_dates(series: pd.Series) -> pd.Series:
+        """
+        Robust parsing for policy_start_date.
+        1) Try day-first (common for your AIA output: D/M/YY)
+        2) If many NaT, try month-first
+        3) Fallback: infer with errors='coerce'
+        """
+        s = pd.to_datetime(series, dayfirst=True, errors="coerce")
+        if s.isna().mean() > 0.5:  # too many NaT; try the other way
+            s2 = pd.to_datetime(series, dayfirst=False, errors="coerce")
+            s = s.where(~s.isna(), s2)
+        if s.isna().mean() > 0.5:
+            s3 = pd.to_datetime(series, errors="coerce", infer_datetime_format=True)
+            s = s.where(~s.isna(), s3)
+        return s
+
     def _sort_df(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         """Sort by benefit_type order (always preserved) and either benefit_type-first or policy_start_date-first."""
         desired_order = ["Hospital", "Clinical", "Dental", "Optical", "Maternity", "Top-Up/ SMM"]
         present = [b for b in desired_order if b in df.get("benefit_type", pd.Series(dtype=str)).unique().tolist()]
         df = df.copy()
 
+        # Benefit type categorical
         if present:
             cat = pd.api.types.CategoricalDtype(categories=present, ordered=True)
             df["__bt_order__"] = df["benefit_type"].astype(cat)
         else:
             df["__bt_order__"] = df["benefit_type"]
 
-        # Non-destructive date parse for sorting
-        df["__psd__"] = pd.to_datetime(df.get("policy_start_date"), dayfirst=True, errors="coerce")
+        # Robust policy_start_date parsing for sorting (non-destructive)
+        df["__psd__"] = _parse_policy_dates(df.get("policy_start_date"))
 
+        # Stable sorting
         if mode == "Benefit Type":
             df = df.sort_values(["__bt_order__", "__psd__", "policy_number"], kind="mergesort")
         else:  # "Policy Start Date"
@@ -1165,15 +1186,14 @@ if st.session_state.other_file_convert == True:
         return df.drop(columns=["__bt_order__", "__psd__"], errors="ignore")
 
     # =========================================
-    # AIA LOSS RATIO CONVERTER SESSION
+    # AIA LOSS RATIO CONVERT (MASTER)
     # =========================================
-    # ---- State init ----
     def _aia_init_state():
         st.session_state.setdefault("aia_view_active", False)
         st.session_state.setdefault("aia_sheet_name", "Sheet1")
-        st.session_state.setdefault("aia_add_filename", True)                 # show 'source_file' in PREVIEW
-        st.session_state.setdefault("aia_include_source_in_download", True)   # include 'source_file' in DOWNLOAD
-        st.session_state.setdefault("aia_sort_mode", "Benefit Type")          # 'Benefit Type' or 'Policy Start Date'
+        st.session_state.setdefault("aia_add_filename", True)                 # preview toggle
+        st.session_state.setdefault("aia_include_source_in_download", True)   # download toggle
+        st.session_state.setdefault("aia_sort_mode", "Policy Start Date")     # default per request
         st.session_state.setdefault("aia_uploads", [])                        # list of {"name","bytes","hash"}
         st.session_state.setdefault("aia_errors", [])
         st.session_state.setdefault("aia_combined_df", None)
@@ -1184,12 +1204,12 @@ if st.session_state.other_file_convert == True:
 
     # ---- Header / Toolbar ----
     st.markdown("### 🔧 Converters")
-    st.caption("Pick a converter below. ‘AIA Loss Ratio’ and ‘Loss Ratio Combine’ are available; other slots are placeholders.")
+    st.caption("Launch the master converter. The combine tool is inside the master view; other slots are placeholders.")
 
-    # Row of launcher buttons
+    # 8-button row; first is the master
     c0, c1, c2, c3, c4, c5, c6, c7 = st.columns(8)
     with c0:
-        if st.button("Loss Ratio Master", type="primary", key="btn_aia_loss_ratio_open"):
+        if st.button("Loss Ratio Master", type="primary", key="btn_loss_ratio_master"):
             st.session_state.aia_view_active = True
     for idx, col in enumerate([c1, c2, c3, c4, c5, c6, c7], start=1):
         with col:
@@ -1197,16 +1217,16 @@ if st.session_state.other_file_convert == True:
 
     st.divider()
 
-    # ---- AIA Converter Body ----
+    # ---- AIA MASTER BODY ----
     if st.session_state.aia_view_active:
-        st.subheader("AIA Loss Ratio Converter")
+        st.subheader("AIA Loss Ratio Convert")
 
-        # Sidebar options
+        # Sidebar options (Convert)
         with st.sidebar:
-            st.markdown("#### AIA Converter Options")
+            st.markdown("#### Master: Convert Options")
             st.session_state.aia_sheet_name = st.text_input(
                 "Sheet name",
-                value=st.session_state.aia_sheet_name,
+                value=st.session_state.aia_sheet_name,  # default "Sheet1"
                 key="aia_sheet_input"
             )
             st.session_state.aia_add_filename = st.toggle(
@@ -1224,7 +1244,7 @@ if st.session_state.other_file_convert == True:
             st.session_state.aia_sort_mode = st.radio(
                 "Sort output by",
                 options=["Benefit Type", "Policy Start Date"],
-                index=0 if st.session_state.aia_sort_mode == "Benefit Type" else 1,
+                index=1 if st.session_state.aia_sort_mode == "Policy Start Date" else 0,
                 key="aia_sort_mode_radio",
                 help="Benefit type order is always preserved."
             )
@@ -1237,7 +1257,7 @@ if st.session_state.other_file_convert == True:
             key="uploader_aia"
         )
 
-        # Guard: ensure uploads state is list of dicts
+        # Guard uploads type
         if not isinstance(st.session_state.aia_uploads, list):
             st.session_state.aia_uploads = []
         else:
@@ -1258,13 +1278,13 @@ if st.session_state.other_file_convert == True:
         # Show staged files
         if st.session_state.aia_uploads:
             st.success(f"{len(st.session_state.aia_uploads)} file(s) staged.")
-            with st.expander("Show staged files (AIA)"):
+            with st.expander("Show staged files (Master)"):
                 for u in st.session_state.aia_uploads:
                     st.write(f"- {u['name']}")
 
             c1, c2 = st.columns([1, 1])
             with c1:
-                if st.button("Clear All Staged Files (AIA)", key="aia_clear_all"):
+                if st.button("Clear All Staged Files (Master)", key="aia_clear_all"):
                     st.session_state.aia_uploads = []
                     st.session_state.aia_perfile_dfs = []
                     st.session_state.aia_combined_df = None
@@ -1272,7 +1292,7 @@ if st.session_state.other_file_convert == True:
                     st.session_state.aia_errors = []
                     st.rerun()
             with c2:
-                if st.button("Remove Last File (AIA)", key="aia_remove_last") and st.session_state.aia_uploads:
+                if st.button("Remove Last File (Master)", key="aia_remove_last") and st.session_state.aia_uploads:
                     st.session_state.aia_uploads.pop()
                     st.session_state.aia_parsed_once = False
                     st.session_state.aia_combined_df = None
@@ -1282,7 +1302,7 @@ if st.session_state.other_file_convert == True:
 
         # Convert action
         with st.form("aia_convert_form", clear_on_submit=False):
-            convert_clicked = st.form_submit_button("Convert to CSV (AIA)", type="primary")
+            convert_clicked = st.form_submit_button("Convert to CSV (Master)", type="primary")
             if convert_clicked:
                 st.session_state.aia_errors = []
                 st.session_state.aia_perfile_dfs = []
@@ -1318,7 +1338,7 @@ if st.session_state.other_file_convert == True:
 
         # Preview & download
         if st.session_state.aia_parsed_once and st.session_state.aia_combined_df is not None:
-            st.markdown("#### Preview (AIA)")
+            st.markdown("#### Preview (Master)")
             st.dataframe(st.session_state.aia_combined_df, use_container_width=True)
 
             df_download = st.session_state.aia_combined_df.copy()
@@ -1328,14 +1348,14 @@ if st.session_state.other_file_convert == True:
 
             combined_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
             st.download_button(
-                label="⬇️ Download Combined CSV (AIA)",
+                label="⬇️ Download Combined CSV (Master)",
                 data=combined_bytes,
                 file_name="claim_ratio_combined.csv",
                 mime="text/csv",
                 key="aia_download_combined"
             )
 
-            with st.expander("Per-file CSV downloads (optional, AIA)"):
+            with st.expander("Per-file CSV downloads (optional, Master)"):
                 for fname, df in st.session_state.aia_perfile_dfs:
                     df_one = df.copy()
                     if not st.session_state.aia_include_source_in_download and "source_file" in df_one.columns:
@@ -1350,31 +1370,31 @@ if st.session_state.other_file_convert == True:
                         key=f"aia_download_{fname}"
                     )
         elif st.session_state.aia_uploads:
-            st.info("Files are staged. Click **Convert to CSV (AIA)** to process them.")
+            st.info("Files are staged. Click **Convert to CSV (Master)** to process them.")
         else:
-            st.info("Upload one or more Excel files to begin (AIA).")
+            st.info("Upload one or more Excel files to begin (Master).")
 
         # =========================================
-        # LOSS RATIO COMBINE SESSION
+        # LOSS RATIO COMBINE (INSIDE MASTER)
         # =========================================
         st.divider()
         st.subheader("🧩 Loss Ratio Combine")
 
-        # ---- State init (combine) ----
+        # Combine state
         def _lrc_init_state():
-            st.session_state.setdefault("lrc_add_filename", True)               # show 'source_file' in PREVIEW
-            st.session_state.setdefault("lrc_include_source_in_download", True) # include 'source_file' in DOWNLOAD
-            st.session_state.setdefault("lrc_sort_mode", "Benefit Type")        # 'Benefit Type' or 'Policy Start Date'
-            st.session_state.setdefault("lrc_uploads", [])                      # list of {"name","bytes","hash"}
+            st.session_state.setdefault("lrc_add_filename", True)                # preview toggle
+            st.session_state.setdefault("lrc_include_source_in_download", True)  # download toggle
+            st.session_state.setdefault("lrc_sort_mode", "Policy Start Date")    # default per request
+            st.session_state.setdefault("lrc_uploads", [])                       # list of {"name","bytes","hash"}
             st.session_state.setdefault("lrc_errors", [])
             st.session_state.setdefault("lrc_combined_df", None)
             st.session_state.setdefault("lrc_parsed_once", False)
 
         _lrc_init_state()
 
-        # Sidebar options (COMBINE)
+        # Sidebar options (Combine)
         with st.sidebar:
-            st.markdown("#### Loss Ratio Combine Options")
+            st.markdown("#### Combine Options")
             st.session_state.lrc_add_filename = st.toggle(
                 "Add 'source_file' column to preview table (combine)",
                 value=st.session_state.lrc_add_filename,
@@ -1390,12 +1410,12 @@ if st.session_state.other_file_convert == True:
             st.session_state.lrc_sort_mode = st.radio(
                 "Sort output by (combine)",
                 options=["Benefit Type", "Policy Start Date"],
-                index=0 if st.session_state.lrc_sort_mode == "Benefit Type" else 1,
+                index=1 if st.session_state.lrc_sort_mode == "Policy Start Date" else 0,
                 key="lrc_sort_mode_radio",
                 help="Benefit type order is always preserved."
             )
 
-        # File uploader (CSV)
+        # Uploader (CSV)
         uploaded_csvs = st.file_uploader(
             "Upload one or more Loss Ratio CSV files",
             type=["csv"],
@@ -1403,7 +1423,7 @@ if st.session_state.other_file_convert == True:
             key="lrc_uploader"
         )
 
-        # Guard: ensure uploads state is list of dicts
+        # Guard type
         if not isinstance(st.session_state.lrc_uploads, list):
             st.session_state.lrc_uploads = []
         else:
@@ -1459,18 +1479,21 @@ if st.session_state.other_file_convert == True:
                     with st.spinner("Combining files..."):
                         for fname, fobj in _uploads_to_filelikes(st.session_state.lrc_uploads):
                             try:
-                                # Read as strings, then coerce numerics where appropriate
+                                # Read CSV as-is, then coerce numerics; keep strings to avoid locale issues
                                 df = pd.read_csv(fobj, dtype=str)
                                 df.columns = [c.strip() for c in df.columns]
 
+                                # Coerce numeric fields
                                 for col in ["actual_premium", "actual_paid_w_ibnr", "loss_ratio"]:
                                     if col in df.columns:
                                         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-                                # Add source_file for PREVIEW if requested and missing
+                                # Preview source_file (if user wants it and if missing)
                                 if st.session_state.lrc_add_filename and "source_file" not in df.columns:
                                     df.insert(0, "source_file", fname)
 
+                                # (Optional) normalize/keep original policy_start_date string,
+                                # sorting will rely on robust parsing in _sort_df
                                 dfs.append(df)
                             except Exception as e:
                                 st.session_state.lrc_errors.append((fname, str(e)))
@@ -1486,14 +1509,17 @@ if st.session_state.other_file_convert == True:
                         st.session_state.lrc_combined_df = combined
                         st.session_state.lrc_parsed_once = True
 
-        # Preview & download for combine
+        # Preview & download (Combine)
         if st.session_state.lrc_parsed_once and st.session_state.lrc_combined_df is not None:
             st.markdown("#### Preview (Combine)")
             st.dataframe(st.session_state.lrc_combined_df, use_container_width=True)
 
+            # Respect download toggle for source_file
             df_download = st.session_state.lrc_combined_df.copy()
             if not st.session_state.lrc_include_source_in_download and "source_file" in df_download.columns:
                 df_download = df_download.drop(columns=["source_file"], errors="ignore")
+
+            # Re-apply sorting just in case user toggled the mode post-combine
             df_download = _sort_df(df_download, st.session_state.lrc_sort_mode)
 
             csv_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
