@@ -1121,95 +1121,168 @@ if st.session_state.ocr == True:
 # ========================================================================================================
 
 if st.session_state.other_file_convert == True:
-  st.markdown("### 🔧 Converters")
-  st.caption("Pick a converter below. More will be added here later.")
-  # --- Future expansion slots (button toolbar) ---
-  c1, c2, c3, c4 = st.columns([1, 1, 1, 1])
-  with c1:
-      run_aia = st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio")
-  with c2:
-      st.button("AXA Loss Ratio", disabled=True, key="btn_axa_placeholder", help="Coming soon")
-  with c3:
-      st.button("Bupa Loss Ratio", disabled=True, key="btn_bupa_placeholder", help="Coming soon")
-  with c4:
-      st.button("Custom Mapping", disabled=True, key="btn_custom_mapping_placeholder", help="Coming soon")
+    def _init_state():
+        st.session_state.setdefault("aia_view_active", False)           # whether the AIA module view is open
+        st.session_state.setdefault("aia_sheet_name", "Sheet1")         # selected sheet
+        st.session_state.setdefault("aia_add_filename", True)           # add filename column
+        st.session_state.setdefault("aia_uploads", [])                  # list of {"name": str, "bytes": b"...", "hash": str}
+        st.session_state.setdefault("aia_errors", [])                   # list of (filename, error)
+        st.session_state.setdefault("aia_combined_df", None)            # combined dataframe
+        st.session_state.setdefault("aia_perfile_dfs", [])              # list of (filename, df)
+        st.session_state.setdefault("aia_parsed_once", False)           # whether conversion has been run
 
-  st.divider()
+    def _bytes_entry(file_obj) -> dict:
+        data = file_obj.getvalue()
+        return {
+            "name": file_obj.name,
+            "bytes": data,
+            "hash": hashlib.md5(data).hexdigest()
+        }
 
-  # --- AIA Loss Ratio converter UI ---
-  if run_aia:
-    st.subheader("AIA Loss Ratio Converter")
-    st.caption("Upload one or more Excel reports. We’ll parse all periods, aggregate benefit types, and output a clean CSV in-memory.")
+    def _uploads_to_filelikes(uploads):
+        """Rehydrate saved bytes into BytesIO objects suitable for parser.parse"""
+        for u in uploads:
+            yield u["name"], io.BytesIO(u["bytes"])
 
-    # Options
-    with st.sidebar:
-      st.markdown("#### Converter Options")
-      sheet_name = st.text_input("Sheet name", value="Sheet1")
-      add_filename_col = st.toggle("Add source filename column", value=True)
-      st.markdown("---")
+    _init_state()
 
-    # File uploader (in-memory; Streamlit Cloud friendly)
-    uploaded_files = st.file_uploader(
-      "Upload AIA Excel report files",
-      type=["xlsx", "xls"],
-      accept_multiple_files=True,
-      key="uploader_aia"
-    )
+    # -------------- Header / Toolbar --------------
+    st.markdown("### 🔧 Converters")
+    st.caption("Pick a converter. ‘AIA Loss Ratio’ is available; other slots reserved for future modules.")
 
-    # Parser instance (benefit mapping can be customized later if needed)
-    parser = AIALossRatioConvert(sheet_name=sheet_name)
+    # Primary action to open AIA converter
+    open_aia = st.button("AIA Loss Ratio", type="primary", key="btn_aia_loss_ratio_open")
+    if open_aia:
+        st.session_state.aia_view_active = True
 
-    # Action row
-    convert_clicked = st.button("Convert to CSV", key="convert_aia")
+    # Future expansion: 8-button row of placeholders (all 'Coming Soon')
+    cols = st.columns(8)
+    for i, c in enumerate(cols, start=1):
+        with c:
+            st.button("Coming Soon", disabled=True, key=f"coming_soon_{i}", help="Reserved for future converter")
 
-    if convert_clicked:
-      if not uploaded_files:
-        st.warning("Please upload at least one Excel file.")
-      else:
-          all_rows = []
-          errors = []
+    st.divider()
 
-          with st.spinner("Parsing files..."):
-            for f in uploaded_files:
-              try:
-                # Parse directly from the in-memory UploadedFile (BytesIO-like)
-                df = parser.parse(f)
-                if add_filename_col:
-                  df.insert(0, "source_file", f.name)
-                all_rows.append(df)
-              except Exception as e:
-                errors.append((f.name, str(e)))
+    # -------------- AIA Loss Ratio Converter --------------
+    if st.session_state.aia_view_active:
+        st.subheader("AIA Loss Ratio Converter")
 
-          if errors:
-            st.error("Some files could not be parsed:")
-            for fname, msg in errors:
-              st.write(f"- **{fname}**: {msg}")
+        # Options (persisted in state)
+        with st.sidebar:
+            st.markdown("#### Converter Options")
+            st.session_state.aia_sheet_name = st.text_input(
+                "Sheet name", value=st.session_state.aia_sheet_name, key="aia_sheet_input"
+            )
+            st.session_state.aia_add_filename = st.toggle(
+                "Add source filename column", value=st.session_state.aia_add_filename, key="aia_add_filename_toggle"
+            )
+            st.markdown("---")
 
-          if all_rows:
-            combined = pd.concat(all_rows, ignore_index=True)
+        # File uploader: keep UI responsive, but copy into session_state immediately to avoid “page reset” loss
+        new_files = st.file_uploader(
+            "Upload one or more AIA Excel report files",
+            type=["xlsx", "xls"],
+            accept_multiple_files=True,
+            key="uploader_aia"
+        )
 
-            # Show preview
+        # Persist new uploads into session (as bytes) so reruns don't lose them
+        if new_files:
+            # avoid duplicates using content hash
+            existing_hashes = {u["hash"] for u in st.session_state.aia_uploads}
+            for f in new_files:
+                entry = _bytes_entry(f)
+                if entry["hash"] not in existing_hashes:
+                    st.session_state.aia_uploads.append(entry)
+                    existing_hashes.add(entry["hash"])
+
+        # Show currently staged files (from state)
+        if st.session_state.aia_uploads:
+            st.success(f"{len(st.session_state.aia_uploads)} file(s) staged.")
+            with st.expander("Show staged files"):
+                for u in st.session_state.aia_uploads:
+                    st.write(f"- {u['name']}")
+
+            # Manage staged files (clear or remove last)
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                if st.button("Clear All Staged Files", key="aia_clear_all"):
+                    st.session_state.aia_uploads = []
+                    st.session_state.aia_perfile_dfs = []
+                    st.session_state.aia_combined_df = None
+                    st.session_state.aia_parsed_once = False
+                    st.session_state.aia_errors = []
+                    st.rerun()
+            with c2:
+                if st.button("Remove Last File", key="aia_remove_last") and st.session_state.aia_uploads:
+                    st.session_state.aia_uploads.pop()
+                    st.session_state.aia_parsed_once = False
+                    st.session_state.aia_combined_df = None
+                    st.session_state.aia_perfile_dfs = []
+                    st.session_state.aia_errors = []
+                    st.rerun()
+
+        # Convert action (use a form to keep controls stable and avoid intermediate resets)
+        with st.form("aia_convert_form", clear_on_submit=False):
+            convert_clicked = st.form_submit_button("Convert to CSV", type="primary")
+            if convert_clicked:
+                st.session_state.aia_errors = []
+                st.session_state.aia_perfile_dfs = []
+                st.session_state.aia_combined_df = None
+                st.session_state.aia_parsed_once = False
+
+                if not st.session_state.aia_uploads:
+                    st.warning("Please upload at least one Excel file.")
+                else:
+                    parser = AIALossRatioConvert(sheet_name=st.session_state.aia_sheet_name)
+                    dfs = []
+                    with st.spinner("Parsing files..."):
+                        for fname, fobj in _uploads_to_filelikes(st.session_state.aia_uploads):
+                            try:
+                                df = parser.parse(fobj)
+                                if st.session_state.aia_add_filename:
+                                    df.insert(0, "source_file", fname)
+                                dfs.append(df)
+                                st.session_state.aia_perfile_dfs.append((fname, df))
+                            except Exception as e:
+                                st.session_state.aia_errors.append((fname, str(e)))
+
+                    if st.session_state.aia_errors:
+                        st.error("Some files could not be parsed:")
+                        for fname, msg in st.session_state.aia_errors:
+                            st.write(f"- **{fname}**: {msg}")
+
+                    if dfs:
+                        st.session_state.aia_combined_df = pd.concat(dfs, ignore_index=True)
+                        st.session_state.aia_parsed_once = True
+
+        # Render results from state (stable across reruns)
+        if st.session_state.aia_parsed_once and st.session_state.aia_combined_df is not None:
             st.markdown("#### Preview")
-            st.dataframe(combined, use_container_width=True)
+            st.dataframe(st.session_state.aia_combined_df, use_container_width=True)
 
-            # Prepare in-memory CSV with UTF-8 BOM so Excel opens cleanly
-            csv_bytes = combined.to_csv(index=False).encode("utf-8-sig")
+            # Combined CSV download (in-memory)
+            combined_bytes = st.session_state.aia_combined_df.to_csv(index=False).encode("utf-8-sig")
             st.download_button(
-              label="⬇️ Download Combined CSV",
-              data=csv_bytes,
-              file_name="claim_ratio_combined.csv",
-              mime="text/csv",
-              key="download_aia_combined"
+                label="⬇️ Download Combined CSV",
+                data=combined_bytes,
+                file_name="claim_ratio_combined.csv",
+                mime="text/csv",
+                key="aia_download_combined"
             )
 
-            # Optional: per-file downloads under an expander
+            # Optional per-file downloads
             with st.expander("Per-file CSV downloads (optional)"):
-              for f, df in zip(uploaded_files, all_rows):
-                csv_one = df.to_csv(index=False).encode("utf-8-sig")
-                st.download_button(
-                  label=f"Download CSV for {f.name}",
-                  data=csv_one,
-                  file_name=f"{f.name.rsplit('.',1)[0]}_converted.csv",
-                  mime="text/csv",
-                  key=f"download_{f.name}"
-                  )
+                for fname, df in st.session_state.aia_perfile_dfs:
+                    csv_one = df.to_csv(index=False).encode("utf-8-sig")
+                    st.download_button(
+                        label=f"Download CSV for {fname}",
+                        data=csv_one,
+                        file_name=f"{fname.rsplit('.',1)[0]}_converted.csv",
+                        mime="text/csv",
+                        key=f"aia_download_{fname}"
+                    )
+        elif st.session_state.aia_uploads:
+            st.info("Files are staged. Click **Convert to CSV** to process them.")
+        else:
+            st.info("Upload one or more Excel files to begin.")
