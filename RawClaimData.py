@@ -2973,27 +2973,28 @@ class RawClaimData():
         if annualize == True:
           p26_op_class_factoring['incurred_amount'] = p26_op_class_factoring['incurred_amount'] * (12 / p26_op_class_factoring['data_month'])
           p26_op_class_factoring['paid_amount']     = p26_op_class_factoring['paid_amount']     * (12 / p26_op_class_factoring['data_month'])
+          p26_op_class_factoring['no_of_cases']     = p26_op_class_factoring['no_of_cases']     * (12 / p26_op_class_factoring['data_month'])
           p26_op_class_factoring['no_of_claim_id']  = p26_op_class_factoring['no_of_claim_id']  * (12 / p26_op_class_factoring['data_month'])
-    if ibnr == True:
-      p26_op_class_factoring['incurred_amount'] = p26_op_class_factoring['incurred_amount'] * (1 + p26_op_class_factoring['ibnr'])
-      p26_op_class_factoring['paid_amount']     = p26_op_class_factoring['paid_amount']     * (1 + p26_op_class_factoring['ibnr'])
-      p26_op_class_factoring['no_of_claim_id']  = p26_op_class_factoring['no_of_claim_id']  * (1 + p26_op_class_factoring['ibnr'])
-        
-    p26a_diff = p26_op_class_factoring[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']] - p26_op_class_panel_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']]
-    temp_by = __p26_group_col.copy()
-    temp_by.remove('year') if 'year' in temp_by else temp_by
-    temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
-    p26a_diff = p26a_diff.reset_index(drop=False)[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].groupby(by=temp_by, dropna=False).sum()
-    p26_op_class_panel_df.reset_index().set_index(temp_by, inplace=True)
-    p26_op_class_panel_df.loc[p26_op_class_panel_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']] = p26_op_class_panel_df.loc[p26_op_class_panel_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].add(p26a_diff)
-    temp_by = __p26_group_col.copy()
-    temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
-    p26_op_class_panel_df = p26_op_class_panel_df.reset_index()[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].groupby(by=temp_by, dropna=False).sum()
-    p26_op_class_panel_df['usage_ratio'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['incurred_amount'].replace(0, pd.NA)
-    p26_op_class_panel_df['incurred_per_case'] = p26_op_class_panel_df['incurred_amount'] / p26_op_class_panel_df['no_of_cases'].replace(0, pd.NA)
-    p26_op_class_panel_df['paid_per_case']     = p26_op_class_panel_df['paid_amount']     / p26_op_class_panel_df['no_of_cases'].replace(0, pd.NA)
-    p26_op_class_panel_df['incurred_per_claim'] = p26_op_class_panel_df['incurred_amount'] / p26_op_class_panel_df['no_of_claim_id'].replace(0, pd.NA)
-    p26_op_class_panel_df['paid_per_claim'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['no_of_claim_id'].replace(0, pd.NA)
+        if ibnr == True:
+          p26_op_class_factoring['incurred_amount'] = p26_op_class_factoring['incurred_amount'] * (1 + p26_op_class_factoring['ibnr'])
+          p26_op_class_factoring['paid_amount']     = p26_op_class_factoring['paid_amount']     * (1 + p26_op_class_factoring['ibnr'])
+          p26_op_class_factoring['no_of_cases']     = p26_op_class_factoring['no_of_cases']     * (1 + p26_op_class_factoring['ibnr'])
+          p26_op_class_factoring['no_of_claim_id']  = p26_op_class_factoring['no_of_claim_id']  * (1 + p26_op_class_factoring['ibnr'])
+        p26a_diff = p26_op_class_factoring[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']] - p26_op_class_panel_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']]
+        temp_by = __p26_group_col.copy()
+        temp_by.remove('year') if 'year' in temp_by else temp_by
+        temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
+        p26a_diff = p26a_diff.reset_index(drop=False)[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].groupby(by=temp_by, dropna=False).sum()
+        p26_op_class_panel_df.reset_index().set_index(temp_by, inplace=True)
+        p26_op_class_panel_df.loc[p26_op_class_panel_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']] = p26_op_class_panel_df.loc[p26_op_class_panel_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].add(p26a_diff)
+        temp_by = __p26_group_col.copy()
+        temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
+        p26_op_class_panel_df = p26_op_class_panel_df.reset_index()[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id']].groupby(by=temp_by, dropna=False).sum()
+        p26_op_class_panel_df['usage_ratio'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['incurred_amount'].replace(0, pd.NA)
+        p26_op_class_panel_df['incurred_per_case'] = p26_op_class_panel_df['incurred_amount'] / p26_op_class_panel_df['no_of_cases'].replace(0, pd.NA)
+        p26_op_class_panel_df['paid_per_case']     = p26_op_class_panel_df['paid_amount']     / p26_op_class_panel_df['no_of_cases'].replace(0, pd.NA)
+        p26_op_class_panel_df['incurred_per_claim'] = p26_op_class_panel_df['incurred_amount'] / p26_op_class_panel_df['no_of_claim_id'].replace(0, pd.NA)
+        p26_op_class_panel_df['paid_per_claim'] = p26_op_class_panel_df['paid_amount'] / p26_op_class_panel_df['no_of_claim_id'].replace(0, pd.NA)
 
     __p26_group_col.remove('policy_id') if 'policy_id' in __p26_group_col else __p26_group_col
     p26_op_class_panel_df = p26_op_class_panel_df.reset_index().set_index(__p26_group_col)
