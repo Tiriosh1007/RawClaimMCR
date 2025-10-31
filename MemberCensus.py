@@ -324,6 +324,9 @@ class MemberCensus():
             for col in self.cols:
                 if col not in self.bupa_cols_mapping.values():
                     temp_df[col] = None
+            for col in self.bupa_cols_mapping.values():
+                if col not in self.cols:
+                    temp_df[col] = None
             temp_df = temp_df[self.cols]
         elif insurer == 'HSBC':
             temp_df = pd.read_excel(fp, dtype=self.hsbc_cols_dtype)
@@ -336,6 +339,9 @@ class MemberCensus():
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
                 if col not in self.hsbc_cols_mapping.values():
+                    temp_df[col] = None
+            for col in self.hsbc_cols_mapping.values():
+                if col not in self.cols:
                     temp_df[col] = None
             
             temp_df = temp_df[self.cols]
@@ -365,6 +371,10 @@ class MemberCensus():
             for col in self.cols:
                 if col not in self.axa_cols_mapping.values():
                     temp_df[col] = None
+            for col in self.axa_cols_mapping.values():
+                if col not in self.cols:
+                    temp_df[col] = None
+            
             
             temp_df = temp_df[self.cols]
         elif insurer == 'AIA':
@@ -382,6 +392,9 @@ class MemberCensus():
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
                 if col not in self.aia_cols_mapping.values():
+                    temp_df[col] = None
+            for col in self.aia_cols_mapping.values():
+                if col not in self.cols:
                     temp_df[col] = None
             
             temp_df = temp_df[self.cols]
