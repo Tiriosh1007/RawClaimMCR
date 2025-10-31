@@ -829,7 +829,15 @@ if st.session_state.member_census == True:
       st.write('Employee Mix:')
       st.dataframe(member_census.ee_mix_df)
     st.write('---')
-      
+    # Download cleaned combined member census list (CSV)
+    st.download_button(
+      label='Download Cleaned Member Census (CSV)',
+      data=member_census.member_df.to_csv(index=False).encode('utf-8-sig'),
+      file_name='member_census_cleaned.csv',
+      mime='text/csv',
+      key='download_member_census_csv'
+    )
+
     member_census.set_graph_layout(xmax, xstep, ystep, width, height)
     member_census.get_gender_distribution()
     fig = member_census.butterfly_plot()
