@@ -317,6 +317,13 @@ class MemberCensus():
             temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
             temp_df['insurer'] = insurer
+
+            if temp_df['suboffice'].isnull().all():
+                temp_df['suboffice'] = temp_df['policy_nunber'].str[-2:]
+            
+            for col in self.cols:
+                if col not in self.bupa_cols_mapping.values():
+                    temp_df[col] = None
             temp_df = temp_df[self.cols]
         elif insurer == 'HSBC':
             temp_df = pd.read_excel(fp, dtype=self.hsbc_cols_dtype)
@@ -338,6 +345,16 @@ class MemberCensus():
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
             temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
+            
+            if temp_df['policy_start_date'].isnull().all():
+                temp_df["Med. eff. date"].rename('policy_start_date', inplace=True)
+                _month = temp_df['policy_start_date'].min().astype(str).str[-4:]
+                _year = temp_df['policy_start_date'].max().astype(str).str[0:4]
+                if int("".join([_year, _month])) >= int(temp_df['policy_start_date'].max()):
+                    temp_df['policy_start_date'] = pd.to_datetime("".join([str(int(_year) - 1), _month]), format="%Y%m%d")
+                else:
+                    temp_df['policy_start_date'] = pd.to_datetime("".join([_year, _month]), format="%Y%m%d")
+
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
             temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
