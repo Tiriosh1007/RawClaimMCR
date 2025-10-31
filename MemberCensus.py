@@ -348,8 +348,10 @@ class MemberCensus():
             
             if "policy_start_date" not in temp_df.columns:
                 temp_df.rename(columns= {"Med. eff. date": 'policy_start_date'}, inplace=True)
-                _month = temp_df['policy_start_date'].min().astype(str).str[-4:]
-                _year = temp_df['policy_start_date'].max().astype(str).str[0:4]
+                _month = temp_df['policy_start_date'].min().str[-4:]
+                print(_month)
+                _year = temp_df['policy_start_date'].max().str[0:4]
+                print(_year)
                 if int("".join([_year, _month])) >= int(temp_df['policy_start_date'].max()):
                     temp_df['policy_start_date'] = pd.to_datetime("".join([str(int(_year) - 1), _month]), format="%Y%m%d")
                 else:
