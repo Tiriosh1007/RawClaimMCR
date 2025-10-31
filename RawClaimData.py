@@ -1526,6 +1526,8 @@ class RawClaimData():
     # self.df['factoring'] = self.df['year'] == self.policy_start_date.year
     # Factoring is determined in mcr_pages function
     self.factoring_cols = ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']
+
+    self.df['class'] = self.df['class'].apply(lambda v: v.strip() if isinstance(v, str) else v)
     # self.df.drop(columns=['data_month_ibnr'], inplace=True)
 
     if aso == True:
