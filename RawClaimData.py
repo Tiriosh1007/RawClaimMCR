@@ -829,8 +829,8 @@ class RawClaimData():
 
     t_df.diagnosis.fillna('No diagnosis provided', inplace=True)
     if len(t_df.diagnosis.unique()) > 2:
-      t_df['benefit_type'].loc[t_df['diagnosis'].str.contains('dental', case=False)] = 'Dental'
-      t_df['benefit'].loc[t_df['diagnosis'].str.contains('dental', case=False)] = 'Dental'
+      t_df['benefit_type'].loc[(t_df['diagnosis'].str.contains('dental', case=False)) & (t_df['benefit'].str.contains('clinical', cases=False) == False)] = 'Dental'
+      t_df['benefit'].loc[t_df['diagnosis'].str.contains('dental', case=False) & (t_df['benefit'].str.contains('clinical', cases=False) == False)] = 'Dental'
     #bupa_b_type = {'C': 'Clinic', 'H': 'Hospital', 'D': 'Dental', 'G': 'Optical', 'T': 'Hospital', 'W': 'Hospital', 'M': 'Maternity'}
     aia_dep_type = {'M': 'EE', 'S':'SP', 'C': 'CH', 'E': 'EE'}
     t_df['dep_type'].replace(aia_dep_type, inplace=True)
