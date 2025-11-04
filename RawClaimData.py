@@ -3909,38 +3909,50 @@ class RawClaimData():
     self.mcr_p20_day_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p21_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p22_class_benefit(by, benefit_type_order, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p23_ip_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p23a_class_ip_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p23b_ip_common_diagnosis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p24_op_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p24a_op_class_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p24_dent_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p24_wellness_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p24_class_wellness_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p23_ip_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p23a_class_ip_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p23b_ip_common_diagnosis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+      self.mcr_p24_op_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p24a_op_class_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('dent', case=False).any():
+      self.mcr_p24_dent_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p24_wellness_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p24_class_wellness_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p26_op_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p26_op_class_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p26_ip_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+      self.mcr_p26_op_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p26_op_class_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p26_ip_panel(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     self.mcr_p27_ts(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p27_ts_ip(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p27_ts_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28_hosp(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28_prov(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28a_prov_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28_doct(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28a_doct(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28_proce(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28_proce_diagnosis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p28b_proce_network(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p29_sp_speciality(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p29_sp_speciality_diag(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p29_grp_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p29_grp_procedure_org(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p29b_grp_procedure_network(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p27_ts_ip(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+      self.mcr_p27_ts_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p28_hosp(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28_prov(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28a_prov_benefit(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28_doct(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28a_doct(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28_proce(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode) 
+      self.mcr_p28_proce_diagnosis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p28b_proce_network(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit'].str.contains('specialist', case=False).any():
+      self.mcr_p29_sp_speciality(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p29_sp_speciality_diag(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p29_grp_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p29_grp_procedure_org(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p29b_grp_procedure_network(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     #self.mcr_p28_class_dep_ip_benefit(by)
-    self.mcr_p18a_top_diag_ip(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p18b_top_diag_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
-    self.mcr_p18ba_top_diag_network_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+      self.mcr_p18a_top_diag_ip(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+      self.mcr_p18b_top_diag_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p18ba_top_diag_network_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
 
     if export == True:
       from io import BytesIO
@@ -3956,38 +3968,49 @@ class RawClaimData():
         self.p20_dp.to_excel(writer, sheet_name='P.20_Day_Prod', index=True, merge_cells=False)
         self.p21.to_excel(writer, sheet_name='P.21_Class', index=True, merge_cells=False)
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
-        self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
-        self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
-        self.p23b_ip_common_diagnosis.to_excel(writer, sheet_name='P.23b_Common_Diagnosis_IP', index=True, merge_cells=False)
-        self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
-        self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
-        self.p24_dent_benefit.to_excel(writer, sheet_name='P.24d_Dental', index=True, merge_cells=False)
-        self.p24_wellness_benefit.to_excel(writer, sheet_name='P.24w_Wellness', index=True, merge_cells=False)
-        self.p24_class_wellness_benefit.to_excel(writer, sheet_name='P.24wc_Class_Wellness', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+          self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
+          self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
+          self.p23b_ip_common_diagnosis.to_excel(writer, sheet_name='P.23b_Common_Diagnosis_IP', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+          self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
+          self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('dent', case=False).any():
+          self.p24_dent_benefit.to_excel(writer, sheet_name='P.24d_Dental', index=True, merge_cells=False)
+          self.p24_wellness_benefit.to_excel(writer, sheet_name='P.24w_Wellness', index=True, merge_cells=False)
+          self.p24_class_wellness_benefit.to_excel(writer, sheet_name='P.24wc_Class_Wellness', index=True, merge_cells=False)
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
-        self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
-        self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
-        self.p26_ip_panel.to_excel(writer, sheet_name='P.26b_IP_Panel_Benefit', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+          self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
+          self.p26_op_class_panel.to_excel(writer, sheet_name='P.26a_OP_Class_Panel_Benefit', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+          self.p26_ip_panel.to_excel(writer, sheet_name='P.26b_IP_Panel_Benefit', index=True, merge_cells=False)
         self.p27.to_excel(writer, sheet_name='P.27_TimeSeries', index=True, merge_cells=False)
-        self.p27_ip.to_excel(writer, sheet_name='P.27a_TimeSeries_IP', index=True, merge_cells=False)
-        self.p27_op.to_excel(writer, sheet_name='P.27b_TimeSeries_OP', index=True, merge_cells=False)
-        self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
-        self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
-        self.p28_prov_benefit.to_excel(writer, sheet_name='P.28a_Provider_Benefit', index=True, merge_cells=False)
-        self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
-        self.p28a_doct.to_excel(writer, sheet_name='P.28a_Physician_Benefit', index=True, merge_cells=False)
-        self.p28_proce.to_excel(writer, sheet_name='P.28_Procedures', index=True, merge_cells=False)
-        self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
-        self.p28_proce_network.to_excel(writer, sheet_name='P.28b_Procedures_Network', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+          self.p27_ip.to_excel(writer, sheet_name='P.27a_TimeSeries_IP', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+          self.p27_op.to_excel(writer, sheet_name='P.27b_TimeSeries_OP', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+          self.p28_hosp.to_excel(writer, sheet_name='P.28_Hospital', index=True, merge_cells=False)
+          self.p28_prov.to_excel(writer, sheet_name='P.28_Provider', index=True, merge_cells=False)
+          self.p28_prov_benefit.to_excel(writer, sheet_name='P.28a_Provider_Benefit', index=True, merge_cells=False)
+          self.p28_doct.to_excel(writer, sheet_name='P.28_Physician', index=True, merge_cells=False)
+          self.p28a_doct.to_excel(writer, sheet_name='P.28a_Physician_Benefit', index=True, merge_cells=False)
+          self.p28_proce.to_excel(writer, sheet_name='P.28_Procedures', index=True, merge_cells=False)
+          self.p28_proce_diagnosis.to_excel(writer, sheet_name='P.28a_Procedures_Diag', index=True, merge_cells=False)
+          self.p28_proce_network.to_excel(writer, sheet_name='P.28b_Procedures_Network', index=True, merge_cells=False)
         #self.p28.to_excel(writer, sheet_name='P.28_Class_Dep_IP_Benefit', index=True, merge_cells=False)
-        self.p29_df_sp_specialty.to_excel(writer, sheet_name='P.29_SP_Speciality', index=True, merge_cells=False)
-        self.p29_df_sp_specialty_diag.to_excel(writer, sheet_name='P.29_SP_Spec_Diag', index=True, merge_cells=False)
-        self.p29_df_grp_procedure.to_excel(writer, sheet_name='P.29_Grp_Procedure', index=True, merge_cells=False)
-        self.p29_df_grp_procedure_org.to_excel(writer, sheet_name='P.29_Grp_Proce_Org', index=True, merge_cells=False)
-        self.p29_df_grp_procedure_network.to_excel(writer, sheet_name='P.29b_Grp_Proce_Network', index=True, merge_cells=False)
-        self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
-        self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
-        self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
+        if self.mcr_df['benefit'].str.contains('specialist', case=False).any():
+          self.p29_df_sp_specialty.to_excel(writer, sheet_name='P.29_SP_Speciality', index=True, merge_cells=False)
+          self.p29_df_sp_specialty_diag.to_excel(writer, sheet_name='P.29_SP_Spec_Diag', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
+          self.p29_df_grp_procedure.to_excel(writer, sheet_name='P.29_Grp_Procedure', index=True, merge_cells=False)
+          self.p29_df_grp_procedure_org.to_excel(writer, sheet_name='P.29_Grp_Proce_Org', index=True, merge_cells=False)
+          self.p29_df_grp_procedure_network.to_excel(writer, sheet_name='P.29b_Grp_Proce_Network', index=True, merge_cells=False)
+          self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
+        if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
+          self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
+          self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
 
         # Embed custom NamedStyle 'num' into the workbook
         wb = writer.book
