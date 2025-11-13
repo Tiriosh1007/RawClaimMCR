@@ -7,6 +7,7 @@ import plotly.offline as py
 import plotly.express as px
 import plotly.graph_objects as go
 import datetime
+import re
 
 
 import os
@@ -297,7 +298,35 @@ class MemberCensus():
 
 
 
-    def get_member_df(self, fp, insurer, password=None):
+    def get_member_df(self, fp, insurer, policy_start_date_input=None):
+
+        provided_ts = None
+        if policy_start_date_input is not None:
+            policy_str = str(policy_start_date_input).strip()
+            if policy_str and policy_str.lower() != 'nan':
+                digits_only = re.sub(r"[^0-9]", "", policy_str)
+                if len(digits_only) >= 8:
+                    digits_only = digits_only[:8]
+                temp_ts = pd.to_datetime(digits_only, format="%Y%m%d", errors='coerce')
+                if not pd.isna(temp_ts):
+                    provided_ts = temp_ts
+
+        def _apply_policy_start(df, fmt=None):
+            has_column = 'policy_start_date' in df.columns
+        
+            if has_column:
+                if fmt is not None:
+                    parsed = pd.to_datetime(df['policy_start_date'], format=fmt, errors='coerce')
+                else:
+                    parsed = pd.to_datetime(df['policy_start_date'], errors='coerce')
+            else:
+                parsed = pd.Series([pd.NaT] * len(df), index=df.index)
+
+            df['policy_start_date'] = parsed
+
+            if provided_ts is not None and not pd.isna(provided_ts):
+                df['policy_start_date'] = provided_ts
+            return df
 
         # if password is not None:
         #     import msoffcrypto
@@ -318,12 +347,12 @@ class MemberCensus():
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
             temp_df['insurer'] = insurer
 
-            if temp_df['suboffice'].isnull().all():
-                temp_df['suboffice'] = temp_df['policy_nunber'].str[-2:]
-            
+            temp_df = _apply_policy_start(temp_df, "%Y%m%d")
+
+            if "suboffice" not in temp_df.columns or temp_df['suboffice'].isnull().all():
+                temp_df['suboffice'] = temp_df['policy_number'].str[-2:]
+
             for col in self.cols:
-                if col not in self.bupa_cols_mapping.values():
-                    temp_df[col] = None
                 if col not in temp_df.columns:
                     temp_df[col] = None
             temp_df = temp_df[self.cols]
@@ -333,12 +362,11 @@ class MemberCensus():
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'])
+            temp_df = _apply_policy_start(temp_df)
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
             temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
-                if col not in self.hsbc_cols_mapping.values():
-                    temp_df[col] = None
                 if col not in temp_df.columns:
                     temp_df[col] = None
             
@@ -363,12 +391,12 @@ class MemberCensus():
             else:
                 temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date'], format="%Y%m%d")
 
+            temp_df = _apply_policy_start(temp_df)
+
             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
             temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
-                if col not in self.axa_cols_mapping.values():
-                    temp_df[col] = None
                 if col not in temp_df.columns:
                     temp_df[col] = None
             
@@ -381,14 +409,15 @@ class MemberCensus():
             temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
-            temp_df['policy_start_date'] = datetime.datetime.now()
+            if provided_ts is not None and not pd.isna(provided_ts):
+                temp_df['policy_start_date'] = provided_ts
+            else:
+                temp_df['policy_start_date'] = datetime.datetime.now()
             temp_df['age'] = pd.to_datetime(temp_df['age'])
             ref_date = datetime.datetime.now()
             temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
-                if col not in self.aia_cols_mapping.values():
-                    temp_df[col] = None
                 if col not in temp_df.columns:
                     temp_df[col] = None
             

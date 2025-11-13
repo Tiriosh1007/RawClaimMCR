@@ -19,6 +19,7 @@ from pathlib import Path
 
 open_rounter_api_key = st.secrets['api_key']
 
+
 import xml.etree.ElementTree as ET
 
 def _resolve_path(fn: str) -> str:
@@ -76,6 +77,7 @@ prompt_data_options = prompt_lib.data.to_dict()
 import base64
 import json
 import io
+import importlib.util
 from streamlit_pdf_viewer import pdf_viewer
 
 warnings.filterwarnings('ignore')
@@ -94,6 +96,8 @@ from ColumnNameManagement import *
 from MemberCensus import *
 from MCRConvert import *
 from PresentationConvert import *
+from MCRMerge import MCRMerger
+from MCRMemberCensusCombine import MCRMemberCensusCombiner
 from BlueCrossUsageReportConvert import *
 from IBNRTool import *
 from AIALossRatioConvert import *
@@ -103,6 +107,23 @@ from pygwalker.api.streamlit import StreamlitRenderer
 
 st.set_page_config(layout='wide')
 
+MAIN_SECTION_KEYS = [
+  'raw_claim',
+  'shortfall',
+  'ibnr_tool',
+  'member_census',
+  'member_mcr_combine',
+  'mcr_convert',
+  'ocr',
+  'other_file_convert',
+  'mcr_merge',
+]
+
+def activate_main_section(active_key=None) -> None:
+  """Toggle the top-level Streamlit sections, keeping only the chosen one active."""
+  for key in MAIN_SECTION_KEYS:
+    st.session_state[key] = (key == active_key)
+
 if 'raw_claim' not in st.session_state:
   st.session_state.raw_claim = False
 if 'shortfall' not in st.session_state:
@@ -111,22 +132,31 @@ if 'ibnr_tool' not in st.session_state:
   st.session_state.ibnr_tool = False
 if 'member_census' not in st.session_state:
   st.session_state.member_census = False
+if 'member_census_config' not in st.session_state:
+  st.session_state.member_census_config = pd.DataFrame()
 if 'mcr_convert' not in st.session_state:
   st.session_state.mcr_convert = False  
 if 'ocr' not in st.session_state:
   st.session_state.ocr = False
 if 'other_file_convert' not in st.session_state:
   st.session_state.other_file_convert = False
+if 'mcr_merge' not in st.session_state:
+  st.session_state.mcr_merge = False
+if 'mcr_merge_uploaded' not in st.session_state:
+  st.session_state.mcr_merge_uploaded = False
+if 'mcr_merge_groups' not in st.session_state:
+  st.session_state.mcr_merge_groups = []
+if 'member_mcr_combine' not in st.session_state:
+  st.session_state.member_mcr_combine = False
   
-function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8= st.columns([1,1,1, 1, 1,1,1,1])
+function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8, function_col9, function_col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
-with function_col1:  
+with function_col1:
   if st.button('Reset'):
     if st.session_state.raw_claim == True:
       st.cache_resource.clear()
-    st.session_state.raw_claim = False
+    activate_main_section(None)
     st.session_state.raw_process = False
-    st.session_state.shortfall= False
     st.session_state.shortfall_process = False
     st.session_state.op_time = False
     st.session_state.op_policy = False
@@ -134,113 +164,70 @@ with function_col1:
     st.session_state.dep_type_paid_class = False
     st.session_state.pygwalker = False
     st.session_state.mcr_data = False
-    st.session_state.ibnr_tool = False
-    st.session_state.member_census = False
     st.session_state.member_census_proceed = False
-    st.session_state.mcr_convert = False
+    st.session_state.member_census_config = pd.DataFrame()
+    if 'member_census_policy_filter' in st.session_state:
+      del st.session_state['member_census_policy_filter']
     st.session_state.mcr_convert_uploaded = False
-    st.session_state.ocr = False
     st.session_state.ocr_result = False
     st.session_state.ibnr_calculate = False
-    st.session_state.other_file_convert = False
     st.session_state.aia_view_active = False
     st.session_state.aia_sheet_name = False
-    st.session_state.aia_add_filename = False
-    st.session_state.aia_include_source_in_download = False
-    st.session_state.aia_uploads = False
-    st.session_state.aia_errors = False
-    st.session_state.aia_combined_df = False
-    st.session_state.aia_perfile_dfs = False
-    st.session_state.aia_parsed_once = False
-
+    st.session_state.member_mcr_files_ready = False
+    st.session_state.member_mcr_mcr_bytes = None
+    st.session_state.member_mcr_mcr_name = None
+    st.session_state.member_mcr_member_bytes = None
+    st.session_state.member_mcr_member_name = None
+    st.session_state.member_mcr_integrator = None
+    st.session_state.member_mcr_policy_mapping_df = None
+    st.session_state.member_mcr_policy_confirmed = False
+    st.session_state.member_mcr_class_mapping_df = None
+    st.session_state.member_mcr_class_confirmed = False
+    st.session_state.member_mcr_result_bytes = None
+    st.session_state.member_mcr_combined_sheets = None
+    st.session_state.member_mcr_warnings = []
 
 with function_col2:
-  if st.button('Raw Claim Data'):
-    st.session_state.raw_claim = True
-    st.session_state.shortfall = False
-    st.session_state.shortfall_process = False
-    st.session_state.ibnr_tool = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = False
+  if st.button('Raw Claim Tool'):
+    activate_main_section('raw_claim')
 
 with function_col3:
-  if st.button('Shortfall'):
-    st.session_state.shortfall = True
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.ibnr_tool = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = False
+  if st.button('Shortfall Tool'):
+    activate_main_section('shortfall')
 
 with function_col4:
   if st.button('IBNR Tool'):
-    st.session_state.ibnr_tool = True
-    st.session_state.shortfall = False
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = False
+    activate_main_section('ibnr_tool')
 
 with function_col5:
   if st.button('Member Census'):
-    st.session_state.ibnr_tool = False
-    st.session_state.shortfall = False
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.member_census = True
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = False
+    activate_main_section('member_census')
 
 with function_col6:
-  if st.button('Convert MCR'):
-    st.session_state.ibnr_tool = False
-    st.session_state.shortfall = False
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = True
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = False
+  if st.button('MCR Convert'):
+    activate_main_section('mcr_convert')
 
 with function_col7:
-  if st.button('OCR'):
-    st.session_state.ibnr_tool = False
-    st.session_state.shortfall = False
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = True
-    st.session_state.other_file_convert = False
+  if st.button('OCR Tool'):
+    activate_main_section('ocr')
 
 with function_col8:
-  if st.button('Other Files Handling'):
-    st.session_state.ibnr_tool = False
-    st.session_state.shortfall = False
-    st.session_state.raw_claim = False
-    st.session_state.raw_process = False
-    st.session_state.member_census = False
-    st.session_state.mcr_convert = False
-    st.session_state.ocr = False
-    st.session_state.other_file_convert = True
+  if st.button('Other File Convert'):
+    activate_main_section('other_file_convert')
 
+with function_col9:
+  if st.button('MCR Merge'):
+    activate_main_section('mcr_merge')
 
-# ========================================================================================================
-# Raw Claim Analysis Session
-# ========================================================================================================
+with function_col10:
+  if st.button('Combine Census + MCR'):
+    activate_main_section('member_mcr_combine')
 
 if st.session_state.raw_claim == True:
   st.write("""
   # Gain Miles Assurance Consultancy Ltd
 
-  ### Raw Claim Data Converter and MCR data calculation tool
+  ### Raw Claim & MCR Processing Tool
   """)
   st.write("---")
 
@@ -249,7 +236,6 @@ if st.session_state.raw_claim == True:
   password_l = []
   policy_sd_l = []
   policy_dd_l = []
-  
   uploaded_file_list = []
   full_file_list = []
 
@@ -735,31 +721,42 @@ if st.session_state.member_census == True:
   st.write("---")
   upload_file_l = []
   insurer_l = []
-  password_l = []
   policy_sd_l = []
   
   uploaded_file_list = []
   full_file_list = []
 
+  def infer_member_census_insurer(filename: str) -> str:
+    name = filename.lower()
+    if "member census" in name:
+      return "AIA"
+    if "mbr list" in name:
+      return "Bupa"
+    if "_mem_" in name:
+      return "AXA"
+    return None
+
   uploaded_files = st.file_uploader("Upload member census excel .xlsx files", accept_multiple_files=True)
   for uploaded_file in uploaded_files:
-      # st.write("filename:", uploaded_file.name)
-      upload_file_l.append(uploaded_file.name)
+      filename = uploaded_file.name
+      upload_file_l.append(filename)
       uploaded_file_list.append(uploaded_file)
-      
+      insurer_l.append(infer_member_census_insurer(filename))
+      policy_sd_l.append("")
+
       import tempfile
       import os
       temp_dir = tempfile.mkdtemp()
-      path = os.path.join(temp_dir, uploaded_file.name)
+      path = os.path.join(temp_dir, filename)
       full_file_list.append(path)
       with open(path, "wb") as f:
-            f.write(uploaded_file.getvalue())
+        f.write(uploaded_file.getvalue())
 
   file_config = pd.DataFrame(upload_file_l, columns=['File Name'])
   insurer_df = pd.DataFrame(insurer_l, columns=['Insurer'])
-  password_df = pd.DataFrame(password_l, columns=['Password'])
+  policy_sd_df = pd.DataFrame(policy_sd_l, columns=['Policy start date'])
 
-  file_config = pd.concat([file_config, insurer_df, password_df], axis=1, ignore_index=False)
+  file_config = pd.concat([file_config, insurer_df, policy_sd_df], axis=1, ignore_index=False)
 
   st.write('---')
   st.header('Member Census File Configurations')
@@ -768,17 +765,14 @@ if st.session_state.member_census == True:
 
   1. Insurers: Bupa/ AIA/ AXA/ Blue Cross.
 
-  2. Password: If no password please leave blank.
+  2. Policy start date: In yyyymmdd form (required for every uploaded file). Ie 1 Jul 2023 => 20230701.
 
-  3. Policy start date: In yyyymmdd form. Ie 1 Jul 2023 => 20230701.
-
-  4. Client Name: Free to input but good to make sure it aligns with previous used name.
+  3. Client Name: Free to input but good to make sure it aligns with previous used name.
 
   """)
   gb = GridOptionsBuilder.from_dataframe(file_config)
   gb.configure_column('Insurer', editable=True)
-  gb.configure_column('Password', editable=True)
-
+  gb.configure_column('Policy start date', editable=True)
   ag = AgGrid(file_config,
               gridOptions=gb.build(),
               update_mode=GridUpdateMode.VALUE_CHANGED,
@@ -787,7 +781,7 @@ if st.session_state.member_census == True:
               allow_insafe_jscode=True,
               enable_enterprise_modules=False)
   
-  new_file_config = ag['data']
+  new_file_config = pd.DataFrame(ag['data']).copy()
   chart_input_col1, chart_input_col2, chart_input_col3, chart_input_col_4, chart_input_col_5, chart_input_col_6 = st.columns([1,1,1,1,1,1])
   with chart_input_col1:
     xmax = st.number_input("X-axis max value", value=1000)
@@ -801,72 +795,426 @@ if st.session_state.member_census == True:
     height = st.number_input("Graph height", value=600)
   
   if st.button("Confirm"):
-    st.session_state.member_census_proceed = True
+    normalized_config = new_file_config.copy()
+    if normalized_config.empty:
+      st.error("Please upload at least one member census file before confirming.")
+      st.session_state.member_census_proceed = False
+    else:
+      policy_dates = normalized_config['Policy start date'].astype(str).str.strip()
+      missing_policy_dates = policy_dates.eq("") | policy_dates.str.lower().eq('nan')
+      if missing_policy_dates.any():
+        st.error("Please input the policy start date (YYYYMMDD) for every uploaded file.")
+        st.session_state.member_census_proceed = False
+      else:
+        policy_dates_clean = (policy_dates
+                              .str.replace(r"\D", "", regex=True)
+                              .str.slice(0, 8))
+        parsed_policy_dates = pd.to_datetime(policy_dates_clean, format='%Y%m%d', errors='coerce')
+        if parsed_policy_dates.isna().any():
+          st.error("Policy start dates must follow YYYYMMDD format (e.g., 20230701).")
+          st.session_state.member_census_proceed = False
+        else:
+          normalized_config['Policy start date'] = policy_dates_clean
+          st.session_state.member_census_proceed = True
+          st.session_state.member_census_config = normalized_config
     # member_files = pd.DataFrame(uploaded_file_list, columns=['File Name'])
   if st.session_state.member_census_proceed == True:
-    file_config = new_file_config
-    member_census = MemberCensus()
-    for n0 in range(len(file_config)):
-      member_census.get_member_df(full_file_list[n0],
-                        insurer=file_config['Insurer'].iloc[n0], 
-                        password=file_config['Password'].iloc[n0], 
-                        )
+    file_config = st.session_state.get('member_census_config', pd.DataFrame())
+    if file_config.empty:
+      st.warning("No member census files available for analysis. Please upload and confirm again.")
+    else:
+      member_census = MemberCensus()
+      for n0 in range(len(file_config)):
+        member_census.get_member_df(full_file_list[n0],
+                          insurer=file_config['Insurer'].iloc[n0], 
+                          policy_start_date_input=file_config['Policy start date'].iloc[n0], 
+                          )
+
+      policy_options = (
+        member_census.member_df.get('policy_number')
+        .dropna()
+        .astype(str)
+        .sort_values()
+        .unique()
+        .tolist()
+        if 'policy_number' in member_census.member_df.columns and not member_census.member_df.empty
+        else []
+      )
+
+      if policy_options:
+        with st.sidebar:
+          selected_policies = st.multiselect(
+            "Select policy numbers to include",
+            options=policy_options,
+            default=policy_options,
+            key='member_census_policy_filter'
+          )
+        if selected_policies and len(selected_policies) != len(policy_options):
+          mask = member_census.member_df['policy_number'].astype(str).isin(selected_policies)
+          member_census.member_df = member_census.member_df.loc[mask].copy()
       
-    member_census.member_df_processing()
-    member_census.get_general_info()
-    st.write('---')
-    st.write('### General Information')
-    gen_info_col1, gen_info_col2, gen_info_col3 = st.columns([1,1,1])
-    with gen_info_col1:
-      st.write('Total Member:', member_census.total_member)
-      st.write('Employee Average Age:', member_census.ee_age)
-      st.write('Employee Mix - Male:Female', member_census.ee_mix_ratio)
-      st.write('Dependent Ratio:', member_census.dep_ratio)
-    with gen_info_col2:
-      st.write('Dependent Mix:')
-      st.dataframe(member_census.dep_ratio_df)
-    with gen_info_col3:
-      st.write('Employee Mix:')
-      st.dataframe(member_census.ee_mix_df)
-    st.write('---')
-    # Download cleaned combined member census list (CSV)
-    st.download_button(
-      label='Download Cleaned Member Census (CSV)',
-      data=member_census.member_df.to_csv(index=False).encode('utf-8-sig'),
-      file_name='member_census_cleaned.csv',
-      mime='text/csv',
-      key='download_member_census_csv'
+      member_census.member_df_processing()
+      member_census.get_general_info()
+      st.write('---')
+      st.write('### General Information')
+      gen_info_col1, gen_info_col2, gen_info_col3 = st.columns([1,1,1])
+      with gen_info_col1:
+        st.write('Total Member:', member_census.total_member)
+        st.write('Employee Average Age:', member_census.ee_age)
+        st.write('Employee Mix - Male:Female', member_census.ee_mix_ratio)
+        st.write('Dependent Ratio:', member_census.dep_ratio)
+      with gen_info_col2:
+        st.write('Dependent Mix:')
+        st.dataframe(member_census.dep_ratio_df)
+      with gen_info_col3:
+        st.write('Employee Mix:')
+        st.dataframe(member_census.ee_mix_df)
+      st.write('---')
+      member_df_download = member_census.member_df.copy()
+      if 'policy_start_date' in member_df_download.columns:
+        member_df_download['policy_start_date'] = pd.to_datetime(
+          member_df_download['policy_start_date'], errors='coerce'
+        )
+
+      # Download cleaned combined member census list (CSV)
+      st.download_button(
+        label='Download Cleaned Member Census (CSV)',
+        data=member_df_download.to_csv(index=False).encode('utf-8-sig'),
+        file_name='member_census_cleaned.csv',
+        mime='text/csv',
+        key='download_member_census_csv'
+      )
+
+      aggregated_df = member_census.member_df.copy()
+      if not aggregated_df.empty:
+        aggregated_df['year'] = pd.to_datetime(
+          aggregated_df.get('policy_start_date'), errors='coerce'
+        ).dt.year
+        agg_table = (
+          aggregated_df.dropna(subset=['policy_number', 'class'])
+          .assign(policy_number=lambda df: df['policy_number'].astype(str))
+          .groupby(['policy_number', 'year', 'class'])['dep_type']
+          .value_counts()
+          .unstack(fill_value=0)
+        )
+        desired_dep_cols = ['EE', 'SP', 'CH']
+        agg_table = agg_table.reindex(columns=desired_dep_cols, fill_value=0)
+        agg_table['total'] = agg_table[desired_dep_cols].sum(axis=1)
+        agg_table = agg_table.reset_index()
+
+        from io import BytesIO
+        engine_name = None
+        if importlib.util.find_spec("xlsxwriter") is not None:
+          engine_name = "xlsxwriter"
+        elif importlib.util.find_spec("openpyxl") is not None:
+          engine_name = "openpyxl"
+
+        if engine_name is None:
+          st.warning("Excel export requires either xlsxwriter or openpyxl. Please install one of them.")
+        else:
+          aggregated_output = BytesIO()
+          with pd.ExcelWriter(aggregated_output, engine=engine_name) as writer:
+            agg_table.to_excel(writer, index=False, sheet_name='Member Summary')
+          aggregated_output.seek(0)
+
+          st.download_button(
+            label='Download Aggregated Member Census (XLSX)',
+            data=aggregated_output.getvalue(),
+            file_name='member_census_summary.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            key='download_member_census_aggregated'
+          )
+
+      member_census.set_graph_layout(xmax, xstep, ystep, width, height)
+      member_census.get_gender_distribution()
+      fig = member_census.butterfly_plot()
+      st.plotly_chart(fig, use_container_width=False)
+      st.dataframe(member_census.gender_dis_df)
+      st.write('---')
+      fig = member_census.butterfly_plot_dep()
+      st.plotly_chart(fig, use_container_width=False)
+      st.dataframe(member_census.gender_dis_dep_df)
+      st.write('---')
+      member_df_col_1, member_df_col_2, member_df_col_3, member_df_col_4, member_df_col_5, member_df_col_6 = st.columns([1,1,1,1,1,1])
+      with member_df_col_1:
+        if st.button('Age & Gender'):
+          st.dataframe(member_census.gender_dis_df)
+      with member_df_col_2:
+        if st.button('Age & Gender & Dep'):
+          st.dataframe(member_census.gender_dis_dep_df)
+      with member_df_col_3:
+        if st.button('Age & Class'):
+          st.dataframe(member_census.dis_cls_df)
+      with member_df_col_4:
+        if st.button('Age & Class & Gender'):
+          st.dataframe(member_census.gender_dis_cls_df)
+      with member_df_col_5:
+        if st.button('Class & Dep'):
+          st.dataframe(member_census.cls_df)
+
+
+
+
+# ========================================================================================================
+# MCR + Member Census Combine
+# ========================================================================================================
+
+if st.session_state.member_mcr_combine == True:
+  st.write("""
+  # Gain Miles Assurance Consultancy Ltd
+
+  ### Combine MCR workbook with Member Census summary
+  """)
+  st.write("---")
+
+  st.session_state.setdefault('member_mcr_files_ready', False)
+  st.session_state.setdefault('member_mcr_mcr_bytes', None)
+  st.session_state.setdefault('member_mcr_mcr_name', None)
+  st.session_state.setdefault('member_mcr_member_bytes', None)
+  st.session_state.setdefault('member_mcr_member_name', None)
+  st.session_state.setdefault('member_mcr_integrator', None)
+  st.session_state.setdefault('member_mcr_policy_mapping_df', None)
+  st.session_state.setdefault('member_mcr_policy_confirmed', False)
+  st.session_state.setdefault('member_mcr_class_mapping_df', None)
+  st.session_state.setdefault('member_mcr_class_confirmed', False)
+  st.session_state.setdefault('member_mcr_result_bytes', None)
+  st.session_state.setdefault('member_mcr_combined_sheets', None)
+  st.session_state.setdefault('member_mcr_warnings', [])
+
+  upload_col1, upload_col2 = st.columns(2)
+  with upload_col1:
+    uploaded_mcr_file = st.file_uploader(
+      "Upload the original MCR workbook (.xlsx)",
+      type=["xlsx"],
+      accept_multiple_files=False,
+      key='member_mcr_mcr_upload'
+    )
+  with upload_col2:
+    uploaded_member_file = st.file_uploader(
+      "Upload the member census summary (.xlsx or .csv)",
+      type=["xlsx", "csv"],
+      accept_multiple_files=False,
+      key='member_mcr_member_upload'
     )
 
-    member_census.set_graph_layout(xmax, xstep, ystep, width, height)
-    member_census.get_gender_distribution()
-    fig = member_census.butterfly_plot()
-    st.plotly_chart(fig, use_container_width=False)
-    st.dataframe(member_census.gender_dis_df)
+  upload_actions_col1, upload_actions_col2 = st.columns([1, 1])
+  with upload_actions_col1:
+    confirm_uploads = st.button('Confirm Uploads', key='member_mcr_confirm_uploads')
+  with upload_actions_col2:
+    if st.session_state.get('member_mcr_files_ready'):
+      st.success('Files loaded. You can adjust mappings below.')
+
+  if confirm_uploads:
+    if uploaded_mcr_file is None or uploaded_member_file is None:
+      st.error('Please upload both the MCR workbook and the member census summary before confirming.')
+      st.session_state.member_mcr_files_ready = False
+      st.session_state.member_mcr_integrator = None
+    else:
+      st.session_state.member_mcr_mcr_bytes = uploaded_mcr_file.getvalue()
+      st.session_state.member_mcr_mcr_name = uploaded_mcr_file.name
+      st.session_state.member_mcr_member_bytes = uploaded_member_file.getvalue()
+      st.session_state.member_mcr_member_name = uploaded_member_file.name
+      try:
+        integrator_obj = MCRMemberCensusCombiner(
+          io.BytesIO(st.session_state.member_mcr_mcr_bytes),
+          io.BytesIO(st.session_state.member_mcr_member_bytes),
+          mcr_filename=st.session_state.member_mcr_mcr_name,
+          member_filename=st.session_state.member_mcr_member_name,
+        )
+      except Exception as exc:  # pragma: no cover - streamlit display
+        st.error(f'Unable to read the uploaded files. {exc}')
+        st.session_state.member_mcr_files_ready = False
+        st.session_state.member_mcr_integrator = None
+      else:
+        st.session_state.member_mcr_integrator = integrator_obj
+        st.session_state.member_mcr_files_ready = True
+        st.session_state.member_mcr_policy_mapping_df = integrator_obj.suggest_policy_matches()
+        st.session_state.member_mcr_policy_confirmed = False
+        st.session_state.member_mcr_class_mapping_df = None
+        st.session_state.member_mcr_class_confirmed = False
+        st.session_state.member_mcr_result_bytes = None
+        st.session_state.member_mcr_combined_sheets = None
+        st.session_state.member_mcr_warnings = []
+        st.success('Files uploaded successfully. Continue with policy matching.')
+
+  def _ensure_member_mcr_integrator():
+    if not st.session_state.get('member_mcr_files_ready'):
+      return None
+    integrator_cached = st.session_state.get('member_mcr_integrator')
+    if integrator_cached is not None:
+      return integrator_cached
+    if st.session_state.get('member_mcr_mcr_bytes') is None or st.session_state.get('member_mcr_member_bytes') is None:
+      return None
+    try:
+      integrator_cached = MCRMemberCensusCombiner(
+        io.BytesIO(st.session_state.member_mcr_mcr_bytes),
+        io.BytesIO(st.session_state.member_mcr_member_bytes),
+        mcr_filename=st.session_state.get('member_mcr_mcr_name'),
+        member_filename=st.session_state.get('member_mcr_member_name'),
+      )
+    except Exception as exc:  # pragma: no cover - streamlit display
+      st.error(f'Unable to load the stored files. {exc}')
+      st.session_state.member_mcr_files_ready = False
+      return None
+    st.session_state.member_mcr_integrator = integrator_cached
+    return integrator_cached
+
+  integrator = _ensure_member_mcr_integrator()
+
+  unmatched_label = '-- Select --'
+
+  if st.session_state.get('member_mcr_files_ready') and integrator is not None:
     st.write('---')
-    fig = member_census.butterfly_plot_dep()
-    st.plotly_chart(fig, use_container_width=False)
-    st.dataframe(member_census.gender_dis_dep_df)
+    st.subheader('Step 1. Match policies')
+    policy_df = st.session_state.get('member_mcr_policy_mapping_df')
+    if policy_df is None:
+      policy_df = integrator.suggest_policy_matches()
+      st.session_state.member_mcr_policy_mapping_df = policy_df
+
+    if policy_df is None or policy_df.empty:
+      st.info('No policy rows were detected in the MCR workbook. This step is skipped.')
+      st.session_state.member_mcr_policy_confirmed = True
+    else:
+      policy_editor_df = policy_df.copy()
+      if 'matched_member_policy' not in policy_editor_df.columns:
+        policy_editor_df['matched_member_policy'] = unmatched_label
+      policy_editor_df['matched_member_policy'] = policy_editor_df['matched_member_policy'].fillna(unmatched_label)
+      policy_editor_df['match_score'] = pd.to_numeric(policy_editor_df.get('match_score', 0), errors='coerce').fillna(0)
+
+      policy_editor = st.data_editor(
+        policy_editor_df,
+        hide_index=True,
+        use_container_width=True,
+        key='member_mcr_policy_editor',
+        column_config={
+          'matched_member_policy': st.column_config.SelectboxColumn(
+            'Member Census Policy',
+            options=[unmatched_label] + integrator.member_policy_options,
+            help='Select the policy number from the member census summary that matches the MCR policy.',
+          ),
+          'match_score': st.column_config.NumberColumn('Match score', min_value=0.0, max_value=1.0, format='%.2f'),
+        }
+      )
+
+      if st.button('Confirm Policy Mapping', key='member_mcr_policy_confirm'):
+        final_policy = policy_editor.copy()
+        final_policy['matched_member_policy'] = final_policy['matched_member_policy'].replace({unmatched_label: None})
+        if final_policy['matched_member_policy'].isna().any():
+          st.error('Please select a member census policy for every MCR policy before proceeding.')
+        else:
+          st.session_state.member_mcr_policy_mapping_df = final_policy
+          st.session_state.member_mcr_policy_confirmed = True
+          class_suggestions = integrator.suggest_class_matches(final_policy)
+          if class_suggestions is None or class_suggestions.empty:
+            st.session_state.member_mcr_class_mapping_df = pd.DataFrame(columns=['mcr_policy', 'mcr_class', 'member_policy', 'member_class', 'match_score'])
+            st.session_state.member_mcr_class_confirmed = True
+          else:
+            class_suggestions['selected_member_class'] = class_suggestions['matched_member_class']
+            st.session_state.member_mcr_class_mapping_df = class_suggestions
+            st.session_state.member_mcr_class_confirmed = False
+          st.session_state.member_mcr_result_bytes = None
+          st.session_state.member_mcr_combined_sheets = None
+          st.session_state.member_mcr_warnings = []
+          st.success('Policy mapping confirmed. Continue with class matching below.')
+
+  if st.session_state.get('member_mcr_policy_confirmed') and integrator is not None:
     st.write('---')
-    member_df_col_1, member_df_col_2, member_df_col_3, member_df_col_4, member_df_col_5, member_df_col_6 = st.columns([1,1,1,1,1,1])
-    with member_df_col_1:
-      if st.button('Age & Gender'):
-        st.dataframe(member_census.gender_dis_df)
-    with member_df_col_2:
-      if st.button('Age & Gender & Dep'):
-        st.dataframe(member_census.gender_dis_dep_df)
-    with member_df_col_3:
-      if st.button('Age & Class'):
-        st.dataframe(member_census.dis_cls_df)
-    with member_df_col_4:
-      if st.button('Age & Class & Gender'):
-        st.dataframe(member_census.gender_dis_cls_df)
-    with member_df_col_5:
-      if st.button('Class & Dep'):
-        st.dataframe(member_census.cls_df)
+    st.subheader('Step 2. Match classes')
+    class_df = st.session_state.get('member_mcr_class_mapping_df')
 
+    if class_df is None:
+      st.info('Policy-only MCR detected. No class matching required.')
+      st.session_state.member_mcr_class_confirmed = True
+    elif class_df.empty:
+      st.info('The selected policies do not include class-level data. Skipping this step.')
+      st.session_state.member_mcr_class_confirmed = True
+    else:
+      class_editor_df = class_df.copy()
+      st.caption('Review the suggested class mappings. Adjust the member census class on each row if needed.')
+      for idx, row in class_editor_df.iterrows():
+        member_policy_key = str(row['member_policy']) if 'member_policy' in row else ''
+        candidate_classes = integrator.member_classes_by_policy.get(member_policy_key, [])
+        options = [unmatched_label] + candidate_classes
+        default_value = row.get('selected_member_class') or row.get('matched_member_class') or unmatched_label
+        if default_value not in options:
+          default_value = unmatched_label
+        class_editor_df.at[idx, 'selected_member_class'] = st.selectbox(
+          f"{row['mcr_policy']} → {row['mcr_class']}",
+          options,
+          index=options.index(default_value) if default_value in options else 0,
+          key=f"member_mcr_class_select_{idx}"
+        )
+      st.session_state.member_mcr_class_mapping_df = class_editor_df
 
+      if st.button('Confirm Class Mapping', key='member_mcr_class_confirm'):
+        final_class = class_editor_df.copy()
+        final_class['selected_member_class'] = final_class['selected_member_class'].replace({unmatched_label: None})
+        if final_class['selected_member_class'].isna().any():
+          st.error('Please select a member census class for every MCR class.')
+        else:
+          final_class = final_class.rename(columns={'selected_member_class': 'member_class'})
+          st.session_state.member_mcr_class_mapping_df = final_class
+          st.session_state.member_mcr_class_confirmed = True
+          st.session_state.member_mcr_result_bytes = None
+          st.session_state.member_mcr_combined_sheets = None
+          st.session_state.member_mcr_warnings = []
+          st.success('Class mapping confirmed. You can now generate the combined workbook.')
 
+  if (
+    st.session_state.get('member_mcr_policy_confirmed')
+    and st.session_state.get('member_mcr_class_confirmed')
+    and integrator is not None
+  ):
+    st.write('---')
+    st.subheader('Step 3. Combine and download')
+
+    policy_mapping_final = st.session_state.get('member_mcr_policy_mapping_df')
+    class_mapping_final = st.session_state.get('member_mcr_class_mapping_df')
+    if class_mapping_final is None:
+      class_mapping_final = pd.DataFrame(columns=['mcr_policy', 'mcr_class', 'member_policy', 'member_class'])
+    elif 'member_class' not in class_mapping_final.columns:
+      class_mapping_final = class_mapping_final.rename(columns={'selected_member_class': 'member_class'})
+
+    if st.button('Combine and Generate MCR', type='primary', key='member_mcr_generate'):
+      try:
+        with st.spinner('Combining workbooks...'):
+          combined_result = integrator.combine(policy_mapping_final, class_mapping_final[['mcr_policy', 'mcr_class', 'member_policy', 'member_class']])
+          export_bytes = integrator.export()
+      except Exception as exc:  # pragma: no cover - streamlit display
+        st.error(f'Failed to combine files: {exc}')
+      else:
+        st.session_state.member_mcr_combined_sheets = combined_result
+        st.session_state.member_mcr_result_bytes = export_bytes
+        st.session_state.member_mcr_warnings = integrator.warnings
+        st.success('Combined workbook ready. Use the download button below.')
+
+    if st.session_state.get('member_mcr_result_bytes'):
+      st.download_button(
+        'Download combined MCR',
+        st.session_state.member_mcr_result_bytes,
+        file_name='mcr_with_member_census.xlsx',
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        key='member_mcr_download'
+      )
+
+    warnings_list = st.session_state.get('member_mcr_warnings', [])
+    if warnings_list:
+      for msg in warnings_list:
+        st.warning(msg)
+
+    combined_preview = st.session_state.get('member_mcr_combined_sheets')
+    if isinstance(combined_preview, dict) and combined_preview:
+      preview_sheet = None
+      preview_name = None
+      for candidate_sheet in ['P.21_Class', 'P.20_Policy', 'P.22_Class_BenefitType', 'Policy_Info']:
+        candidate_df = combined_preview.get(candidate_sheet)
+        if candidate_df is not None and not candidate_df.empty:
+          preview_sheet = candidate_df
+          preview_name = candidate_sheet
+          break
+      if preview_sheet is not None:
+        st.subheader(f'Preview: {preview_name}')
+        st.dataframe(preview_sheet.head(20))
 
 # ========================================================================================================
 # MCR Convert
@@ -958,6 +1306,219 @@ if st.session_state.mcr_convert == True:
                           mcr_convert_.save(),
                           file_name=f'GMI_{current_policy_num}_{current_year}.xlsx',
                           mime="application/vnd.ms-excel")
+
+
+# ========================================================================================================
+# MCR Merge (replace column management slot)
+# ========================================================================================================
+
+if st.session_state.mcr_merge == True:
+  st.write("""
+  # Gain Miles Assurance Consultancy Ltd
+
+  ### Merge MCR policies/classes across files
+  """)
+  st.write("---")
+  
+  # Global option: apply to all years (set before upload per request)
+  st.session_state.setdefault('mcr_apply_all_years', False)
+  st.session_state.mcr_apply_all_years = st.checkbox(
+    "Apply to all years for selected policies/classes",
+    value=st.session_state.mcr_apply_all_years,
+    key='mcr_apply_all_years_global'
+  )
+
+  # --- Initialize persistent state for MCR Merge ---
+  import io
+  def _mcr_bytes_entry(file_obj) -> dict:
+    data = file_obj.getvalue()
+    return {"name": file_obj.name, "bytes": data, "hash": hashlib.md5(data).hexdigest()}
+
+  st.session_state.setdefault('mcr_merger', MCRMerger())
+  st.session_state.setdefault('mcr_merge_uploads', [])  # list of {name,bytes,hash}
+  st.session_state.setdefault('mcr_merge_loaded_hashes', [])
+
+  # Uploader for new files
+  upload_files = st.file_uploader(
+    "Upload one or more MCR Excel files (generated by this tool)",
+    type=["xlsx"], accept_multiple_files=True, key='mcr_merge_uploader')
+
+  # Persist uploads and add to merger only once per unique file
+  if upload_files:
+    existing = {u["hash"] for u in st.session_state.mcr_merge_uploads}
+    loaded = set(st.session_state.mcr_merge_loaded_hashes)
+    for uf in upload_files:
+      entry = _mcr_bytes_entry(uf)
+      if entry["hash"] not in existing:
+        st.session_state.mcr_merge_uploads.append(entry)
+        existing.add(entry["hash"])
+      # Add into merger if not yet loaded
+      if entry["hash"] not in loaded:
+        st.session_state.mcr_merger.add_file(io.BytesIO(entry["bytes"]), name=entry["name"])
+        loaded.add(entry["hash"])
+    st.session_state.mcr_merge_loaded_hashes = list(loaded)
+
+  # Show staged files with controls
+  if st.session_state.mcr_merge_uploads:
+    st.success(f"{len(st.session_state.mcr_merge_uploads)} MCR file(s) staged.")
+    with st.expander("Show staged MCR files"):
+      for u in st.session_state.mcr_merge_uploads:
+        st.write(f"- {u['name']}")
+    c1, c2 = st.columns([1,1])
+    with c1:
+      if st.button("Clear All Staged MCR Files"):
+        st.session_state.mcr_merge_uploads = []
+        st.session_state.mcr_merge_loaded_hashes = []
+        # reset merger instance cleanly
+        st.session_state.mcr_merger = MCRMerger()
+        st.rerun()
+    with c2:
+      if st.button("Remove Last Staged File") and st.session_state.mcr_merge_uploads:
+        last = st.session_state.mcr_merge_uploads.pop()
+        # rebuild merger from remaining uploads
+        st.session_state.mcr_merger = MCRMerger()
+        st.session_state.mcr_merge_loaded_hashes = []
+        for u in st.session_state.mcr_merge_uploads:
+          st.session_state.mcr_merger.add_file(io.BytesIO(u["bytes"]), name=u["name"])
+          st.session_state.mcr_merge_loaded_hashes.append(u["hash"])
+        st.rerun()
+
+  # Build catalog from persistent merger
+  cat = st.session_state.mcr_merger.catalog()
+  if cat is None or cat.empty:
+    st.info("Upload MCR files to list selectable policy-year-classes.")
+  else:
+    st.write("### Available items")
+    st.dataframe(cat, use_container_width=True)
+
+    # Build selection labels depending on all-years mode, excluding already-grouped items
+    apply_all_years = st.session_state.get('mcr_apply_all_years', False)
+    # Collect already-grouped items (policy, year, class)
+    used_tuples = set()
+    for grp in st.session_state.get('mcr_merge_groups', []):
+      for it in grp.get('source_items', []):
+        used_tuples.add((str(it.get('policy_number','')), str(it.get('year','')), str(it.get('class',''))))
+
+    if apply_all_years:
+      # Unique by (policy_number, class)
+      uniq_pc_all = cat[['policy_number', 'class']].drop_duplicates().reset_index(drop=True)
+      # keep only pairs that are NOT fully used across all their years
+      keep_mask = []
+      for _, r in uniq_pc_all.iterrows():
+        pn, cl = str(r['policy_number']), str(r['class'])
+        rows = cat[(cat['policy_number'] == pn) & (cat['class'] == cl)]
+        # fully used if every year for this policy/class in cat is present in used_tuples
+        fully_used = True
+        for _, rr in rows.iterrows():
+          t = (str(rr['policy_number']), str(rr['year']), str(rr['class']))
+          if t not in used_tuples:
+            fully_used = False
+            break
+        keep_mask.append(not fully_used)
+      uniq_pc = uniq_pc_all[keep_mask].reset_index(drop=True)
+      uniq_pc['label'] = uniq_pc.apply(lambda r: f"{r['policy_number']} - Class {r['class']}", axis=1)
+      label_to_pc = {row['label']: (row['policy_number'], row['class']) for _, row in uniq_pc.iterrows()}
+      options = list(label_to_pc.keys())
+    else:
+      # Full policy-year-class options, excluding already used tuples
+      cat_avail = cat.copy()
+      cat_avail['__t__'] = list(zip(cat_avail['policy_number'].astype(str), cat_avail['year'].astype(str), cat_avail['class'].astype(str)))
+      cat_avail = cat_avail[~cat_avail['__t__'].isin(used_tuples)].drop(columns=['__t__'])
+      cat_avail['label'] = cat_avail.apply(lambda r: f"{r['policy_number']} - {r['year']} - Class {r['class']} ({r['file']})", axis=1)
+      label_to_row = {row['label']: row for _, row in cat_avail.iterrows()}
+      options = list(label_to_row.keys())
+
+    st.write("---")
+    st.subheader("Create a merge group")
+    prompt_text = "Select items (policy-class) to merge across all years" if apply_all_years else "Select items (policy-year-class) to merge as one class/policy"
+    sel = st.multiselect(prompt_text, options)
+
+    col_a, col_b, col_c = st.columns([1,1,1])
+    with col_a:
+      merged_policy_number = st.text_input("Merged Policy Number", value="MERGED_POLICY")
+    with col_b:
+      default_year = "ALL" if apply_all_years else (label_to_row[sel[0]]['year'] if sel else "")
+      merged_year = st.text_input("Merged Year", value=default_year)
+    with col_c:
+      merged_class = st.text_input("Merged Class Name", value="Merged")
+
+    add_col1, add_col2 = st.columns([1,1])
+    with add_col1:
+      if st.button("Add merge group") and sel:
+        items = []
+        if apply_all_years:
+          # Expand each selected (policy, class) to all years
+          seen = set()
+          for lab in sel:
+            pn, cl = label_to_pc[lab]
+            mask = (cat['policy_number'] == pn) & (cat['class'] == cl)
+            for _, rr in cat[mask].iterrows():
+              key = (rr['policy_number'], rr['year'], rr['class'])
+              if key in seen:
+                continue
+              seen.add(key)
+              items.append({
+                "policy_number": rr['policy_number'],
+                "year": rr['year'],
+                "class": rr['class'],
+              })
+        else:
+          for lab in sel:
+            r = label_to_row[lab]
+            items.append({
+              "policy_number": r['policy_number'],
+              "year": r['year'],
+              "class": r['class'],
+            })
+        st.session_state.mcr_merge_groups.append({
+          "merged_policy_number": merged_policy_number,
+          "merged_year": merged_year,
+          "merged_class": merged_class,
+          "source_items": items,
+        })
+    with add_col2:
+      if st.button("Clear groups"):
+        st.session_state.mcr_merge_groups = []
+
+    if st.session_state.mcr_merge_groups:
+      st.write("### Merge groups")
+      # Summary table
+      summary_rows = []
+      for idx, grp in enumerate(st.session_state.mcr_merge_groups, start=1):
+        items = grp.get('source_items', [])
+        df_items = pd.DataFrame(items)
+        uniq_policies = ", ".join(sorted(set(map(str, df_items.get('policy_number', pd.Series(dtype=str)).fillna(''))))) if not df_items.empty else ""
+        uniq_classes = ", ".join(sorted(set(map(str, df_items.get('class', pd.Series(dtype=str)).fillna(''))))) if not df_items.empty else ""
+        summary_rows.append({
+          "#": idx,
+          "Merged Policy": grp.get('merged_policy_number', ''),
+          "Merged Year": grp.get('merged_year', ''),
+          "Merged Class": grp.get('merged_class', ''),
+          "Items": len(items),
+          "Policies": uniq_policies,
+          "Classes": uniq_classes,
+        })
+      st.dataframe(pd.DataFrame(summary_rows), use_container_width=True)
+
+      # Details expanders with optional removal per group
+      for idx, grp in enumerate(st.session_state.mcr_merge_groups):
+        with st.expander(f"Group {idx+1} details"):
+          st.table(pd.DataFrame(grp.get('source_items', [])))
+          colx, coly = st.columns([1,1])
+          with colx:
+            if st.button(f"Remove Group {idx+1}", key=f"remove_grp_{idx}"):
+              st.session_state.mcr_merge_groups.pop(idx)
+              st.rerun()
+
+      if st.button("Confirm Merge and Generate MCR"):
+        merged = st.session_state.mcr_merger.merge(st.session_state.mcr_merge_groups)
+        data = st.session_state.mcr_merger.export_excel(merged)
+        st.download_button(
+          label='Download Merged MCR',
+          data=data,
+          file_name='merged_mcr.xlsx',
+          mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
 
 
 # ========================================================================================================
