@@ -79,6 +79,9 @@ import json
 import io
 import importlib.util
 from streamlit_pdf_viewer import pdf_viewer
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from plotly.colors import qualitative as plotly_colors
 
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize': (5, 5)})
@@ -1974,6 +1977,255 @@ if st.session_state.other_file_convert == True:
 
         _lrc_init_state()
 
+        BENEFIT_DISPLAY_ORDER = ["Hospital", "Clinical", "Dental", "Optical", "Maternity", "Top-Up/ SMM", "Total"]
+        COMBINED_BENEFIT_LABEL = "Hospital + Top-Up/ SMM"
+        LINE_COLORS = (plotly_colors.Plotly + plotly_colors.D3 + plotly_colors.Set1)
+
+        def _lrc_build_chart(
+          df: pd.DataFrame,
+          mode: str,
+          width: int,
+          height: int,
+          show_vertical_separators: bool = True,
+          show_data_labels: bool = False,
+          combine_hospital_smm: bool = False,
+        ):
+          if df is None or df.empty:
+            return None
+
+          work = df.copy()
+          for col in ["actual_premium", "actual_paid_w_ibnr", "duration"]:
+            if col in work.columns:
+              work[col] = pd.to_numeric(work[col], errors="coerce")
+            else:
+              work[col] = np.nan
+
+          if "ibnr" in work.columns:
+            pct = (
+              work["ibnr"].astype(str)
+              .str.replace("%", "", regex=False)
+              .str.extract(r"(-?\d+(?:\.\d+)?)")[0]
+            )
+            pct = pd.to_numeric(pct, errors="coerce").fillna(0.0) / 100.0
+          else:
+            pct = pd.Series(0.0, index=work.index)
+          work["__ibnr_multiplier__"] = 1.0 + pct
+          work.loc[work["__ibnr_multiplier__"] == 0, "__ibnr_multiplier__"] = np.nan
+
+          work["paid_actual"] = work["actual_paid_w_ibnr"] / work["__ibnr_multiplier__"]
+          work["premium_actual"] = work["actual_premium"]
+
+          work["duration"] = pd.to_numeric(work["duration"], errors="coerce")
+          annual_factor = np.where(work["duration"] > 0, 12.0 / work["duration"], np.nan)
+          work["premium_annualized"] = work["premium_actual"] * annual_factor
+          work["paid_actual_annualized"] = work["paid_actual"] * annual_factor
+          work["paid_ibnr_annualized"] = work["actual_paid_w_ibnr"] * annual_factor
+
+          date_year = pd.to_datetime(work.get("policy_start_date"), dayfirst=True, errors="coerce").dt.year
+          policy_id_year = None
+          if "policy_id" in work.columns:
+            policy_id_year = pd.to_numeric(
+              work["policy_id"].astype(str).str.extract(r"_(\d{4})")[0],
+              errors="coerce"
+            )
+          chart_year = date_year
+          if policy_id_year is not None:
+            chart_year = chart_year.fillna(policy_id_year)
+          fallback_year = work.get("policy_start_date")
+          chart_year = chart_year.fillna(fallback_year).fillna("Unknown")
+
+          def _format_chart_year(value):
+            if isinstance(value, str):
+              return value
+            if isinstance(value, (int, np.integer)):
+              return str(value)
+            if isinstance(value, (float, np.floating)):
+              if np.isnan(value):
+                return "Unknown"
+              if float(value).is_integer():
+                return str(int(value))
+              return str(value)
+            return str(value)
+
+          chart_year = chart_year.apply(_format_chart_year)
+          work["chart_year"] = chart_year
+          if "benefit_type" not in work.columns:
+            work["benefit_type"] = "Unknown"
+          work["benefit_type"] = work["benefit_type"].fillna("Unknown").replace({"Grand Total": "Total"})
+
+          benefit_order = BENEFIT_DISPLAY_ORDER.copy()
+          if combine_hospital_smm:
+            work["benefit_type"] = work["benefit_type"].replace({
+              "Hospital": COMBINED_BENEFIT_LABEL,
+              "Top-Up/ SMM": COMBINED_BENEFIT_LABEL,
+            })
+            benefit_order = [
+              label for label in benefit_order if label not in {"Hospital", "Top-Up/ SMM"}
+            ]
+            benefit_order.insert(0, COMBINED_BENEFIT_LABEL)
+
+          config_map = {
+            "Actual": ("premium_actual", "paid_actual"),
+            "Actual with IBNR": ("premium_actual", "actual_paid_w_ibnr"),
+            "Annualized": ("premium_annualized", "paid_actual_annualized"),
+            "Annualized with IBNR": ("premium_annualized", "paid_ibnr_annualized"),
+          }
+          premium_col, paid_col = config_map.get(mode, ("premium_actual", "actual_paid_w_ibnr"))
+
+          if premium_col not in work.columns:
+            work[premium_col] = np.nan
+          if paid_col not in work.columns:
+            work[paid_col] = np.nan
+
+          grouped = (
+            work.groupby(["benefit_type", "chart_year"], dropna=False)[[premium_col, paid_col]]
+            .sum(min_count=1)
+            .reset_index()
+          )
+          grouped = grouped.dropna(subset=[premium_col, paid_col], how="all")
+          if grouped.empty:
+            return None
+
+          grouped["loss_ratio_value"] = np.where(
+            grouped[premium_col] > 0,
+            grouped[paid_col] / grouped[premium_col],
+            np.nan
+          )
+
+          grouped["__benefit_order__"] = pd.Categorical(
+            grouped["benefit_type"],
+            categories=benefit_order,
+            ordered=True
+          )
+          grouped["__benefit_order__"] = grouped["__benefit_order__"].cat.codes.replace(-1, len(BENEFIT_DISPLAY_ORDER))
+          grouped["__year_sort__"] = pd.to_numeric(grouped["chart_year"], errors="coerce")
+          grouped = grouped.sort_values(["__benefit_order__", "__year_sort__", "chart_year"])  # type: ignore[arg-type]
+
+          grouped["x_label"] = grouped["benefit_type"].astype(str) + " - " + grouped["chart_year"].astype(str)
+          x_vals = grouped["x_label"]
+          x_labels = x_vals.tolist()
+          premium_label = "Annualized Premium" if "Annualized" in mode else "Actual Premium"
+          paid_label = ("Annualized " if "Annualized" in mode else "Actual ") + ("Paid (w/ IBNR)" if "IBNR" in mode else "Paid")
+
+          fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+          def _format_currency(value):
+            if pd.isna(value):
+              return ""
+            return f"HK$ {value:,.0f}"
+
+          def _format_ratio(value):
+            if pd.isna(value):
+              return ""
+            return f"{value:.0%}"
+          fig.add_trace(
+            go.Bar(
+              x=x_vals,
+              y=grouped[premium_col],
+              name=premium_label,
+              marker_color="#1f77b4",
+              hovertemplate="HK$ %{y:,.0f}<extra>" + premium_label + "</extra>",
+              text=[_format_currency(v) for v in grouped[premium_col]] if show_data_labels else None,
+              textposition="outside" if show_data_labels else None,
+              textfont=dict(size=28) if show_data_labels else None,
+              cliponaxis=not show_data_labels,
+            ),
+            secondary_y=False,
+          )
+          fig.add_trace(
+            go.Bar(
+              x=x_vals,
+              y=grouped[paid_col],
+              name=paid_label,
+              marker_color="#ff7f0e",
+              hovertemplate="HK$ %{y:,.0f}<extra>" + paid_label + "</extra>",
+              text=[_format_currency(v) for v in grouped[paid_col]] if show_data_labels else None,
+              textposition="outside" if show_data_labels else None,
+              textfont=dict(size=28) if show_data_labels else None,
+              cliponaxis=not show_data_labels,
+            ),
+            secondary_y=False,
+          )
+
+          for idx, benefit in enumerate(grouped["benefit_type"].unique().tolist()):
+            bdf = grouped[grouped["benefit_type"] == benefit]
+            if bdf.empty:
+              continue
+            color = LINE_COLORS[idx % len(LINE_COLORS)]
+            fig.add_trace(
+              go.Scatter(
+                x=bdf["x_label"],
+                y=bdf["loss_ratio_value"],
+                name=f"Loss Ratio - {benefit}",
+                mode="lines+markers",
+                marker=dict(color=color, size=12),
+                line=dict(width=3, color=color),
+                hovertemplate="Loss Ratio %{y:.1%}<extra>" + benefit + "</extra>",
+                text=[_format_ratio(v) for v in bdf["loss_ratio_value"]] if show_data_labels else None,
+                textposition="top center" if show_data_labels else None,
+                textfont=dict(size=28) if show_data_labels else None,
+              ),
+              secondary_y=True,
+            )
+
+          fig.update_layout(
+            barmode="group",
+            width=width,
+            height=height,
+            margin=dict(t=40, b=40, l=40, r=40),
+            legend_title="Series",
+            xaxis_title="Benefit Type - Year",
+            font=dict(size=18),
+          )
+          fig.update_xaxes(
+            tickfont=dict(size=16),
+            title_font=dict(size=18),
+            categoryorder="array",
+            categoryarray=x_labels,
+          )
+          fig.update_yaxes(
+            title_text="Amount (HK$)",
+            secondary_y=False,
+            tickprefix="HK$ ",
+            tickformat=",.0f",
+            separatethousands=True,
+            title_font=dict(size=18),
+            tickfont=dict(size=16),
+            gridcolor="#d9d9d9",
+            griddash="solid",
+          )
+          fig.update_yaxes(
+            title_text="Loss Ratio",
+            secondary_y=True,
+            tickformat=".0%",
+            title_font=dict(size=18),
+            tickfont=dict(size=16),
+            gridcolor="#b0b0b0",
+            griddash="dot",
+            range=[0, 1.2],
+          )
+
+          if show_vertical_separators:
+            prev_benefit = None
+            for idx, row in enumerate(grouped.itertuples(index=False), start=0):
+              benefit = row.benefit_type
+              if prev_benefit is None:
+                prev_benefit = benefit
+                continue
+              if benefit != prev_benefit:
+                fig.add_vline(
+                  x=idx - 0.5,
+                  xref="x",
+                  line_color="#a6a6a6",
+                  line_dash="dash",
+                  line_width=1,
+                  opacity=0.7,
+                  layer="below",
+                )
+              prev_benefit = benefit
+          fig.update_layout(legend=dict(font=dict(size=16)))
+          return fig
+
         # Sidebar options (Combine)
         with st.sidebar:
             st.markdown("#### Combine Options")
@@ -2093,26 +2345,119 @@ if st.session_state.other_file_convert == True:
 
         # Preview & download (Combine)
         if st.session_state.lrc_parsed_once and st.session_state.lrc_combined_df is not None:
-            st.markdown("#### Preview (Combine)")
-            st.dataframe(st.session_state.lrc_combined_df, use_container_width=True)
+          working_df = st.session_state.lrc_combined_df.copy()
 
-            # Respect download toggle for source_file
-            df_download = st.session_state.lrc_combined_df.copy()
-            if not st.session_state.lrc_include_source_in_download and "source_file" in df_download.columns:
-                df_download = df_download.drop(columns=["source_file"], errors="ignore")
+          st.markdown("#### Preview (Combine)")
+          st.dataframe(working_df, use_container_width=True)
 
-            # Re-apply sorting just in case user toggled the mode post-combine
-            df_download = _sort_df(df_download, st.session_state.lrc_sort_mode)
+          # Respect download toggle for source_file
+          df_download = working_df.copy()
+          if not st.session_state.lrc_include_source_in_download and "source_file" in df_download.columns:
+            df_download = df_download.drop(columns=["source_file"], errors="ignore")
 
-            csv_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
-            st.download_button(
-                label="⬇️ Download Combined CSV (Combine)",
-                data=csv_bytes,
-                file_name="loss_ratio_combined.csv",
-                mime="text/csv",
-                key="lrc_download_combined"
+          # Re-apply sorting just in case user toggled the mode post-combine
+          df_download = _sort_df(df_download, st.session_state.lrc_sort_mode)
+
+          csv_bytes = df_download.to_csv(index=False).encode("utf-8-sig")
+          st.download_button(
+            label="⬇️ Download Combined CSV (Combine)",
+            data=csv_bytes,
+            file_name="loss_ratio_combined.csv",
+            mime="text/csv",
+            key="lrc_download_combined"
+          )
+
+          st.markdown("#### Loss Ratio Visualization")
+
+          policy_clean_series = None
+          policy_options = []
+          if "policy_number" in working_df.columns:
+            policy_clean_series = working_df["policy_number"].astype(str).str.strip()
+            policy_options = sorted([
+              p for p in policy_clean_series.dropna().unique().tolist()
+              if p not in ("", "nan", "None", None)
+            ])
+
+          if policy_options:
+            selected_policies = st.multiselect(
+              "Filter chart by policy number",
+              options=policy_options,
+              default=policy_options,
+              key="lrc_policy_filter_chart",
+              help="Applies only to the visualization below. Clear the selection to plot all policies."
             )
+          else:
+            selected_policies = []
+
+          if selected_policies and policy_clean_series is not None:
+            mask = policy_clean_series.isin(selected_policies)
+            chart_source_df = working_df[mask.fillna(False)].copy()
+          else:
+            chart_source_df = working_df.copy()
+
+          chart_opt_col1, chart_opt_col2, chart_opt_col3, chart_opt_col4, chart_opt_col5, chart_opt_col6 = st.columns([1, 1, 1, 1, 1, 1])
+          plot_modes = ["Actual", "Actual with IBNR", "Annualized", "Annualized with IBNR"]
+          with chart_opt_col1:
+            plot_mode = st.selectbox(
+              "Data configuration",
+              options=plot_modes,
+              index=1,
+              key="lrc_plot_mode"
+            )
+          with chart_opt_col2:
+            plot_width = st.number_input(
+              "Chart width (px)",
+              min_value=600,
+              max_value=2400,
+              value=1100,
+              step=50,
+              key="lrc_plot_width"
+            )
+          with chart_opt_col3:
+            plot_height = st.number_input(
+              "Chart height (px)",
+              min_value=400,
+              max_value=1500,
+              value=600,
+              step=50,
+              key="lrc_plot_height"
+            )
+          with chart_opt_col4:
+            show_vertical_lines = st.toggle(
+              "Vertical Line",
+              value=True,
+              key="lrc_vertical_lines",
+              help="Show dashed separators between benefit types on the chart."
+            )
+          with chart_opt_col5:
+            show_data_labels = st.toggle(
+              "Data Labels",
+              value=False,
+              key="lrc_data_labels",
+              help="Display numeric labels on the bars and loss ratio lines."
+            )
+          with chart_opt_col6:
+            combine_hospital_smm = st.toggle(
+              "Hospital + Top-Up",
+              value=False,
+              key="lrc_combine_hospital_smm",
+              help="Combine Hospital and Top-Up/ SMM amounts into a single series before computing loss ratio."
+            )
+
+          chart_fig = _lrc_build_chart(
+            chart_source_df,
+            plot_mode,
+            plot_width,
+            plot_height,
+            show_vertical_separators=show_vertical_lines,
+            show_data_labels=show_data_labels,
+            combine_hospital_smm=combine_hospital_smm,
+          )
+          if chart_fig is not None:
+            st.plotly_chart(chart_fig, use_container_width=False)
+          else:
+            st.info("Not enough data to render the chart. Please verify the premium and paid columns for the selected configuration.")
         elif st.session_state.lrc_uploads:
-            st.info("Files are staged. Click **Combine CSVs** to process them.")
+          st.info("Files are staged. Click **Combine CSVs** to process them.")
         else:
-            st.info("Upload one or more loss ratio CSV files to begin (Combine).")
+          st.info("Upload one or more loss ratio CSV files to begin (Combine).")

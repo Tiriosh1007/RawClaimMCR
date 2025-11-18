@@ -1636,46 +1636,38 @@ class RawClaimData():
       self.df['age_band'] = self.df['age_band'].astype(str)
 
     self.df['policy_end_date'] = self.df['policy_start_date'] + pd.DateOffset(years=1) - pd.DateOffset(days=1)
-    self.df['day_procedure_flag'] = False
-    # 1) Make sure this is actually ASSIGNED to a column
-    self.df['day_procedure_flag'] = self.df.groupby('claim_id')['benefit'].transform(
-        lambda x:
-            x.str.contains(
-                r"Surgeon Fee - Minor|day centre|Surgeon Fee - Non Classified \(AXA\)",
-                case=False, na=False
-            ).any()
-            and not x.str.contains(
-                r"Daily Room & Board",
-                case=False, na=False
-            ).any()
+    self.df['day_procedure_flag'] = ""
+    # pat_target = r"Surgeon Fee - Minor|day centre|Surgeon Fee - Non Classified \(AXA\)"
+    pat_target = r"Surgeon Fee|day centre"
+    pat_room   = r"Daily Room & Board"
+
+    # 2. Claim-level booleans (broadcast back to each row)
+    id_has_target = self.df.groupby('claim_id')['benefit'].transform(
+        lambda s: s.str.contains(pat_target, case=False, na=False).any()
     )
 
-    # 2) This is the "no surgeon / no day centre at all" flag
-    self.df['no_day_procedure_flag'] = self.df.groupby('claim_id')['benefit'].transform(
-        lambda x: not x.str.contains(
-            r"Surgeon Fee|day centre",
-            case=False, na=False
-        ).any()
+    id_has_room = self.df.groupby('claim_id')['benefit'].transform(
+        lambda s: s.str.contains(pat_room, case=False, na=False).any()
     )
 
-    # 3) From here on, DON'T chain-assign; always use .loc[row_mask, 'col']
-    self.df.loc[self.df['day_procedure_flag'] == True, 'day_procedure_flag'] = "day_procedure_case"
+    # 3. Build a 4-category flag
+    conditions = [
+        id_has_target & ~id_has_room,   # 1. target AND no room
+        id_has_target & id_has_room,    # 2. target AND room
+        ~id_has_target & id_has_room,   # 3. no target AND room
+        ~id_has_target & ~id_has_room   # 4. no target AND no room
+    ]
 
-    self.df.loc[
-        (self.df['day_procedure_flag'] == False)
-        & (self.df['benefit_type'].str.contains('hosp', case=False, na=False)),
-        'day_procedure_flag'
-    ] = "hospital_have_surgery"
+    choices = [
+        "day_procedure",           # (1)
+        "hospital_have_surgery",   # (2)
+        "hospital_no_surgery",     # (3)
+        "no_hospital_no_surgery"   # (4)
+    ]
 
-    self.df.loc[self.df['day_procedure_flag'] == False, 'day_procedure_flag'] = "other_clinic_dental"
+    self.df['day_procedure_flag'] = np.select(conditions, choices)
+    self.df['day_procedure_flag'].loc[self.df.benefit_type != "Hospital"] = "clinic_and_other"
 
-    self.df.loc[
-        (self.df['no_day_procedure_flag'] == True)
-        & (self.df['benefit_type'].str.contains('hosp', case=False, na=False)),
-        'day_procedure_flag'
-    ] = "hospital_no_surgery"
-
-    self.df.drop(columns=['no_day_procedure_flag'], inplace=True)
     return None
 
   def mcr_policy_info(self, by=None):
@@ -2178,7 +2170,7 @@ class RawClaimData():
     p20_dp_case_overrides = p20_dp_case_overrides.reindex(p20_dp_df.index, fill_value=0)
     if 'day_procedure_flag' in p20_dp_cases.index.names:
       flags = p20_dp_cases.index.get_level_values('day_procedure_flag')
-      override_mask = flags.isin(['hospital_have_surgery', 'day_procedure_case',"hospital_no_surgery"])
+      override_mask = flags.isin(["day_procedure","hospital_have_surgery", "hospital_no_surgery", "no_hospital_no_surgery"])
       p20_dp_cases.loc[override_mask, 'no_of_cases'] = p20_dp_case_overrides.loc[override_mask, 'no_of_cases']
     p20_dp_df = p20_dp_df.join(p20_dp_cases['no_of_cases'])
 
@@ -2258,7 +2250,7 @@ class RawClaimData():
     p20_dp_class_overrides = p20_dp_class_overrides.reindex(p20_dp_class_df.index, fill_value=0)
     if 'day_procedure_flag' in p20_dp_class_cases.index.names:
       flags = p20_dp_class_cases.index.get_level_values('day_procedure_flag')
-      override_mask = flags.isin(['hospital_have_surgery', 'day_procedure_case',"hospital_no_surgery"])
+      override_mask = flags.isin(["day_procedure","hospital_have_surgery", "hospital_no_surgery", "no_hospital_no_surgery"])
       p20_dp_class_cases.loc[override_mask, 'no_of_cases'] = p20_dp_class_overrides.loc[override_mask, 'no_of_cases']
     p20_dp_class_df = p20_dp_class_df.join(p20_dp_class_cases['no_of_cases'])
 
@@ -3697,6 +3689,131 @@ class RawClaimData():
     self.p18a_class = p18a_class_df
     return p18a_class_df
   
+  def mcr_p18b_top_diag_ip_day_procedure(self, by=None, annualize=False, ibnr=False, research_mode=False):
+
+    if by is None:
+      by = []
+
+    __p18_group_col = by.copy()
+    if 'diagnosis' not in __p18_group_col:
+      __p18_group_col.append('diagnosis')
+    if 'day_procedure_flag' not in __p18_group_col:
+      __p18_group_col.append('day_procedure_flag')
+
+    __p18_df_col = list(dict.fromkeys(__p18_group_col + ['incurred_amount', 'paid_amount', 'claimant', 'claim_id']))
+    __p18_sort_col = __p18_group_col + ['paid_amount']
+    __p18_sort_order = len(__p18_group_col) * [True] + [False]
+
+    ip_mask = self.mcr_df['benefit_type'] == 'Hospital'
+    p18b_dp_df = self.mcr_df.loc[ip_mask, __p18_df_col].groupby(by=__p18_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claim_id'})
+    case_mask = ip_mask & self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False, na=False)
+    case_cols = list(dict.fromkeys(__p18_group_col + ['incur_date']))
+    case_counts = self.mcr_df.loc[case_mask, case_cols].groupby(__p18_group_col, dropna=False)['incur_date'].count().rename('no_of_cases')
+    case_counts = case_counts.reindex(p18b_dp_df.index, fill_value=0)
+    p18b_dp_df = p18b_dp_df.join(case_counts)
+    p18b_dp_df = p18b_dp_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+    if len(p18b_dp_df) > 0:
+      p18b_dp_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+      if annualize == True or ibnr == True:
+        p18b_dp_df = pd.merge(p18b_dp_df, self.mcr_factor_df, how='left', left_index=True, right_index=True)
+        p18b_dp_factoring = p18b_dp_df.copy(deep=True)
+        if annualize == True:
+          p18b_dp_factoring['incurred_amount'] = p18b_dp_factoring['incurred_amount'] * (12 / p18b_dp_factoring['data_month'])
+          p18b_dp_factoring['paid_amount']     = p18b_dp_factoring['paid_amount']     * (12 / p18b_dp_factoring['data_month'])
+          p18b_dp_factoring['no_of_cases']     = p18b_dp_factoring['no_of_cases']     * (12 / p18b_dp_factoring['data_month'])
+          p18b_dp_factoring['no_of_claim_id']  = p18b_dp_factoring['no_of_claim_id']  * (12 / p18b_dp_factoring['data_month'])
+          p18b_dp_factoring['no_of_claimants'] = p18b_dp_factoring['no_of_claimants']
+        if ibnr == True:
+          p18b_dp_factoring['incurred_amount'] = p18b_dp_factoring['incurred_amount'] * (1 + p18b_dp_factoring['ibnr'])
+          p18b_dp_factoring['paid_amount']     = p18b_dp_factoring['paid_amount']     * (1 + p18b_dp_factoring['ibnr'])
+          p18b_dp_factoring['no_of_cases']     = p18b_dp_factoring['no_of_cases']     * (1 + p18b_dp_factoring['ibnr'])
+          p18b_dp_factoring['no_of_claim_id']  = p18b_dp_factoring['no_of_claim_id']  * (1 + p18b_dp_factoring['ibnr'])
+          p18b_dp_factoring['no_of_claimants'] = p18b_dp_factoring['no_of_claimants']
+        p18b_dp_diff = p18b_dp_factoring[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']] - p18b_dp_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+        temp_by = __p18_group_col.copy()
+        temp_by.remove('year') if 'year' in temp_by else temp_by
+        temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
+        p18b_dp_diff = p18b_dp_diff.reset_index(drop=False)[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+        p18b_dp_df.reset_index().set_index(temp_by, inplace=True)
+        p18b_dp_df.loc[p18b_dp_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']] = p18b_dp_df.loc[p18b_dp_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].add(p18b_dp_diff)
+        temp_by = __p18_group_col.copy()
+        temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
+        p18b_dp_df = p18b_dp_df.reset_index()[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+
+    __p18_group_col.remove('policy_id') if 'policy_id' in __p18_group_col else __p18_group_col
+    p18b_dp_df = p18b_dp_df.reset_index().set_index(__p18_group_col)
+    p18b_dp_df = p18b_dp_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+    if research_mode == True:
+      p18b_dp_df = p18b_dp_df.reset_index().groupby(by=__p18_group_col, dropna=False).sum()
+      p18b_dp_df['usage_ratio'] = p18b_dp_df['paid_amount'] / p18b_dp_df['incurred_amount'].replace(0, pd.NA)
+      p18b_dp_df = p18b_dp_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+    self.p18b_ip_day_procedure = p18b_dp_df
+    return p18b_dp_df
+  
+  def mcr_p18b_top_diag_ip_day_procedure_class(self, by=None, annualize=False, ibnr=False, research_mode=False):
+
+    if by is None:
+      by = []
+
+    __p18_group_col = by.copy()
+    if 'class' not in __p18_group_col:
+      __p18_group_col.append('class')
+    if 'diagnosis' not in __p18_group_col:
+      __p18_group_col.append('diagnosis')
+    if 'day_procedure_flag' not in __p18_group_col:
+      __p18_group_col.append('day_procedure_flag')
+
+    __p18_df_col = list(dict.fromkeys(__p18_group_col + ['incurred_amount', 'paid_amount', 'claimant', 'claim_id']))
+    __p18_sort_col = __p18_group_col + ['paid_amount']
+    __p18_sort_order = len(__p18_group_col) * [True] + [False]
+
+    ip_mask = self.mcr_df['benefit_type'] == 'Hospital'
+    p18b_dp_class_df = self.mcr_df.loc[ip_mask, __p18_df_col].groupby(by=__p18_group_col, dropna=False).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claimant': 'nunique', 'claim_id': 'nunique'}).rename(columns={'claimant': 'no_of_claimants', 'claim_id': 'no_of_claim_id'})
+    class_case_mask = ip_mask & self.mcr_df['benefit'].str.contains('Day Centre|Surgeon', case=False, na=False)
+    class_case_cols = list(dict.fromkeys(__p18_group_col + ['incur_date']))
+    class_case_counts = self.mcr_df.loc[class_case_mask, class_case_cols].groupby(__p18_group_col, dropna=False)['incur_date'].count().rename('no_of_cases')
+    class_case_counts = class_case_counts.reindex(p18b_dp_class_df.index, fill_value=0)
+    p18b_dp_class_df = p18b_dp_class_df.join(class_case_counts)
+    p18b_dp_class_df = p18b_dp_class_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+    if len(p18b_dp_class_df) > 0:
+      p18b_dp_class_df.sort_values(by=__p18_sort_col, ascending=__p18_sort_order, inplace=True)
+      if annualize == True or ibnr == True:
+        p18b_dp_class_df = pd.merge(p18b_dp_class_df, self.mcr_factor_df, how='left', left_index=True, right_index=True)
+        p18b_dp_class_factoring = p18b_dp_class_df.copy(deep=True)
+        if annualize == True:
+          p18b_dp_class_factoring['incurred_amount'] = p18b_dp_class_factoring['incurred_amount'] * (12 / p18b_dp_class_factoring['data_month'])
+          p18b_dp_class_factoring['paid_amount']     = p18b_dp_class_factoring['paid_amount']     * (12 / p18b_dp_class_factoring['data_month'])
+          p18b_dp_class_factoring['no_of_cases']     = p18b_dp_class_factoring['no_of_cases']     * (12 / p18b_dp_class_factoring['data_month'])
+          p18b_dp_class_factoring['no_of_claim_id']  = p18b_dp_class_factoring['no_of_claim_id']  * (12 / p18b_dp_class_factoring['data_month'])
+          p18b_dp_class_factoring['no_of_claimants'] = p18b_dp_class_factoring['no_of_claimants']
+        if ibnr == True:
+          p18b_dp_class_factoring['incurred_amount'] = p18b_dp_class_factoring['incurred_amount'] * (1 + p18b_dp_class_factoring['ibnr'])
+          p18b_dp_class_factoring['paid_amount']     = p18b_dp_class_factoring['paid_amount']     * (1 + p18b_dp_class_factoring['ibnr'])
+          p18b_dp_class_factoring['no_of_cases']     = p18b_dp_class_factoring['no_of_cases']     * (1 + p18b_dp_class_factoring['ibnr'])
+          p18b_dp_class_factoring['no_of_claim_id']  = p18b_dp_class_factoring['no_of_claim_id']  * (1 + p18b_dp_class_factoring['ibnr'])
+          p18b_dp_class_factoring['no_of_claimants'] = p18b_dp_class_factoring['no_of_claimants']
+        p18b_dp_class_diff = p18b_dp_class_factoring[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']] - p18b_dp_class_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+        temp_by = __p18_group_col.copy()
+        temp_by.remove('year') if 'year' in temp_by else temp_by
+        temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
+        p18b_dp_class_diff = p18b_dp_class_diff.reset_index(drop=False)[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+        p18b_dp_class_df.reset_index().set_index(temp_by, inplace=True)
+        p18b_dp_class_df.loc[p18b_dp_class_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']] = p18b_dp_class_df.loc[p18b_dp_class_df.factoring == True, ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].add(p18b_dp_class_diff)
+        temp_by = __p18_group_col.copy()
+        temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
+        p18b_dp_class_df = p18b_dp_class_df.reset_index()[temp_by + ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+
+    __p18_group_col.remove('policy_id') if 'policy_id' in __p18_group_col else __p18_group_col
+    p18b_dp_class_df = p18b_dp_class_df.reset_index().set_index(__p18_group_col)
+    p18b_dp_class_df = p18b_dp_class_df[['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+    if research_mode == True:
+      p18b_dp_class_df = p18b_dp_class_df.reset_index().groupby(by=__p18_group_col, dropna=False).sum()
+      p18b_dp_class_df['usage_ratio'] = p18b_dp_class_df['paid_amount'] / p18b_dp_class_df['incurred_amount'].replace(0, pd.NA)
+      p18b_dp_class_df = p18b_dp_class_df[['incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants']]
+
+    self.p18b_ip_day_procedure_class = p18b_dp_class_df
+    return p18b_dp_class_df
+  
   def mcr_p18b_top_diag_op(self, by=None, annualize=False, ibnr=False, research_mode=False):
 
     if 'diagnosis' not in by:
@@ -4575,6 +4692,8 @@ class RawClaimData():
     if self.mcr_df['benefit_type'].str.contains('hosp', case=False).any():
       self.mcr_p18a_top_diag_ip(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18a_top_diag_ip_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p18b_top_diag_ip_day_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p18b_top_diag_ip_day_procedure_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
       self.mcr_p18b_top_diag_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18b_top_diag_op_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
@@ -4641,6 +4760,8 @@ class RawClaimData():
           self.p29_df_grp_procedure_network.to_excel(writer, sheet_name='P.29b_Grp_Proce_Network', index=True, merge_cells=False)
           self.p18a.to_excel(writer, sheet_name='P.18_TopHosDiag', index=True, merge_cells=False)
           self.p18a_class.to_excel(writer, sheet_name='P.18a_Class_TopHosDiag', index=True, merge_cells=False)
+          self.p18b_ip_day_procedure.to_excel(writer, sheet_name='P.18b_IP_DayProc', index=True, merge_cells=False)
+          self.p18b_ip_day_procedure_class.to_excel(writer, sheet_name='P.18b_Class_IP_DayProc', index=True, merge_cells=False)
         if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
           self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
           self.p18b_class.to_excel(writer, sheet_name='P.18b_Class_TopClinDiag', index=True, merge_cells=False)

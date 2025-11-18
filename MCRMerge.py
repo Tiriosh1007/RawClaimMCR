@@ -33,6 +33,7 @@ class MCRMerger:
         'P.28_Hospital', 'P.28_Provider', 'P.28a_Provider_Benefit', 'P.28_Physician', 'P.28a_Physician_Benefit', 'P.28_Procedures', 'P.28a_Procedures_Diag', 'P.28b_Procedures_Network',
         'P.29_SP_Speciality', 'P.29_SP_Spec_Diag', 'P.29_Grp_Procedure', 'P.29_Grp_Proce_Org', 'P.29b_Grp_Proce_Network',
         'P.18a_Class_TopHosDiag', 'P.18_TopHosDiag', 'P.18b_Class_TopClinDiag', 'P.18b_TopClinDiag', 'P.18b_TopNetClinDiag',
+        'P.18b_Class_IP_DayProc', 'P.18b_IP_DayProc',
     ]
 
     BASE_COLS = [
@@ -749,6 +750,7 @@ class MCRMerger:
             'P.26_OP_Panel_Benefit',
             'P.18_TopHosDiag',
             'P.18b_TopClinDiag',
+            'P.18b_IP_DayProc',
             'P.20_Benefit_DepType',
         }
 
@@ -1483,14 +1485,19 @@ class MCRMerger:
             p26a_sorted = self._sort_with_desc(p26a_sorted, ['policy_number', 'year', 'class', 'panel'], 'paid_amount')
             result['P.26a_OP_Class_Panel_Benefit'] = p26a_sorted
 
-        def _build_top_diag_from_class(source: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
-            if source is None or source.empty:
+        def _build_top_diag_from_class(
+            source: Optional[pd.DataFrame],
+            index_cols: List[str],
+        ) -> Optional[pd.DataFrame]:
+            if source is None or source.empty or not index_cols:
                 return None
             work = source.copy()
-            # Normalise identifier types for stable grouping
-            for col in ['policy_number', 'year', 'diagnosis']:
-                if col in work.columns:
-                    work[col] = work[col].astype(str)
+            # Ensure identifier columns exist and normalise types
+            missing_keys = [col for col in index_cols if col not in work.columns]
+            if missing_keys:
+                return None
+            for col in index_cols:
+                work[col] = work[col].astype(str)
             # Standardise case count column across variants
             if 'no_of_case' in work.columns and 'no_of_cases' not in work.columns:
                 work['no_of_cases'] = work['no_of_case']
@@ -1506,29 +1513,27 @@ class MCRMerger:
                 work['no_of_cases'] = pd.to_numeric(work['no_of_claim_id'], errors='coerce').fillna(0)
             else:
                 work['no_of_cases'] = 0.0
-            group_cols = [c for c in ['policy_number', 'year', 'diagnosis'] if c in work.columns]
-            if len(group_cols) < 3:
-                return None
+
             agg_cols = ['incurred_amount', 'paid_amount', 'no_of_claim_id', 'no_of_claimants', 'no_of_cases']
-            agg = work.groupby(group_cols, dropna=False)[agg_cols].sum().reset_index()
-            agg['incurred_amount'] = pd.to_numeric(agg['incurred_amount'], errors='coerce').fillna(0)
-            agg['paid_amount'] = pd.to_numeric(agg['paid_amount'], errors='coerce').fillna(0)
-            agg['no_of_cases'] = pd.to_numeric(agg['no_of_cases'], errors='coerce').fillna(0)
+            agg = work.groupby(index_cols, dropna=False)[agg_cols].sum().reset_index()
+            for col in ['incurred_amount', 'paid_amount', 'no_of_cases']:
+                agg[col] = pd.to_numeric(agg[col], errors='coerce').fillna(0)
             zero_mask = (
                 agg['incurred_amount'].eq(0)
                 & agg['paid_amount'].eq(0)
                 & agg['no_of_cases'].eq(0)
             )
             agg = agg.loc[~zero_mask].reset_index(drop=True)
-            agg['no_of_cases'] = pd.to_numeric(agg['no_of_cases'], errors='coerce').fillna(0)
-            agg['paid_amount'] = pd.to_numeric(agg['paid_amount'], errors='coerce').fillna(0)
+            if agg.empty:
+                return None
+            sort_cols = index_cols + ['paid_amount']
+            ascending = [True] * len(index_cols) + [False]
             agg = agg.sort_values(
-                by=['policy_number', 'year', 'paid_amount'],
-                ascending=[True, True, False],
+                by=sort_cols,
+                ascending=ascending,
                 kind='mergesort'
             ).reset_index(drop=True)
-            needed_cols = [
-                'policy_number', 'year', 'diagnosis',
+            needed_cols = index_cols + [
                 'incurred_amount', 'paid_amount',
                 'no_of_cases', 'no_of_claim_id', 'no_of_claimants'
             ]
@@ -1537,19 +1542,45 @@ class MCRMerger:
                     agg[col] = pd.NA
             return agg[needed_cols]
 
-        p18a_prepared = _build_top_diag_from_class(result.get('P.18a_Class_TopHosDiag'))
+        p18a_prepared = _build_top_diag_from_class(
+            result.get('P.18a_Class_TopHosDiag'),
+            ['policy_number', 'year', 'diagnosis'],
+        )
         if p18a_prepared is None:
-            p18a_prepared = _build_top_diag_from_class(all_sheets.get('P.18a_Class_TopHosDiag'))
+            p18a_prepared = _build_top_diag_from_class(
+                all_sheets.get('P.18a_Class_TopHosDiag'),
+                ['policy_number', 'year', 'diagnosis'],
+            )
         if p18a_prepared is not None:
             result['P.18a_Class_TopHosDiag'] = p18a_prepared.copy()
             result['P.18_TopHosDiag'] = p18a_prepared.copy()
 
-        p18b_prepared = _build_top_diag_from_class(result.get('P.18b_Class_TopClinDiag'))
+        p18b_prepared = _build_top_diag_from_class(
+            result.get('P.18b_Class_TopClinDiag'),
+            ['policy_number', 'year', 'diagnosis'],
+        )
         if p18b_prepared is None:
-            p18b_prepared = _build_top_diag_from_class(all_sheets.get('P.18b_Class_TopClinDiag'))
+            p18b_prepared = _build_top_diag_from_class(
+                all_sheets.get('P.18b_Class_TopClinDiag'),
+                ['policy_number', 'year', 'diagnosis'],
+            )
         if p18b_prepared is not None:
             result['P.18b_Class_TopClinDiag'] = p18b_prepared.copy()
             result['P.18b_TopClinDiag'] = p18b_prepared.copy()
+
+        p18b_dp_indexes = ['policy_number', 'year', 'day_procedure_flag', 'diagnosis']
+        p18b_dp_prepared = _build_top_diag_from_class(
+            result.get('P.18b_Class_IP_DayProc'),
+            p18b_dp_indexes,
+        )
+        if p18b_dp_prepared is None:
+            p18b_dp_prepared = _build_top_diag_from_class(
+                all_sheets.get('P.18b_Class_IP_DayProc'),
+                p18b_dp_indexes,
+            )
+        if p18b_dp_prepared is not None:
+            result['P.18b_Class_IP_DayProc'] = p18b_dp_prepared.copy()
+            result['P.18b_IP_DayProc'] = p18b_dp_prepared.copy()
         # Final de-duplication across all sheets to avoid duplicated unselected class records
         for sn in list(result.keys()):
             try:
