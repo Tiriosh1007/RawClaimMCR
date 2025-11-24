@@ -20,6 +20,7 @@ from pathlib import Path
 open_rounter_api_key = st.secrets['api_key']
 
 
+
 import xml.etree.ElementTree as ET
 
 def _resolve_path(fn: str) -> str:
@@ -151,6 +152,8 @@ if 'mcr_merge_groups' not in st.session_state:
   st.session_state.mcr_merge_groups = []
 if 'member_mcr_combine' not in st.session_state:
   st.session_state.member_mcr_combine = False
+if 'loss_ratio_df' not in st.session_state:
+  st.session_state.loss_ratio_df = None
   
 function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8, function_col9, function_col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
@@ -189,6 +192,7 @@ with function_col1:
     st.session_state.member_mcr_result_bytes = None
     st.session_state.member_mcr_combined_sheets = None
     st.session_state.member_mcr_warnings = []
+    st.session_state.loss_ratio_df = None
 
 with function_col2:
   if st.button('Raw Claim Tool'):
@@ -485,13 +489,13 @@ if st.session_state.raw_claim == True:
       st.download_button('MCR data', 
                         data=raw_.mcr_pages(export=True, by=by, year_incurred=year_incurred_toggle, annualize=annualize_toggle, ibnr=ibnr_toggle),
                         file_name="mcr.xlsx",
-                        mime="application/vnd.ms-excel")
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     
     with data_download_col2:
       st.download_button('Raw Claim Consolidated', 
                         data=raw_.export_database(),
                         file_name="raw_claim_data.csv",
-                        mime="application/vnd.ms-excel")
+                        mime="text/csv")
 
     # with data_download_col3:  
     #   st.download_button('Frequent Claimant Analysis', 
@@ -661,12 +665,12 @@ if st.session_state.shortfall == True:
       st.download_button('MCR data', 
                         data=sf_.mcr_pages(export=True),
                         file_name="mcr.xlsx",
-                        mime="application/vnd.ms-excel")
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     with data_download_col2:
       st.download_button('Shortfall Consolidated', 
                         data=sf_.export_database(),
                         file_name="shortfall_data.csv",
-                        mime="application/vnd.ms-excel")
+                        mime="text/csv")
     
 
 # ========================================================================================================
@@ -707,7 +711,7 @@ if st.session_state.ibnr_tool == True:
     st.download_button('IBNR Verification Report', 
                         data=ibnr_tool_.run(),
                         file_name="ibnr_verification_report.xlsx",
-                        mime="application/vnd.ms-excel")
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
   
 
 
@@ -1278,8 +1282,6 @@ if st.session_state.mcr_convert == True:
                    key='prev_year')
       previous_year_start_date = str(format((st.date_input('Start Date', key='prev_year_start_date', value="today")), "%-d/%-m/%Y"))
       previous_year_end_date = str(format((st.date_input('End Date', key='prev_year_end_date', value="today")), "%-d/%-m/%Y"))
-      st.write(" ### Optional")
-      previous_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for previous year.", key='previous_year_loss_ratio_text')
 
     with mcr_convert_year_cofig_col2:
       st.write('Current Year')
@@ -1294,21 +1296,54 @@ if st.session_state.mcr_convert == True:
                           key='current_year')
       current_year_start_date = str(format((st.date_input('Start Date', key='current_year_start_date', value="today")), "%-d/%-m/%Y"))
       current_year_end_date = str(format((st.date_input('End Date', key='current_year_end_date', value="today")), "%-d/%-m/%Y"))
-      st.write(" ### Optional")
-      current_year_loss_ratio_text = st.text_area("Please input the loss ratio text obtained from the OCR session for current year.", key='current_year_loss_ratio_text')
+
+    st.write('---')
+    st.subheader('Loss Ratio & Premium CSV')
+    st.caption("Upload a consolidated CSV (one row per benefit) with columns: policy_id, policy_number, client_name, policy_start_date, policy_end_date, duration, ibnr, data_as_of, benefit_type, actual_premium, actual_paid_w_ibnr.")
+    required_loss_ratio_cols = {
+      'policy_id', 'policy_number', 'client_name', 'policy_start_date', 'policy_end_date',
+      'duration', 'ibnr', 'data_as_of', 'benefit_type', 'actual_premium', 'actual_paid_w_ibnr'
+    }
+    loss_ratio_file = st.file_uploader("Upload loss ratio CSV", type=['csv'], key='loss_ratio_csv_uploader')
+    if loss_ratio_file is not None:
+      try:
+        loss_ratio_df = pd.read_csv(loss_ratio_file)
+        missing_cols = sorted(required_loss_ratio_cols - set(loss_ratio_df.columns))
+        if missing_cols:
+          st.warning(f"Missing columns detected: {', '.join(missing_cols)}")
+        st.session_state.loss_ratio_df = loss_ratio_df
+        st.success(f"Loaded {len(loss_ratio_df)} rows from {loss_ratio_file.name}.")
+      except Exception as exc:
+        st.error(f"Unable to read CSV: {exc}")
+    elif st.session_state.loss_ratio_df is not None:
+      st.caption(f"Using previously uploaded loss ratio file ({st.session_state.loss_ratio_df.shape[0]} rows).")
+    else:
+      st.caption("No loss ratio file uploaded.")
 
     st.write('---')
     loss_ratio_group_optical = st.toggle('Group Optical Items into Clinical', value=True)
     if st.button('Confirm Year Configuration'):
       mcr_convert_.set_policy_input(previous_policy_num, previous_year_start_date, previous_year_end_date, previous_year, 
                                     current_policy_num, current_year_start_date, current_year_end_date, current_year)
-      
-      mcr_convert_.loss_ratio_text_convert(previous_year_loss_ratio_text, current_year_loss_ratio_text, loss_ratio_group_optical)
+
+      loss_ratio_df = st.session_state.get('loss_ratio_df')
+      if loss_ratio_df is not None:
+        if previous_policy_num and previous_year:
+          mcr_convert_.load_loss_ratio_dataframe(loss_ratio_df, previous_policy_num, previous_year, 'previous', loss_ratio_group_optical)
+          if getattr(mcr_convert_, 'previous_year_loss_ratio_df', None) is None:
+            st.warning('No loss ratio rows were found for the selected previous year; the left side of P.16 will remain blank.')
+        if current_policy_num and current_year:
+          mcr_convert_.load_loss_ratio_dataframe(loss_ratio_df, current_policy_num, current_year, 'current', loss_ratio_group_optical)
+          if getattr(mcr_convert_, 'current_year_loss_ratio_df', None) is None:
+            st.warning('No loss ratio rows were found for the selected current year; the right side of P.16 will remain blank.')
+      else:
+        st.warning('Loss ratio CSV not uploaded; P.16 will remain unchanged.')
+
       mcr_convert_.convert_all()
       st.download_button('Download MCR Converted Excel',
                           mcr_convert_.save(),
                           file_name=f'GMI_{current_policy_num}_{current_year}.xlsx',
-                          mime="application/vnd.ms-excel")
+                          mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 # ========================================================================================================
@@ -1687,7 +1722,7 @@ if st.session_state.ocr == True:
     st.download_button('Shortfall/ Usage Converted', 
                         data=csv_report.to_csv(index=False).encode('utf-8'),
                         file_name=file_name_to_csv,
-                        mime="application/vnd.ms-excel")
+                        mime="text/csv")
     
     # if "BlueCross Usage" in prompt_data_options[data_selection]:
     #   from BlueCrossUsageReportConvert import *

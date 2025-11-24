@@ -1665,7 +1665,7 @@ class RawClaimData():
         "no_hospital_no_surgery"   # (4)
     ]
 
-    self.df['day_procedure_flag'] = np.select(conditions, choices)
+    self.df['day_procedure_flag'] = np.select(conditions, choices, default="no_hospital_no_surgery")
     self.df['day_procedure_flag'].loc[self.df.benefit_type != "Hospital"] = "clinic_and_other"
 
     return None
