@@ -21,7 +21,7 @@ DATE_PARSE_FORMATS = (
     "%B %d %Y",
     "%d %b, %Y",
     "%d %B, %Y",
-    "%b %d, %Y"
+    "%b %d, %Y",
     "%B %d, %Y"
 )
 
@@ -1489,9 +1489,37 @@ class PresentationConvert():
             return None
 
         subset = df.copy(deep=True)
-        subset['policy_start_date'] = pd.to_datetime(subset.get('policy_start_date'), errors='coerce')
+
+        def _parse_dt_series(series):
+            if series is None:
+                return pd.Series(pd.NaT, index=subset.index)
+            parsed = pd.to_datetime(series, errors='coerce', dayfirst=False)
+            needs_retry = parsed.isna() & series.notna()
+            if needs_retry.any():
+                retry = pd.to_datetime(series[needs_retry], errors='coerce', dayfirst=True)
+                parsed.loc[needs_retry] = retry
+            return parsed
+
+        subset['policy_start_date'] = _parse_dt_series(subset.get('policy_start_date'))
+        subset['policy_end_date'] = _parse_dt_series(subset.get('policy_end_date')) if 'policy_end_date' in subset.columns else pd.Series(pd.NaT, index=subset.index)
+        subset['data_as_of'] = _parse_dt_series(subset.get('data_as_of')) if 'data_as_of' in subset.columns else pd.Series(pd.NaT, index=subset.index)
         subset['policy_number'] = subset.get('policy_number').astype(str)
-        subset['year_key'] = subset['policy_start_date'].dt.year
+
+        def _years_from_row(row):
+            years = set()
+            for col in ['policy_start_date', 'policy_end_date', 'data_as_of']:
+                val = row.get(col)
+                if isinstance(val, (pd.Timestamp, datetime)) and not pd.isna(val):
+                    years.add(val.year)
+            raw_year = row.get('year') if 'year' in row.index else None
+            try:
+                if raw_year is not None and str(raw_year).strip():
+                    years.add(int(str(raw_year)))
+            except Exception:
+                pass
+            return years
+
+        subset['year_keys'] = subset.apply(_years_from_row, axis=1)
 
         target_policy = self._normalize_policy_number(policy_number)
         subset['policy_number_norm'] = subset['policy_number'].apply(self._normalize_policy_number)
@@ -1499,9 +1527,35 @@ class PresentationConvert():
         mask = (
             (subset['policy_number'] == str(policy_number)) |
             (subset['policy_number_norm'] == target_policy)
-        ) & (subset['year_key'] == year_int)
+        ) & (subset['year_keys'].apply(lambda ys: year_int in ys if isinstance(ys, set) else False))
 
         subset = subset.loc[mask]
+
+        if subset.empty:
+            # Fallback: match only on policy and a plain 'year' column if present
+            if 'year' in df.columns:
+                year_col = df['year'].astype(str).str.extract(r"(\d{2,4})", expand=False)
+                def _normalize_year_str(y):
+                    if y is None or pd.isna(y):
+                        return None
+                    try:
+                        val = int(y)
+                        if val < 100:
+                            val += 2000
+                        return val
+                    except Exception:
+                        return None
+                year_col = year_col.map(_normalize_year_str)
+                df_work = df.copy(deep=True)
+                df_work['year_col_norm'] = year_col
+                df_work['policy_number'] = df_work.get('policy_number').astype(str)
+                df_work['policy_number_norm'] = df_work['policy_number'].apply(self._normalize_policy_number)
+                mask_fb = (
+                    (df_work['policy_number'] == str(policy_number)) |
+                    (df_work['policy_number_norm'] == target_policy)
+                ) & (df_work['year_col_norm'] == year_int)
+                subset = df_work.loc[mask_fb, ['benefit_type', 'actual_premium', 'actual_paid_w_ibnr', 'duration']].copy()
+
         if subset.empty:
             return None
 
