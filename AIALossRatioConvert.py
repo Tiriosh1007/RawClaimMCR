@@ -16,10 +16,11 @@ class AIALossRatioConvert:
     2) loss_ratio is ALWAYS numeric: actual_paid_w_ibnr / actual_premium (no % string).
     3) Multi-period: detects every 'From ... To ...' period and ties product blocks to the
        closest period above them.
-    4) Hospital aggregates: HMO-H+S + HMO-H+S W -> "Hospital".
-       Clinical: HMO-CLINIC -> "Clinical".
-       Top-Up/ SMM: HMO-SMM RL -> "Top-Up/ SMM".
-       Total: Total -> "Total".
+     4) Hospital aggregates: HMO-H+S + HMO-H+S W + HMO-WART-S -> "Hospital".
+         Clinical: HMO-CLINIC -> "Clinical".
+         Dental: HMO-DENTAL -> "Dental".
+         Top-Up/ SMM: HMO-SMM RL -> "Top-Up/ SMM".
+         Total: Total -> "Total".
     """
 
     def __init__(
@@ -29,8 +30,9 @@ class AIALossRatioConvert:
     ) -> None:
         # Default mapping, can be overridden
         self.benefit_mapping = benefit_mapping or {
-            "Hospital": {"HMO-H+S", "HMO-H+S W"},
+            "Hospital": {"HMO-H+S", "HMO-H+S W", "HMO-WART-S"},
             "Clinical": {"HMO-CLINIC"},
+            "Dental": {"HMO-DENTAL"},
             "Top-Up/ SMM": {"HMO-SMM RL"},
             "Total": {"Total"},
         }

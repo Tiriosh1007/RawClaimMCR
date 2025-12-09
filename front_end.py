@@ -1,7 +1,7 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
+from typing import List, Dict, Optional
 import matplotlib.pyplot as plt
 import seaborn as sns
 import datetime as dt
@@ -13,6 +13,9 @@ import warnings
 import requests, json
 from pathlib import Path
 
+st.set_page_config(layout='wide')
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+
 # ========================================================================================================
 # OCR Setup
 # ========================================================================================================
@@ -20,63 +23,53 @@ from pathlib import Path
 open_rounter_api_key = st.secrets['api_key']
 
 
-
 import xml.etree.ElementTree as ET
 
 def _resolve_path(fn: str) -> str:
-    """Try local path first, then /mnt/data (where your uploads live)."""
-    p = Path(fn)
-    if p.exists():
-        return str(p)
-    p2 = Path("/mnt/data") / fn
-    return str(p2)
+  """Try local path first, then /mnt/data (where your uploads live)."""
+  p = Path(fn)
+  if p.exists():
+    return str(p)
+  p2 = Path("/mnt/data") / fn
+  return str(p2)
 
 def read_prompt_library_etree(xml_file: str) -> pd.DataFrame:
-    """
-    Parse prompt_lib.xml into a DataFrame with columns:
-    ['data', 'type', 'content'] so that `df.data` mirrors your old usage.
-    """
-    path = _resolve_path(xml_file)
-    tree = ET.parse(path)
-    root = tree.getroot()
-    rows = []
-    for el in root.findall(".//text"):
-        rows.append({
-            "data": el.attrib.get("data"),
-            "type": el.attrib.get("type"),
-            "content": "".join(el.itertext()).strip()
-        })
-    return pd.DataFrame(rows)
+  """
+  Parse prompt_lib.xml into a DataFrame with columns:
+  ['data', 'type', 'content'] so that `df.data` mirrors your old usage.
+  """
+  path = _resolve_path(xml_file)
+  tree = ET.parse(path)
+  root = tree.getroot()
+  rows = []
+  for el in root.findall(".//text"):
+    rows.append({
+      "data": el.attrib.get("data"),
+      "type": el.attrib.get("type"),
+      "content": "".join(el.itertext()).strip()
+    })
+  return pd.DataFrame(rows)
 
 def read_model_library_etree(xml_file: str) -> pd.DataFrame:
-    """
-    Parse genai_lib.xml into a DataFrame matching your prior shape:
-    index = 'name', column = 'model' (so .to_dict().keys() yields model names).
-    """
-    path = _resolve_path(xml_file)
-    tree = ET.parse(path)
-    root = tree.getroot()
-    rows = []
-    for el in root.findall(".//model"):
-        rows.append({
-            "name": el.attrib.get("name"),
-            "model": "".join(el.itertext()).strip()
-        })
-    df = pd.DataFrame(rows)
-    df.index = df["name"]
-    df.drop(columns=["name"], inplace=True)
-    return df
-
-import warnings
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-prompt_lib_xml = 'prompt_lib.xml'
-prompt_lib = read_prompt_library_etree(prompt_lib_xml) 
-prompt_data_options = prompt_lib.data.to_dict()
+  """
+  Parse genai_lib.xml into a DataFrame matching your prior shape:
+  index = 'name', column = 'model' (so .to_dict().keys() yields model names).
+  """
+  path = _resolve_path(xml_file)
+  tree = ET.parse(path)
+  root = tree.getroot()
+  rows = []
+  for el in root.findall(".//model"):
+    rows.append({
+      "name": el.attrib.get("name"),
+      "model": "".join(el.itertext()).strip()
+    })
+  df = pd.DataFrame(rows)
+  df.index = df["name"]
+  df.drop(columns=["name"], inplace=True)
+  return df
 
 import base64
-import json
 import io
 import importlib.util
 from streamlit_pdf_viewer import pdf_viewer
@@ -87,6 +80,10 @@ from plotly.colors import qualitative as plotly_colors
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize': (5, 5)})
 plt.rcParams["axes.formatter.limits"] = (-99, 99)
+
+prompt_lib_xml = 'prompt_lib.xml'
+prompt_lib = read_prompt_library_etree(prompt_lib_xml)
+prompt_data_options = prompt_lib.data.to_dict()
 
 models_df = read_model_library_etree('genai_lib.xml')
 models_df.index = models_df.index
@@ -105,55 +102,43 @@ from MCRMemberCensusCombine import MCRMemberCensusCombiner
 from BlueCrossUsageReportConvert import *
 from IBNRTool import *
 from AIALossRatioConvert import *
-from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder
 
 from pygwalker.api.streamlit import StreamlitRenderer
 
-st.set_page_config(layout='wide')
+# ========================================================================================================
+# Global navigation helpers
+# ========================================================================================================
 
-MAIN_SECTION_KEYS = [
+MAIN_SECTION_KEYS: List[str] = [
   'raw_claim',
   'shortfall',
   'ibnr_tool',
   'member_census',
-  'member_mcr_combine',
   'mcr_convert',
   'ocr',
   'other_file_convert',
   'mcr_merge',
+  'member_mcr_combine',
 ]
 
-def activate_main_section(active_key=None) -> None:
-  """Toggle the top-level Streamlit sections, keeping only the chosen one active."""
+def _ensure_section_state() -> None:
   for key in MAIN_SECTION_KEYS:
-    st.session_state[key] = (key == active_key)
+    st.session_state.setdefault(key, False)
+  st.session_state.setdefault('mcr_merge_uploaded', False)
+  st.session_state.setdefault('mcr_merge_groups', [])
+  st.session_state.setdefault('loss_ratio_df', None)
 
-if 'raw_claim' not in st.session_state:
-  st.session_state.raw_claim = False
-if 'shortfall' not in st.session_state:
-  st.session_state.shortfall = False
-if 'ibnr_tool' not in st.session_state:
-  st.session_state.ibnr_tool = False
-if 'member_census' not in st.session_state:
-  st.session_state.member_census = False
-if 'member_census_config' not in st.session_state:
-  st.session_state.member_census_config = pd.DataFrame()
-if 'mcr_convert' not in st.session_state:
-  st.session_state.mcr_convert = False  
-if 'ocr' not in st.session_state:
-  st.session_state.ocr = False
-if 'other_file_convert' not in st.session_state:
-  st.session_state.other_file_convert = False
-if 'mcr_merge' not in st.session_state:
-  st.session_state.mcr_merge = False
-if 'mcr_merge_uploaded' not in st.session_state:
-  st.session_state.mcr_merge_uploaded = False
-if 'mcr_merge_groups' not in st.session_state:
-  st.session_state.mcr_merge_groups = []
-if 'member_mcr_combine' not in st.session_state:
-  st.session_state.member_mcr_combine = False
-if 'loss_ratio_df' not in st.session_state:
-  st.session_state.loss_ratio_df = None
+def activate_main_section(section_name: Optional[str]) -> None:
+  """Toggle the one active main section panel."""
+  _ensure_section_state()
+  for key in MAIN_SECTION_KEYS:
+    st.session_state[key] = bool(section_name) and key == section_name
+
+_ensure_section_state()
+
+# ========================================================================================================
+# OCR Setup
+# ========================================================================================================
   
 function_col1, function_col2, function_col3, function_col4, function_col5 , function_col6, function_col7, function_col8, function_col9, function_col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
@@ -548,13 +533,13 @@ if st.session_state.raw_claim == True:
 
     if st.session_state.op_time == True:
       fig = raw_.benefit_op_monthly()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
     if st.session_state.op_policy == True:
       fig = raw_.benefit_op_yearly_bar()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
     if st.session_state.age_class_scatter == True:
       fig = raw_.class_age_scatter()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
 
     st.write('---')
     st.header('Dependent Type Charts')
@@ -576,10 +561,10 @@ if st.session_state.raw_claim == True:
 
     if st.session_state.dep_type_paid == True:
       fig = raw_.paid_amount_by_dep_type_policy_year()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
     if st.session_state.dep_type_paid_class == True:
       fig = raw_.paid_amount_by_dep_type_class_policy_year()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
 
     
 
@@ -935,11 +920,11 @@ if st.session_state.member_census == True:
       member_census.set_graph_layout(xmax, xstep, ystep, width, height)
       member_census.get_gender_distribution()
       fig = member_census.butterfly_plot()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
       st.dataframe(member_census.gender_dis_df)
       st.write('---')
       fig = member_census.butterfly_plot_dep()
-      st.plotly_chart(fig, use_container_width=False)
+      st.plotly_chart(fig, width='content')
       st.dataframe(member_census.gender_dis_dep_df)
       st.write('---')
       member_df_col_1, member_df_col_2, member_df_col_3, member_df_col_4, member_df_col_5, member_df_col_6 = st.columns([1,1,1,1,1,1])
@@ -1091,7 +1076,7 @@ if st.session_state.member_mcr_combine == True:
       policy_editor = st.data_editor(
         policy_editor_df,
         hide_index=True,
-        use_container_width=True,
+        width='stretch',
         key='member_mcr_policy_editor',
         column_config={
           'matched_member_policy': st.column_config.SelectboxColumn(
@@ -1116,7 +1101,8 @@ if st.session_state.member_mcr_combine == True:
             st.session_state.member_mcr_class_mapping_df = pd.DataFrame(columns=['mcr_policy', 'mcr_class', 'member_policy', 'member_class', 'match_score'])
             st.session_state.member_mcr_class_confirmed = True
           else:
-            class_suggestions['selected_member_class'] = class_suggestions['matched_member_class']
+            class_suggestions['selected_mcr_class'] = class_suggestions.get('mcr_class')
+            class_suggestions['selected_mcr_class_id'] = class_suggestions.get('mcr_class_id')
             st.session_state.member_mcr_class_mapping_df = class_suggestions
             st.session_state.member_mcr_class_confirmed = False
           st.session_state.member_mcr_result_bytes = None
@@ -1136,30 +1122,173 @@ if st.session_state.member_mcr_combine == True:
       st.info('The selected policies do not include class-level data. Skipping this step.')
       st.session_state.member_mcr_class_confirmed = True
     else:
+      not_in_mcr_option = getattr(integrator, 'NOT_IN_MCR_LABEL', 'No Matching Class')
       class_editor_df = class_df.copy()
-      st.caption('Review the suggested class mappings. Adjust the member census class on each row if needed.')
-      for idx, row in class_editor_df.iterrows():
-        member_policy_key = str(row['member_policy']) if 'member_policy' in row else ''
-        candidate_classes = integrator.member_classes_by_policy.get(member_policy_key, [])
-        options = [unmatched_label] + candidate_classes
-        default_value = row.get('selected_member_class') or row.get('matched_member_class') or unmatched_label
-        if default_value not in options:
-          default_value = unmatched_label
-        class_editor_df.at[idx, 'selected_member_class'] = st.selectbox(
-          f"{row['mcr_policy']} → {row['mcr_class']}",
-          options,
-          index=options.index(default_value) if default_value in options else 0,
-          key=f"member_mcr_class_select_{idx}"
+      if class_editor_df.columns.duplicated().any():
+        class_editor_df = class_editor_df.loc[:, ~class_editor_df.columns.duplicated(keep='first')]
+
+      def _compose_member_class_id(row: pd.Series) -> str:
+        policy_val = str(row.get('member_policy', '')).strip()
+        class_val = str(row.get('member_class', '')).strip()
+        if policy_val or class_val:
+          return f"{policy_val}_{class_val}"
+        return ''
+
+      if 'member_class' not in class_editor_df.columns:
+        class_editor_df['member_class'] = None
+      if 'member_class_id' not in class_editor_df.columns:
+        class_editor_df['member_class_id'] = class_editor_df.apply(_compose_member_class_id, axis=1)
+      else:
+        mask_missing_ids = class_editor_df['member_class_id'].isna() | (
+          class_editor_df['member_class_id'].astype(str).str.strip().isin(['', 'nan', 'none'])
         )
+        class_editor_df.loc[mask_missing_ids, 'member_class_id'] = class_editor_df[mask_missing_ids].apply(
+          _compose_member_class_id, axis=1
+        )
+        class_editor_df['member_class_id'] = class_editor_df['member_class_id'].astype(str).str.strip()
+      if 'missing_mcr_class' not in class_editor_df.columns:
+        class_editor_df['missing_mcr_class'] = False
+      else:
+        class_editor_df['missing_mcr_class'] = class_editor_df['missing_mcr_class'].astype(bool)
+      if 'suggested_mcr_class' not in class_editor_df.columns:
+        class_editor_df['suggested_mcr_class'] = None
+      if 'suggested_match_score' not in class_editor_df.columns:
+        class_editor_df['suggested_match_score'] = 0.0
+      else:
+        class_editor_df['suggested_match_score'] = pd.to_numeric(
+          class_editor_df['suggested_match_score'], errors='coerce'
+        ).fillna(0.0)
+      if 'match_score' in class_editor_df.columns:
+        class_editor_df['match_score'] = pd.to_numeric(class_editor_df['match_score'], errors='coerce').fillna(0.0)
+      else:
+        class_editor_df['match_score'] = 0.0
+      if 'selected_mcr_class' not in class_editor_df.columns:
+        class_editor_df['selected_mcr_class'] = class_editor_df.get('mcr_class')
+      if 'selected_mcr_class_id' not in class_editor_df.columns:
+        class_editor_df['selected_mcr_class_id'] = class_editor_df.get('mcr_class_id')
+      class_editor_df['selected_mcr_class'] = class_editor_df['selected_mcr_class'].where(
+        pd.notna(class_editor_df['selected_mcr_class']),
+        other=not_in_mcr_option
+      )
+      class_editor_df['selected_mcr_class_id'] = class_editor_df['selected_mcr_class_id'].where(
+        pd.notna(class_editor_df['selected_mcr_class_id']),
+        other=None
+      )
+      class_editor_df.loc[
+        class_editor_df['selected_mcr_class'] == not_in_mcr_option,
+        'missing_mcr_class'
+      ] = True
+
+      policy_class_lookup: Dict[str, pd.DataFrame] = {}
+      mcr_class_rows = getattr(integrator, 'mcr_policy_classes', pd.DataFrame())
+      if isinstance(mcr_class_rows, pd.DataFrame) and not mcr_class_rows.empty:
+        normalized = mcr_class_rows.copy()
+        normalized['mcr_policy_norm'] = normalized['mcr_policy'].astype(str).str.strip()
+        normalized['mcr_class_norm'] = normalized['mcr_class'].astype(str).str.strip()
+        normalized['mcr_class_id'] = normalized['mcr_class_id'].astype(str).str.strip()
+        if 'mcr_year' in normalized.columns:
+          normalized['mcr_year_norm'] = normalized['mcr_year'].astype(str).str.extract(r"(\d{4})", expand=False)
+        else:
+          normalized['mcr_year_norm'] = np.nan
+        for policy_key, grp in normalized.groupby('mcr_policy_norm'):
+          policy_class_lookup[str(policy_key)] = grp.copy()
+
+      def _policy_key(value: object) -> str:
+        if value is None:
+          return ''
+        text = str(value).strip()
+        return '' if text.lower() in {'', 'nan', 'none'} else text
+
+      st.caption('Review the census classes detected for each policy and map them to MCR classes below.')
+      st.info('Selections below are restricted to class IDs that belong to the same policy/year from the uploaded MCR file.')
+      st.caption('Dropdown options show the class name followed by its policy_class ID for clarity (e.g., Class A [POL123_Class A]).')
+
+      plans_per_row = 6
+
+      for policy_value, policy_group in class_editor_df.groupby('mcr_policy', sort=False):
+        with st.expander(f"Policy {policy_value}", expanded=True):
+          policy_key = _policy_key(policy_value)
+          policy_table = policy_class_lookup.get(policy_key)
+          rows = list(policy_group.iterrows())
+          for start in range(0, len(rows), plans_per_row):
+            columns = st.columns(plans_per_row)
+            for column, (idx, row) in zip(columns, rows[start:start + plans_per_row]):
+              with column:
+                candidate_ids: List[str] = []
+                option_display_map = {not_in_mcr_option: not_in_mcr_option}
+                option_name_map: Dict[str, str] = {}
+                working_slice = None
+                if policy_table is not None and not policy_table.empty:
+                  row_year = str(row.get('member_year') or row.get('mcr_year') or '').strip()
+                  if row_year:
+                    year_slice = policy_table.loc[policy_table['mcr_year_norm'] == row_year]
+                    working_slice = year_slice if not year_slice.empty else policy_table
+                  else:
+                    working_slice = policy_table
+                if working_slice is not None and not working_slice.empty:
+                  for _, opt_row in working_slice.iterrows():
+                    class_id = str(opt_row.get('mcr_class_id', '')).strip()
+                    class_name = str(opt_row.get('mcr_class_norm', '')).strip() or str(opt_row.get('mcr_class', '')).strip()
+                    if class_id and class_name:
+                      if policy_key and not class_id.startswith(f"{policy_key}_"):
+                        continue
+                      if class_id not in candidate_ids:
+                        candidate_ids.append(class_id)
+                      option_name_map[class_id] = class_name
+                      option_display_map[class_id] = f"{class_name} [{class_id}]"
+                options = [not_in_mcr_option] + candidate_ids
+                default_value = row.get('selected_mcr_class_id') or not_in_mcr_option
+                if default_value not in options:
+                  default_value = not_in_mcr_option
+                suggestion = row.get('suggested_mcr_class')
+                suggestion_score = float(row.get('suggested_match_score', 0) or 0)
+                label_text = f"Census class: {row.get('member_class', 'N/A')}"
+                member_year = row.get('member_year')
+                if member_year and str(member_year).strip():
+                  label_text += f" (Year {member_year})"
+                if default_value and default_value != not_in_mcr_option:
+                  label_text += f" → mapped to {option_display_map.get(default_value, default_value)}"
+                elif suggestion:
+                  label_text += f" → suggested {suggestion} ({suggestion_score * 100:.0f}%)"
+                else:
+                  label_text += " → no matching MCR class"
+                formatter = lambda opt, mapping=option_display_map: mapping.get(opt, opt)
+                selection = st.selectbox(
+                  label_text,
+                  options,
+                  index=options.index(default_value) if default_value in options else 0,
+                  key=f"member_mcr_class_select_{policy_value}_{row.get('member_class', idx)}_{idx}",
+                  format_func=formatter
+                )
+                if selection == not_in_mcr_option:
+                  class_editor_df.at[idx, 'selected_mcr_class'] = not_in_mcr_option
+                  class_editor_df.at[idx, 'selected_mcr_class_id'] = None
+                  class_editor_df.at[idx, 'missing_mcr_class'] = True
+                else:
+                  class_editor_df.at[idx, 'selected_mcr_class'] = option_name_map.get(selection, selection)
+                  class_editor_df.at[idx, 'selected_mcr_class_id'] = selection
+                  class_editor_df.at[idx, 'missing_mcr_class'] = False
+
       st.session_state.member_mcr_class_mapping_df = class_editor_df
 
       if st.button('Confirm Class Mapping', key='member_mcr_class_confirm'):
         final_class = class_editor_df.copy()
-        final_class['selected_member_class'] = final_class['selected_member_class'].replace({unmatched_label: None})
-        if final_class['selected_member_class'].isna().any():
-          st.error('Please select a member census class for every MCR class.')
+        replacement_map = {unmatched_label: None, not_in_mcr_option: None}
+        final_class['selected_mcr_class'] = final_class['selected_mcr_class'].replace(replacement_map)
+        final_class['selected_mcr_class_id'] = final_class['selected_mcr_class_id'].where(
+          final_class['selected_mcr_class'].notna(),
+          other=None
+        )
+        missing_mask = final_class['selected_mcr_class'].isna()
+        if 'missing_mcr_class' in final_class.columns:
+          allowed_mask = final_class['missing_mcr_class'].astype(bool)
         else:
-          final_class = final_class.rename(columns={'selected_member_class': 'member_class'})
+          allowed_mask = pd.Series(False, index=final_class.index)
+        if (missing_mask & ~allowed_mask).any():
+          st.error('Please select an MCR class for every census class or mark it as No Matching Class.')
+        else:
+          final_class.loc[missing_mask, 'missing_mcr_class'] = True
+          final_class = final_class.rename(columns={'selected_mcr_class': 'mcr_class', 'selected_mcr_class_id': 'mcr_class_id'})
           st.session_state.member_mcr_class_mapping_df = final_class
           st.session_state.member_mcr_class_confirmed = True
           st.session_state.member_mcr_result_bytes = None
@@ -1178,14 +1307,40 @@ if st.session_state.member_mcr_combine == True:
     policy_mapping_final = st.session_state.get('member_mcr_policy_mapping_df')
     class_mapping_final = st.session_state.get('member_mcr_class_mapping_df')
     if class_mapping_final is None:
-      class_mapping_final = pd.DataFrame(columns=['mcr_policy', 'mcr_class', 'member_policy', 'member_class'])
-    elif 'member_class' not in class_mapping_final.columns:
-      class_mapping_final = class_mapping_final.rename(columns={'selected_member_class': 'member_class'})
+      class_mapping_final = pd.DataFrame(columns=['mcr_policy', 'mcr_class', 'mcr_class_id', 'member_policy', 'member_class', 'member_class_id'])
+    else:
+      if 'member_class' not in class_mapping_final.columns and 'matched_member_class' in class_mapping_final.columns:
+        class_mapping_final = class_mapping_final.rename(columns={'matched_member_class': 'member_class'})
+      if 'mcr_class' not in class_mapping_final.columns and 'selected_mcr_class' in class_mapping_final.columns:
+        class_mapping_final = class_mapping_final.rename(columns={'selected_mcr_class': 'mcr_class'})
+
+    def _ensure_id_column(df: pd.DataFrame, id_col: str, policy_col: str, class_col: str) -> pd.DataFrame:
+      work = df.copy()
+      if work.columns.duplicated().any():
+        work = work.loc[:, ~work.columns.duplicated(keep='first')]
+      if id_col not in work.columns:
+        work[id_col] = (
+          work[policy_col].astype(str).str.strip() + '_' + work[class_col].astype(str).str.strip()
+        ).where(work[class_col].notna(), other=np.nan)
+      else:
+        cleaned = work[id_col].astype(str).str.strip()
+        missing_mask = cleaned.isna() | cleaned.eq('') | cleaned.str.lower().isin({'nan', 'none'})
+        work.loc[missing_mask, id_col] = (
+          work.loc[missing_mask, policy_col].astype(str).str.strip() + '_' +
+          work.loc[missing_mask, class_col].astype(str).str.strip()
+        ).where(work.loc[missing_mask, class_col].notna(), other=np.nan)
+        work[id_col] = work[id_col].astype(str).str.strip().replace({'nan': np.nan})
+      return work
+
+    if not class_mapping_final.empty:
+      class_mapping_final = _ensure_id_column(class_mapping_final, 'member_class_id', 'member_policy', 'member_class')
+      class_mapping_final = _ensure_id_column(class_mapping_final, 'mcr_class_id', 'mcr_policy', 'mcr_class')
 
     if st.button('Combine and Generate MCR', type='primary', key='member_mcr_generate'):
       try:
         with st.spinner('Combining workbooks...'):
-          combined_result = integrator.combine(policy_mapping_final, class_mapping_final[['mcr_policy', 'mcr_class', 'member_policy', 'member_class']])
+          class_cols = ['mcr_policy', 'mcr_class', 'mcr_class_id', 'member_policy', 'member_class', 'member_class_id']
+          combined_result = integrator.combine(policy_mapping_final, class_mapping_final[class_cols])
           export_bytes = integrator.export()
       except Exception as exc:  # pragma: no cover - streamlit display
         st.error(f'Failed to combine files: {exc}')
@@ -1197,42 +1352,22 @@ if st.session_state.member_mcr_combine == True:
 
     if st.session_state.get('member_mcr_result_bytes'):
       st.download_button(
-        'Download combined MCR',
+        'Download Combined Workbook',
         st.session_state.member_mcr_result_bytes,
-        file_name='mcr_with_member_census.xlsx',
-        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        key='member_mcr_download'
+        file_name='Member_MCR_Combined.xlsx',
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       )
-
-    warnings_list = st.session_state.get('member_mcr_warnings', [])
-    if warnings_list:
-      for msg in warnings_list:
-        st.warning(msg)
-
-    combined_preview = st.session_state.get('member_mcr_combined_sheets')
-    if isinstance(combined_preview, dict) and combined_preview:
-      preview_sheet = None
-      preview_name = None
-      for candidate_sheet in ['P.21_Class', 'P.20_Policy', 'P.22_Class_BenefitType', 'Policy_Info']:
-        candidate_df = combined_preview.get(candidate_sheet)
-        if candidate_df is not None and not candidate_df.empty:
-          preview_sheet = candidate_df
-          preview_name = candidate_sheet
-          break
-      if preview_sheet is not None:
-        st.subheader(f'Preview: {preview_name}')
-        st.dataframe(preview_sheet.head(20))
-
-# ========================================================================================================
-# MCR Convert
-# ========================================================================================================
+      warnings_list = st.session_state.get('member_mcr_warnings') or []
+      if warnings_list:
+        st.warning('\n'.join(str(msg) for msg in warnings_list))
 
 if st.session_state.mcr_convert == True:
   if 'mcr_convert_uploaded' not in st.session_state:
     st.session_state.mcr_convert_uploaded = False
   st.write("""
            # Gain Miles Assurance Consultancy Ltd
-           ### MCR  to Presentation and GMI upload Tool
+           
+           ### MCR Convert (Generate presentation-ready workbook)
            """)
   st.write("---")
   upload_file_l = []
@@ -1246,13 +1381,7 @@ if st.session_state.mcr_convert == True:
     path = os.path.join(temp_dir, mcr_file_uploaded.name)
     with open(path, "wb") as f:
       f.write(mcr_file_uploaded.getvalue())
-
-  presentation_mode = st.toggle('Presentation Mode', value=False, key='presentation_mode')
-
-  if st.button('Confirm MCR Analysis File Upload'):
-    st.session_state.mcr_convert_uploaded = True
-  
-  if st.session_state.mcr_convert_uploaded == True:
+    presentation_mode = st.toggle('Use presentation template (PresentationConvert)', value=False, key='presentation_mode_toggle')
     st.write("---")
     if presentation_mode == False:
       mcr_convert_  = MCRConvert(path)
@@ -1427,7 +1556,7 @@ if st.session_state.mcr_merge == True:
     st.info("Upload MCR files to list selectable policy-year-classes.")
   else:
     st.write("### Available items")
-    st.dataframe(cat, use_container_width=True)
+    st.dataframe(cat, width='stretch')
 
     # Build selection labels depending on all-years mode, excluding already-grouped items
     apply_all_years = st.session_state.get('mcr_apply_all_years', False)
@@ -1536,7 +1665,7 @@ if st.session_state.mcr_merge == True:
           "Policies": uniq_policies,
           "Classes": uniq_classes,
         })
-      st.dataframe(pd.DataFrame(summary_rows), use_container_width=True)
+      st.dataframe(pd.DataFrame(summary_rows), width='stretch')
 
       # Details expanders with optional removal per group
       for idx, grp in enumerate(st.session_state.mcr_merge_groups):
@@ -1710,6 +1839,8 @@ if st.session_state.ocr == True:
       file_name_to_csv = f"AIA_101_{csv_report.policy_id.iloc[0]}.csv"
     elif "AIA 102" in prompt_data_options[data_selection]:
       file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
+    elif "Loss Ratio" in prompt_data_options[data_selection]:
+      file_name_to_csv = f"{uploaded_file.name[:-4]}.csv"
     # elif "BlueCross Usage" in prompt_data_options[data_selection]:
     #   file_name_to_csv = "BlueCross_Usage_Report.csv"
       # BlueCross = BlueCrossUsageReportConvert(csv_data)
@@ -1959,7 +2090,7 @@ if st.session_state.other_file_convert == True:
         # Preview & download
         if st.session_state.aia_parsed_once and st.session_state.aia_combined_df is not None:
             st.markdown("#### Preview (Master)")
-            st.dataframe(st.session_state.aia_combined_df, use_container_width=True)
+            st.dataframe(st.session_state.aia_combined_df, width='stretch')
 
             df_download = st.session_state.aia_combined_df.copy()
             if not st.session_state.aia_include_source_in_download and "source_file" in df_download.columns:
@@ -2383,7 +2514,7 @@ if st.session_state.other_file_convert == True:
           working_df = st.session_state.lrc_combined_df.copy()
 
           st.markdown("#### Preview (Combine)")
-          st.dataframe(working_df, use_container_width=True)
+          st.dataframe(working_df, width='stretch')
 
           # Respect download toggle for source_file
           df_download = working_df.copy()
@@ -2489,7 +2620,7 @@ if st.session_state.other_file_convert == True:
             combine_hospital_smm=combine_hospital_smm,
           )
           if chart_fig is not None:
-            st.plotly_chart(chart_fig, use_container_width=False)
+            st.plotly_chart(chart_fig, width='content')
           else:
             st.info("Not enough data to render the chart. Please verify the premium and paid columns for the selected configuration.")
         elif st.session_state.lrc_uploads:

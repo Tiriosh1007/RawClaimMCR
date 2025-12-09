@@ -4616,12 +4616,93 @@ class RawClaimData():
     self.p29_df_grp_procedure_network = p29_df_grp_procedure_network
     return p29_df_grp_procedure_network
 
+  def mcr_p30_op_freq_claimant_analysis(self, by=None, annualize=False, ibnr=False, research_mode=False, min_cases=10):
+
+    base_by = list(by) if isinstance(by, list) else ([] if by is None else [by])
+    freq_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+
+    cols_needed = base_by + ['class', 'dep_type', 'claimant', 'benefit']
+    freq_df = self.mcr_df[cols_needed].copy(deep=True)
+    freq_df = freq_df[freq_df['benefit'].isin(freq_benefits)]
+    freq_df.dropna(subset=['claimant'], inplace=True)
+
+    if freq_df.empty:
+      empty_df = pd.DataFrame(columns=['no_of_claimants', 'no_of_cases'])
+      empty_names = base_by + ['class', 'dep_type']
+      if len(empty_names) > 0:
+        empty_idx = pd.MultiIndex.from_arrays([[] for _ in empty_names], names=empty_names)
+        empty_df = empty_df.reindex(empty_idx)
+      self.p30_op_freq_claimant = empty_df
+      return empty_df
+
+    freq_df['dep_type'] = freq_df['dep_type'].fillna('Unknown')
+
+    group_claimant_cols = base_by + ['class', 'dep_type', 'claimant']
+    claimant_cases = (
+      freq_df.groupby(by=group_claimant_cols, dropna=False)
+      .size()
+      .rename('no_of_cases')
+      .to_frame()
+    )
+
+    claimant_cases = claimant_cases[claimant_cases['no_of_cases'] >= min_cases]
+
+    if claimant_cases.empty:
+      empty_df = pd.DataFrame(columns=['no_of_claimants', 'no_of_cases'])
+      empty_names = base_by + ['class', 'dep_type']
+      if len(empty_names) > 0:
+        empty_idx = pd.MultiIndex.from_arrays([[] for _ in empty_names], names=empty_names)
+        empty_df = empty_df.reindex(empty_idx)
+      self.p30_op_freq_claimant = empty_df
+      return empty_df
+
+    claimant_cases = claimant_cases.reset_index()
+    final_group_cols = base_by + ['class', 'dep_type']
+    p30_df = claimant_cases.groupby(by=final_group_cols, dropna=False).agg({
+      'claimant': 'nunique',
+      'no_of_cases': 'sum'
+    }).rename(columns={'claimant': 'no_of_claimants'})
+
+    if annualize == True or ibnr == True:
+      p30_df = pd.merge(p30_df, self.mcr_factor_df, how='left', left_index=True, right_index=True)
+      p30_factoring = p30_df.copy(deep=True)
+      if annualize == True:
+        p30_factoring['no_of_cases'] = p30_factoring['no_of_cases'] * (12 / p30_factoring['data_month'])
+        p30_factoring['no_of_claimants'] = p30_factoring['no_of_claimants']
+      if ibnr == True:
+        p30_factoring['no_of_cases'] = p30_factoring['no_of_cases'] * (1 + p30_factoring['ibnr'])
+        p30_factoring['no_of_claimants'] = p30_factoring['no_of_claimants']
+
+      p30_diff = p30_factoring[['no_of_cases', 'no_of_claimants']] - p30_df[['no_of_cases', 'no_of_claimants']]
+      temp_by = final_group_cols.copy()
+      temp_by.remove('year') if 'year' in temp_by else temp_by
+      temp_by.remove('policy_number') if 'policy_number' in temp_by else temp_by
+      p30_diff = p30_diff.reset_index(drop=False)[temp_by + ['no_of_cases', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+      p30_df.reset_index().set_index(temp_by, inplace=True)
+      p30_df.loc[p30_df.factoring == True, ['no_of_cases', 'no_of_claimants']] = p30_df.loc[p30_df.factoring == True, ['no_of_cases', 'no_of_claimants']].add(p30_diff)
+      temp_by = final_group_cols.copy()
+      temp_by.remove('policy_id') if 'policy_id' in temp_by else temp_by
+      p30_df = p30_df.reset_index()[temp_by + ['no_of_cases', 'no_of_claimants']].groupby(by=temp_by, dropna=False).sum()
+
+    final_index_cols = final_group_cols.copy()
+    final_index_cols.remove('policy_id') if 'policy_id' in final_index_cols else final_index_cols
+    p30_df = p30_df.reset_index().set_index(final_index_cols)
+    p30_df = p30_df[['no_of_claimants', 'no_of_cases']]
+
+    if research_mode == True:
+      p30_df = p30_df.reset_index().groupby(by=final_index_cols, dropna=False).sum()
+      p30_df = p30_df[['no_of_claimants', 'no_of_cases']]
+
+    self.p30_op_freq_claimant = p30_df
+    return p30_df
+
   def mcr_pages(self, by=None, export=False, benefit_type_order=['Hospital', 'Clinic', 'Dental', 'Optical', 'Maternity', 'Total'], year_incurred=False, annualize=False, ibnr=False, research_mode=False):
     
     if type(by) is not list and by != None: by = [by]
     
 
     self.mcr_df = self.df.copy(deep=True)
+    freq_op_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
 
     if year_incurred == False:
       self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
@@ -4631,9 +4712,6 @@ class RawClaimData():
       self.mcr_df['year'] = self.mcr_df.incur_date.dt.year
       self.mcr_df['factoring'] = (self.mcr_df['year'] != self.mcr_df['policy_start_date'].dt.year) | (self.mcr_df['policy_start_date'].dt.year == self.mcr_df['policy_end_date'].dt.year) | (self.mcr_df['policy_start_date'].dt.year == self.mcr_df['policy_data_date'].dt.year)
 
-    if type(by) is list:
-      if 'dep_type' in by:
-        self.mcr_df['dep_type'].loc[(self.mcr_df['dep_type'].str.contains('CH')) | (self.mcr_df['dep_type'].str.contains('SP'))] = 'DEP'
     
     
     self.mcr_policy_info(by)
@@ -4698,6 +4776,8 @@ class RawClaimData():
       self.mcr_p18b_top_diag_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18b_top_diag_op_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18ba_top_diag_network_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+    if self.mcr_df['benefit'].isin(freq_op_benefits).any():
+      self.mcr_p30_op_freq_claimant_analysis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
 
     if export == True:
       from io import BytesIO
@@ -4766,6 +4846,8 @@ class RawClaimData():
           self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
           self.p18b_class.to_excel(writer, sheet_name='P.18b_Class_TopClinDiag', index=True, merge_cells=False)
           self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
+        if self.mcr_df['benefit'].isin(freq_op_benefits).any():
+          self.p30_op_freq_claimant.to_excel(writer, sheet_name='P.30_OP_FreqClaimant', index=True, merge_cells=False)
 
         # Embed custom NamedStyle 'num' into the workbook
         wb = writer.book
@@ -5078,39 +5160,39 @@ class RawClaimData():
 
     self.frequent_analysis_stat = __freq_stat_df
 
-    days = self.df.loc[self.df.benefit.str.contains('room', case=False)]
-    days['days_cover'] = (days['discharge_date'] - days['incur_date']).dt.days + 1
-
-    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'days_cover']] \
-    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis']).sum()
-
+    hosp_mask = self.df.benefit_type.str.contains('hosp', case=False)
 
     self.ip_usage = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'paid_amount']] \
-    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .loc[hosp_mask] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum().unstack()
     cols = [list(f)[-1] for f in self.ip_usage.columns]
     self.ip_usage.columns = cols
 
-   
-
     self.ip_usage_incurred = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'incurred_amount']] \
-    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+    .loc[hosp_mask] \
     .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum().unstack()
     cols = [list(f)[-1] for f in self.ip_usage_incurred.columns]
     self.ip_usage_incurred.columns = cols
 
-    self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
+    if self.df['discharge_date'].notna().any():
+      days = self.df.loc[self.df.benefit.str.contains('room', case=False) & self.df['discharge_date'].notna()].copy()
+      days['days_cover'] = (days['discharge_date'] - days['incur_date']).dt.days + 1
 
-    days_cover = days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'days_cover']] \
-    .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum()
+      hospital_days = days.loc[days['benefit_type'].str.contains('hosp', case=False)]
 
-    # self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
-    # .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
-    # .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
+      days_cover = hospital_days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'days_cover']] \
+      .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis']).sum()
 
-    # self.ip_usage_for_cal = pd.concat([self.ip_usage_for_cal, days_cover], axis=1, ignore_index=False)
+      self.ip_usage_incurred = pd.concat([self.ip_usage_incurred, days_cover], axis=1, ignore_index=False)
+
+      days_cover = hospital_days[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'benefit', 'diagnosis', 'days_cover']] \
+      .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender', 'diagnosis', 'benefit']).sum()
+
+      # self.ip_usage_for_cal = self.df[['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'benefit', 'diagnosis', 'incurred_amount', 'paid_amount']] \
+      # .loc[self.df.benefit_type.str.contains('hosp', case=False)] \
+      # .groupby(by=['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'diagnosis', 'benefit']).sum()
+
+      # self.ip_usage_for_cal = pd.concat([self.ip_usage_for_cal, days_cover], axis=1, ignore_index=False)
 
     
 

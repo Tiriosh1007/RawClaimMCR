@@ -15,6 +15,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Protection
 
 
 @dataclass
@@ -35,21 +36,35 @@ class PolicyMatchSuggestion:
 
 @dataclass
 class ClassMatchSuggestion:
-    """Suggested mapping between an MCR class and a census class."""
+    """Suggested mapping between a census class and an MCR class."""
 
-    mcr_policy: str
-    mcr_class: str
     member_policy: str
-    matched_member_class: Optional[str]
+    member_class: str
+    member_year: Optional[str]
+    member_class_id: str
+    mcr_policy: str
+    mcr_class: Optional[str]
+    mcr_year: Optional[str]
+    mcr_class_id: Optional[str]
     match_score: float
+    missing_mcr_class: bool = False
+    suggested_mcr_class: Optional[str] = None
+    suggested_match_score: float = 0.0
 
     def as_dict(self) -> Dict[str, object]:
         return {
+            "member_policy": self.member_policy,
+            "member_class": self.member_class,
+            "member_year": self.member_year,
+            "member_class_id": self.member_class_id,
             "mcr_policy": self.mcr_policy,
             "mcr_class": self.mcr_class,
-            "member_policy": self.member_policy,
-            "matched_member_class": self.matched_member_class,
+            "mcr_year": self.mcr_year,
+            "mcr_class_id": self.mcr_class_id,
             "match_score": self.match_score,
+            "missing_mcr_class": self.missing_mcr_class,
+            "suggested_mcr_class": self.suggested_mcr_class,
+            "suggested_match_score": self.suggested_match_score,
         }
 
 
@@ -58,6 +73,10 @@ class MCRMemberCensusCombiner:
 
     MEMBER_COUNT_COL = "member_count"
     _MATCH_PLACEHOLDER = "__UNMATCHED__"
+    NOT_IN_MCR_LABEL = "No Matching Class"
+    SHEET_IDENTIFIER_OVERRIDES = {
+            "P.30_OP_FreqClaimant": ["policy_number", "year", "class", "dep_type"],
+    }
 
     def __init__(
         self,
@@ -76,6 +95,7 @@ class MCRMemberCensusCombiner:
         self.mcr_policy_info = self.mcr_sheets.get("Policy_Info", pd.DataFrame())
         self.mcr_policy_years = self._extract_policy_years()
         self.mcr_policy_classes = self._extract_mcr_classes()
+        self.mcr_classes_by_policy = self._collect_mcr_classes_by_policy()
         self.member_policy_options = self._collect_member_policies()
         self.member_classes_by_policy = self._collect_member_classes()
 
@@ -115,43 +135,102 @@ class MCRMemberCensusCombiner:
         }
 
         suggestions: List[ClassMatchSuggestion] = []
-        if self.mcr_policy_classes.empty:
+        if self.mcr_policy_classes.empty or self.member_raw.empty:
             return pd.DataFrame(columns=[
+                "member_policy",
+                "member_class",
+                "member_year",
                 "mcr_policy",
                 "mcr_class",
-                "member_policy",
-                "matched_member_class",
+                "mcr_year",
                 "match_score",
             ])
 
-        for mcr_policy, member_policy in policy_map.items():
-            mcr_classes = (
-                self.mcr_policy_classes.loc[
-                    self.mcr_policy_classes["mcr_policy"].astype(str) == str(member_policy)
-                ]["mcr_class"]
-                .dropna()
-                .astype(str)
-                .unique()
-            )
-            member_classes = self.member_classes_by_policy.get(str(mcr_policy), [])
-            for mcr_class in sorted(mcr_classes):
-                best_class, score = self._best_match(mcr_class, member_classes)
+        def _normalised_lookup(values: Iterable[str]) -> Dict[str, str]:
+            lookup: Dict[str, str] = {}
+            for item in values:
+                key = self._normalise_key(item)
+                if not key:
+                    continue
+                lookup[key] = str(item)
+            return lookup
+
+        for member_policy, mcr_policy in policy_map.items():
+            mcr_policy_str = str(mcr_policy)
+            member_policy_str = str(member_policy)
+
+            member_subset = self.member_raw.loc[
+                self.member_raw["policy_number_raw"].astype(str) == member_policy_str
+            ][["class_raw", "year"]].copy()
+            if member_subset.empty:
+                continue
+            member_subset["class_raw"] = member_subset["class_raw"].astype(str).str.strip()
+            member_subset["class_raw"] = member_subset["class_raw"].replace({"": np.nan, "nan": np.nan})
+            member_subset.dropna(subset=["class_raw"], inplace=True)
+            member_subset["year"] = member_subset["year"].astype(str).str.extract(r"(\d{4})", expand=False)
+            member_subset.drop_duplicates(inplace=True)
+            member_subset.sort_values(by=["class_raw", "year"], inplace=True)
+            member_subset["member_class_id"] = member_policy_str + "_" + member_subset["class_raw"].astype(str)
+
+            mcr_subset = self.mcr_policy_classes.loc[
+                self.mcr_policy_classes["mcr_policy"].astype(str) == mcr_policy_str
+            ][["mcr_class", "mcr_year", "mcr_class_id"]].copy()
+            mcr_subset["mcr_class"] = mcr_subset["mcr_class"].astype(str).str.strip()
+            mcr_subset["mcr_class"] = mcr_subset["mcr_class"].replace({"": np.nan, "nan": np.nan})
+            mcr_subset.dropna(subset=["mcr_class"], inplace=True)
+            mcr_classes = mcr_subset["mcr_class"].unique().tolist()
+            mcr_lookup = _normalised_lookup(mcr_classes)
+            mcr_year_lookup = {
+                self._normalise_key(row.mcr_class): row.mcr_year
+                for row in mcr_subset.itertuples(index=False)
+                if self._normalise_key(row.mcr_class)
+            }
+            mcr_id_lookup = {
+                self._normalise_key(row.mcr_class): row.mcr_class_id
+                for row in mcr_subset.itertuples(index=False)
+                if self._normalise_key(row.mcr_class)
+            }
+
+            for record in member_subset.itertuples(index=False):
+                census_class = str(record.class_raw)
+                census_year = getattr(record, "year", None)
+                member_class_id = str(getattr(record, "member_class_id"))
+                best_candidate, best_score = self._best_match_raw(census_class, mcr_classes)
+                best_candidate_norm = self._normalise_key(best_candidate) if best_candidate else ""
+                census_norm = self._normalise_key(census_class)
+                exact_match = None
+                if best_candidate and best_candidate_norm == census_norm and census_norm in mcr_lookup:
+                    exact_match = mcr_lookup[census_norm]
+                match_year = mcr_year_lookup.get(best_candidate_norm if exact_match else census_norm)
+                matched_id = None
+                if exact_match:
+                    matched_id = mcr_id_lookup.get(census_norm) or (mcr_policy_str + "_" + exact_match)
+
                 suggestions.append(
                     ClassMatchSuggestion(
-                        mcr_policy=str(member_policy),
-                        mcr_class=mcr_class,
-                        member_policy=str(mcr_policy),
-                        matched_member_class=best_class,
-                        match_score=round(score, 3),
+                        member_policy=member_policy_str,
+                        member_class=census_class,
+                        member_year=census_year,
+                        member_class_id=member_class_id,
+                        mcr_policy=mcr_policy_str,
+                        mcr_class=exact_match,
+                        mcr_year=match_year,
+                        mcr_class_id=matched_id,
+                        match_score=1.0 if exact_match else 0.0,
+                        missing_mcr_class=exact_match is None,
+                        suggested_mcr_class=best_candidate,
+                        suggested_match_score=round(best_score, 3),
                     )
                 )
 
         if not suggestions:
             return pd.DataFrame(columns=[
+                "member_policy",
+                "member_class",
+                "member_year",
                 "mcr_policy",
                 "mcr_class",
-                "member_policy",
-                "matched_member_class",
+                "mcr_year",
                 "match_score",
             ])
 
@@ -167,9 +246,19 @@ class MCRMemberCensusCombiner:
         if not required_policy_cols.issubset(policy_mapping.columns):
             raise ValueError("policy_mapping is missing required columns.")
 
-        required_class_cols = {"mcr_policy", "mcr_class", "member_policy", "member_class"}
-        if not required_class_cols.issubset(class_mapping.columns):
-            raise ValueError("class_mapping is missing required columns.")
+        required_class_cols = {
+            "mcr_policy",
+            "mcr_class",
+            "mcr_class_id",
+            "member_policy",
+            "member_class",
+            "member_class_id",
+        }
+        missing_class_cols = required_class_cols.difference(class_mapping.columns)
+        if missing_class_cols:
+            raise ValueError(
+                "class_mapping is missing required columns: " + ", ".join(sorted(missing_class_cols))
+            )
 
         # Reset warnings per run
         self.warnings = []
@@ -195,6 +284,22 @@ class MCRMemberCensusCombiner:
             for sheet_name, df in self._combined_sheets.items():
                 safe_name = sheet_name[:31]
                 df.to_excel(writer, sheet_name=safe_name, index=False)
+
+            wb = writer.book
+
+            num_style = NamedStyle(name="num")
+            num_style.number_format = "#,##0"
+            num_style.alignment = Alignment(horizontal="center", vertical="center")
+            num_style.font = Font(name="Univers", size=14)
+            num_style.border = Border()
+            num_style.fill = PatternFill(fill_type=None)
+            num_style.protection = Protection(locked=False, hidden=False)
+
+            existing_styles = [s.name for s in wb._named_styles]
+            if num_style.name not in existing_styles:
+                wb.add_named_style(num_style)
+            else:
+                num_style = next(s for s in wb._named_styles if s.name == num_style.name)
         output.seek(0)
         return output.getvalue()
 
@@ -283,7 +388,7 @@ class MCRMemberCensusCombiner:
         return policy_years
 
     def _extract_mcr_classes(self) -> pd.DataFrame:
-        """Extract policy/class combinations from the MCR sheets."""
+        """Extract policy/year/class combinations from the MCR sheets."""
 
         class_sources = ["P.21_Class", "P.22_Class_BenefitType"]
         for sheet_name in class_sources:
@@ -292,13 +397,42 @@ class MCRMemberCensusCombiner:
                 continue
             if not {"policy_number", "class"}.issubset(df.columns):
                 continue
-            subset = df[["policy_number", "class"]].dropna().copy()
-            subset["policy_number"] = subset["policy_number"].astype(str)
-            subset["class"] = subset["class"].astype(str)
-            subset.rename(columns={"policy_number": "mcr_policy", "class": "mcr_class"}, inplace=True)
+            work = df.copy()
+            work["policy_number"] = work["policy_number"].ffill()
+            available_cols = [col for col in ["policy_number", "year", "class"] if col in work.columns]
+            subset = work[available_cols].dropna(subset=["policy_number", "class"]).copy()
+            subset["policy_number"] = subset["policy_number"].astype(str).str.strip()
+            subset["class"] = subset["class"].astype(str).str.strip()
+            if "year" not in subset.columns:
+                subset["year"] = np.nan
+            else:
+                subset["year"] = subset["year"].astype(str).str.extract(r"(\d{4})", expand=False)
+            subset.rename(
+                columns={
+                    "policy_number": "mcr_policy",
+                    "class": "mcr_class",
+                    "year": "mcr_year",
+                },
+                inplace=True,
+            )
+            subset["mcr_class_id"] = subset["mcr_policy"].astype(str) + "_" + subset["mcr_class"].astype(str)
             subset.drop_duplicates(inplace=True)
             return subset.reset_index(drop=True)
-        return pd.DataFrame(columns=["mcr_policy", "mcr_class"])
+        return pd.DataFrame(columns=["mcr_policy", "mcr_year", "mcr_class", "mcr_class_id"])
+
+    def _collect_mcr_classes_by_policy(self) -> Dict[str, List[str]]:
+        if self.mcr_policy_classes.empty:
+            return {}
+        grouped = self.mcr_policy_classes.dropna(subset=["mcr_policy", "mcr_class"])
+        grouped["mcr_policy"] = grouped["mcr_policy"].astype(str)
+        grouped["mcr_class"] = grouped["mcr_class"].astype(str)
+        mapping: Dict[str, List[str]] = {}
+        for policy, frame in grouped.groupby("mcr_policy"):
+            classes = frame["mcr_class"].dropna().astype(str).str.strip()
+            classes = classes.replace({"": np.nan}).dropna().unique().tolist()
+            classes.sort()
+            mapping[str(policy)] = classes
+        return mapping
 
     def _collect_member_policies(self) -> List[str]:
         if self.member_raw.empty:
@@ -325,14 +459,16 @@ class MCRMemberCensusCombiner:
     def _normalise_key(value: object) -> str:
         return str(value).strip().lower() if value is not None else ""
 
-    def _best_match(self, needle: str, haystack: Iterable[str]) -> Tuple[Optional[str], float]:
-        """Return best fuzzy match from haystack for needle."""
+    def _best_match_raw(self, needle: str, haystack: Iterable[str]) -> Tuple[Optional[str], float]:
+        """Return the raw best fuzzy match (without score thresholding)."""
 
         if not haystack:
             return None, 0.0
         needle_key = self._normalise_key(needle)
+        if not needle_key:
+            return None, 0.0
         best_candidate: Optional[str] = None
-        best_score = -1.0
+        best_score = 0.0
         for candidate in haystack:
             candidate_key = self._normalise_key(candidate)
             if not candidate_key:
@@ -341,9 +477,17 @@ class MCRMemberCensusCombiner:
             if score > best_score:
                 best_score = score
                 best_candidate = candidate
-        if best_candidate is None or best_score < 0.4:
-            return None, best_score if best_score > 0 else 0.0
+        if best_candidate is None:
+            return None, 0.0
         return best_candidate, best_score
+
+    def _best_match(self, needle: str, haystack: Iterable[str]) -> Tuple[Optional[str], float]:
+        """Return best fuzzy match from haystack for needle using a confidence threshold."""
+
+        candidate, score = self._best_match_raw(needle, haystack)
+        if candidate is None or score < 0.4:
+            return None, score if score > 0 else 0.0
+        return candidate, score
 
     def _apply_mappings(
         self,
@@ -364,23 +508,36 @@ class MCRMemberCensusCombiner:
         members = members.dropna(subset=["policy_number"])
 
         class_mapping = class_mapping.copy()
-        class_mapping["member_policy"] = class_mapping["member_policy"].astype(str)
-        class_mapping["member_class"] = class_mapping["member_class"].astype(str)
-        class_mapping["mcr_policy"] = class_mapping["mcr_policy"].astype(str)
-        class_mapping["mcr_class"] = class_mapping["mcr_class"].astype(str)
+        class_mapping["member_policy"] = class_mapping["member_policy"].astype(str).str.strip()
+        class_mapping["member_class"] = class_mapping["member_class"].astype(str).str.strip()
+        class_mapping["member_class_id"] = class_mapping["member_class_id"].astype(str).str.strip()
+        class_mapping["mcr_policy"] = class_mapping["mcr_policy"].astype(str).str.strip()
+        class_mapping["mcr_class"] = class_mapping["mcr_class"].astype(str).str.strip()
+        class_mapping["mcr_class_id"] = class_mapping["mcr_class_id"].astype(str).str.strip()
 
-        class_map = {
-            (row.member_policy, row.member_class): row.mcr_class
+        class_id_map = {
+            row.member_class_id: (row.mcr_class, row.mcr_class_id)
             for row in class_mapping.itertuples(index=False)
         }
 
-        def _map_class(row: pd.Series) -> str:
+        def _map_class(row: pd.Series) -> Tuple[str, Optional[str]]:
+            member_class_id = str(row.get("member_class_id"))
+            mapped = class_id_map.get(member_class_id)
+            if mapped:
+                return mapped[0], mapped[1]
             key = (str(row["policy_number_raw"]), str(row["class_raw"]))
-            return class_map.get(key, str(row["class_raw"]))
+            fallback = class_id_map.get(f"{key[0]}_{key[1]}")
+            if fallback:
+                return fallback[0], fallback[1]
+            return str(row["class_raw"]), None
 
-        members["class"] = members.apply(_map_class, axis=1)
+        mapped_classes = members.apply(_map_class, axis=1, result_type="expand")
+        mapped_classes.columns = ["class", "mcr_class_id"]
+        members["class"] = mapped_classes["class"]
+        members["mcr_class_id"] = mapped_classes["mcr_class_id"]
         members["class"] = members["class"].replace({"nan": np.nan}).astype(str).str.strip()
         members.loc[members["class"].isin(["", "nan", "None"]), "class"] = np.nan
+        members["mcr_class_id"] = members["mcr_class_id"].astype(str).replace({"nan": np.nan, "None": np.nan}).str.strip()
 
         members["dep_type"] = members["dep_type_raw"].astype(str).str.upper().str.strip()
         members.loc[members["dep_type"].isin(["", "nan", "NONE", "NAN"]), "dep_type"] = np.nan
@@ -451,7 +608,31 @@ class MCRMemberCensusCombiner:
             return df
 
         df = df.copy()
-        identifier_cols = [col for col in ["policy_number", "year", "class", "dep_type"] if col in df.columns]
+        if sheet_name == "P.30_OP_FreqClaimant":
+            # Standardise column names for the new frequent claimant page so member counts can merge cleanly
+            rename_map = {}
+            for col in df.columns:
+                key = str(col).strip().lower().replace(" ", "_")
+                if key == "policy_number":
+                    rename_map[col] = "policy_number"
+                elif key == "year":
+                    rename_map[col] = "year"
+                elif key in {"class", "plan"}:
+                    rename_map[col] = "class"
+                elif key in {"dep_type", "dep_type_group", "dep", "dep_group"}:
+                    rename_map[col] = "dep_type"
+                elif key in {"no_of_claimants", "no_of_claimant"}:
+                    rename_map[col] = "no_of_claimants"
+                elif key in {"no_of_cases", "cases"}:
+                    rename_map[col] = "no_of_cases"
+            if rename_map:
+                df.rename(columns=rename_map, inplace=True)
+
+        override_identifiers = self.SHEET_IDENTIFIER_OVERRIDES.get(sheet_name)
+        if override_identifiers:
+            identifier_cols = [col for col in override_identifiers if col in df.columns]
+        else:
+            identifier_cols = [col for col in ["policy_number", "year", "class", "dep_type"] if col in df.columns]
         if not identifier_cols:
             return df
 
@@ -494,6 +675,9 @@ class MCRMemberCensusCombiner:
 
         df = df.merge(grouped_lookup, on=merge_cols, how="left")
 
+        if "class" in merge_cols:
+            df = self._insert_missing_class_rows(df, grouped_lookup, merge_cols)
+
         member_counts = pd.to_numeric(df[self.MEMBER_COUNT_COL], errors="coerce")
         zero_mask = member_counts.fillna(0) == 0
         if zero_mask.any():
@@ -515,7 +699,62 @@ class MCRMemberCensusCombiner:
         _safe_ratio("no_of_claim_id", "incidence_rate_claim")
         _safe_ratio("no_of_claimants", "incidence_rate_claimant")
 
+        if "member_census_class" in df.columns:
+            df.drop(columns=["member_census_class"], inplace=True)
+
         return df
+
+    def _insert_missing_class_rows(
+        self,
+        df: pd.DataFrame,
+        grouped_lookup: pd.DataFrame,
+        merge_cols: List[str],
+    ) -> pd.DataFrame:
+        """Ensure classes absent from the original MCR sheet are reintroduced with census counts."""
+
+        if grouped_lookup is None or grouped_lookup.empty:
+            return df
+
+        sentinel = "__MCR_CLASS_SENTINEL__"
+        existing_keys = set(
+            tuple(row)
+            for row in df[merge_cols].fillna(sentinel).itertuples(index=False, name=None)
+        )
+
+        if "member_census_class" not in df.columns:
+            df["member_census_class"] = np.nan
+        columns_order = list(df.columns)
+
+        new_rows: List[Dict[str, object]] = []
+        lookup_records = grouped_lookup.to_dict(orient="records")
+
+        for record in lookup_records:
+            key = tuple(
+                sentinel if pd.isna(record.get(col)) else record.get(col)
+                for col in merge_cols
+            )
+            if key in existing_keys:
+                continue
+            existing_keys.add(key)
+            new_row = {col: np.nan for col in columns_order}
+            for col in columns_order:
+                if col in record:
+                    new_row[col] = record[col]
+            census_class = record.get("class")
+            if census_class is not None:
+                new_row["class"] = census_class
+                new_row["member_census_class"] = census_class
+            new_rows.append(new_row)
+
+        if not new_rows:
+            return df
+
+        new_rows_df = pd.DataFrame(new_rows, columns=columns_order)
+        combined = pd.concat([df, new_rows_df], ignore_index=True)
+        combined.loc[combined["member_census_class"].isna(), "member_census_class"] = combined.loc[
+            combined["member_census_class"].isna(), "class"
+        ]
+        return combined
 
     # ------------------------------------------------------------------
     # Member census normalisation

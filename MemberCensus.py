@@ -263,6 +263,21 @@ class MemberCensus():
             "Sex",
             "Marital",
             "BankAc",
+
+            "Client",
+            "Policy No.",
+            "Product Short Name",
+            "Dependent Type",
+            "Member Name",
+            "Member ID",
+            "Cert. No.",
+            "Date of Birth",
+            "Email Address",
+            "Gender",
+            "Sub-office Code",
+            "Sub-office Name",
+            "Plan No. ",
+
         ]
         self.aia_cols_dtype = {
             'PolNo': str,
@@ -279,6 +294,20 @@ class MemberCensus():
             "Sex": str,
             "Marital": str,
             "BankAc": str,
+
+            "Client": str,
+            "Policy No.": str,
+            "Product Short Name": str,
+            "Dependent Type": str,
+            "Member Name": str,
+            "Member ID": str,
+            "Cert. No.": str,
+            "Date of Birth": str,
+            "Email Address": str,
+            "Gender": str,
+            "Sub-office Code": str,
+            "Sub-office Name": str,
+            "Plan No. ": str
         }
         self.aia_cols_mapping = {
             'PolNo': 'policy_number',
@@ -293,13 +322,28 @@ class MemberCensus():
             # 'staff_id',
             # 'working_email',
             'SubOffName': 'client_name',
-            'SuboffCode': 'suboffice'
+            'SuboffCode': 'suboffice',
+
+            # "Client",
+            "Policy No.": 'policy_number',
+            # "Product Short Name",
+            "Dependent Type": "dep_type",
+            "Member Name": 'name',
+            "Member ID": 'member_id',
+            # "Cert. No.",
+            "Date of Birth": 'age',
+            "Email Address": "working_email",
+            "Gender": "gender",
+            "Sub-office Code": "suboffice",
+            "Sub-office Name": "client_name",
+            "Plan No. ": "class",
+
         }
 
 
 
     def get_member_df(self, fp, insurer, policy_start_date_input=None):
-
+        print("Handling file: ", os.path.basename(fp))
         provided_ts = None
         if policy_start_date_input is not None:
             policy_str = str(policy_start_date_input).strip()
@@ -343,7 +387,7 @@ class MemberCensus():
         
         
         if insurer == 'Bupa':
-            temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype)
+            temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype, engine="openpyxl")
             temp_df.rename(columns=self.bupa_cols_mapping, inplace=True)
             temp_df['insurer'] = insurer
 
@@ -351,6 +395,7 @@ class MemberCensus():
 
             if "suboffice" not in temp_df.columns or temp_df['suboffice'].isnull().all():
                 temp_df['suboffice'] = temp_df['policy_number'].str[-2:]
+                temp_df['policy_number'] = temp_df['policy_number'].str[:-2]
 
             for col in self.cols:
                 if col not in temp_df.columns:
@@ -406,17 +451,27 @@ class MemberCensus():
 
             if 'ProdName' in temp_df.columns:
                 temp_df = temp_df.drop_duplicates(subset=['PolNo', 'MemberID', 'BenplnCd', 'DepType', 'Name'], keep='last')
-            temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
+            elif "Product Short Name" in temp_df.columns:
+                temp_df = temp_df.drop_duplicates(subset=['Policy No.', 'Member ID', 'Plan No. ', 'Dependent Type', 'Member Name'], keep='last')
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
             temp_df['insurer'] = insurer
             if provided_ts is not None and not pd.isna(provided_ts):
                 temp_df['policy_start_date'] = provided_ts
             else:
                 temp_df['policy_start_date'] = datetime.datetime.now()
-            temp_df['age'] = pd.to_datetime(temp_df['age'])
-            ref_date = datetime.datetime.now()
+            temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
+            temp_df.dropna(subset=['member_id'], inplace=True)
+            try:
+                temp_df['age'] = pd.to_datetime(temp_df['age'], format="%d/%m/%Y")
+            except:
+                try:
+                    temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d")
+                except:
+                    temp_df['age'] = pd.to_datetime(temp_df['age'], format="%m/%d/%Y")
+            ref_date = pd.to_datetime(provided_ts) if provided_ts is not None and not pd.isna(provided_ts) else pd.to_datetime(datetime.datetime.now())
             temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
+            
             for col in self.cols:
                 if col not in temp_df.columns:
                     temp_df[col] = None
@@ -449,7 +504,8 @@ class MemberCensus():
                        'Husband': 'SP',
                        'Wife': 'SP',
                        'Son': 'CH',
-                       'Daughter': 'CH',}
+                       'Daughter': 'CH',
+                       'Member': 'EE',}
         self.member_df['gender'].replace(gender_mapping, inplace=True)
         self.member_df['dep_type'].replace(dep_mapping, inplace=True)
         self.member_df['age'] = self.member_df['age'].astype('int')

@@ -34,6 +34,7 @@ class MCRMerger:
         'P.29_SP_Speciality', 'P.29_SP_Spec_Diag', 'P.29_Grp_Procedure', 'P.29_Grp_Proce_Org', 'P.29b_Grp_Proce_Network',
         'P.18a_Class_TopHosDiag', 'P.18_TopHosDiag', 'P.18b_Class_TopClinDiag', 'P.18b_TopClinDiag', 'P.18b_TopNetClinDiag',
         'P.18b_Class_IP_DayProc', 'P.18b_IP_DayProc',
+        'P.30_OP_FreqClaimant'
     ]
 
     BASE_COLS = [
@@ -907,6 +908,7 @@ class MCRMerger:
             'P.24wc_Class_Wellness': ['policy_number', 'year', 'class', 'benefit'],
             'P.25_Class_Panel_BenefitType': ['policy_number', 'year', 'class', 'panel', 'benefit_type'],
             'P.26a_OP_Class_Panel_Benefit': ['policy_number', 'year', 'class', 'panel', 'benefit'],
+            'P.30_OP_FreqClaimant': ['policy_number', 'year', 'class', 'dep_type'],
         }
         for sn, keys in norm_specs.items():
             if sn in result:

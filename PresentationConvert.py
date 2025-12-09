@@ -1,7 +1,29 @@
 import warnings
+from datetime import datetime, date
+import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.cell.cell import MergedCell
+
+DATE_PARSE_FORMATS = (
+    "%Y-%m-%d",
+    "%d-%m-%Y",
+    "%m-%d-%Y",
+    "%Y/%m/%d",
+    "%d/%m/%Y",
+    "%m/%d/%Y",
+    "%Y.%m.%d",
+    "%d.%m.%Y",
+    "%m.%d.%Y",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%b %d %Y",
+    "%B %d %Y",
+    "%d %b, %Y",
+    "%d %B, %Y",
+    "%b %d, %Y"
+    "%B %d, %Y"
+)
 
 class PresentationConvert():
     def __init__(self, input_file):
@@ -31,6 +53,7 @@ class PresentationConvert():
                 "no_of_claim_id": float,
                 "no_of_claimants": float,
                 "no_of_cases": float,
+                "member_count": float,
                 "incurred_per_claim": float, 
                 "paid_per_claim": float,
                 "incurred_per_case": float,
@@ -38,21 +61,26 @@ class PresentationConvert():
                 "incurred_per_claimant": float,
                 "paid_per_claimant": float,
                 "claim_frequency": float,
+                "data_month": float,
+                "ibnr": float,
             }
 
             sheet_specs = [
                 ("mcr_p20_policy", "P.20_Policy", {}),
                 ("mcr_p20_benefit", "P.20_BenefitType", {"na_values": 0}),
+                ("mcr_p20_benefit_dep_type", "P.20_Benefit_DepType", {"na_values": 0}),
                 ("mcr_p20_network", "P.20_Network", {"na_values": 0}),
                 ("mcr_p20_network_benefit", "P.20_Network_BenefitType", {"na_values": 0}),
                 ("mcr_p21_class", "P.21_Class", {}),
                 ("mcr_p22_class_benefit", "P.22_Class_BenefitType", {"na_values": 0}),
+                ("mcr_policy_info", "Policy_Info", {"na_values": 0}),
                 ("mcr_p25_class_panel_benefit", "P.25_Class_Panel_BenefitType", {"na_values": 0}),
                 ("mcr_p23_usage_by_hosp_benefit", "P.23_IP_Benefit", {"na_values": 0}),
                 ("mcr_p24_usage_by_clinic_benefit", "P.24_OP_Benefit", {"na_values": 0}),
                 ("mcr_p26_op_panel_benefit", "P.26_OP_Panel_Benefit", {"na_values": 0}),
                 ("mcr_p18_top_hosp_diag", "P.18_TopHosDiag", {"na_values": 0}),
                 ("mcr_p19_top_clinic_diag", "P.18b_TopClinDiag", {"na_values": 0}),
+                ("mcr_p30_op_freqclaimant", "P.30_OP_FreqClaimant", {"na_values": 0}),
             ]
 
             self.sheet_sources = {attr: sheet for attr, sheet, _ in sheet_specs}
@@ -174,8 +202,17 @@ class PresentationConvert():
         if df is None:
             return
 
-        input_p20 = df.loc[((df["policy_number"] == self.current_policy_num) & (df["year"] == self.current_year)) | 
-                           ((df["policy_number"] == self.previous_policy_num) & (df["year"] == self.previous_year))].dropna()
+        filtered_df = df.loc[
+            ((df["policy_number"] == self.current_policy_num) & (df["year"] == self.current_year)) |
+            ((df["policy_number"] == self.previous_policy_num) & (df["year"] == self.previous_year))
+        ]
+
+        required_cols = [
+            col for col in ["incurred_amount", "paid_amount", "usage_ratio"]
+            if col in filtered_df.columns
+        ]
+
+        input_p20 = filtered_df.dropna(subset=required_cols) if required_cols else filtered_df
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         previous_start_row = current_start_row = 10
@@ -198,8 +235,17 @@ class PresentationConvert():
         if df is None:
             return
 
-        input_p20_btype = df.loc[((df["policy_number"] == self.current_policy_num) & (df["year"] == self.current_year)) | 
-                                  ((df["policy_number"] == self.previous_policy_num) & (df["year"] == self.previous_year))].dropna()
+        filtered_df = df.loc[
+            ((df["policy_number"] == self.current_policy_num) & (df["year"] == self.current_year)) |
+            ((df["policy_number"] == self.previous_policy_num) & (df["year"] == self.previous_year))
+        ]
+
+        required_cols = [
+            col for col in ["benefit_type", "incurred_amount", "paid_amount", "usage_ratio", "no_of_claim_id"]
+            if col in filtered_df.columns
+        ]
+
+        input_p20_btype = filtered_df.dropna(subset=required_cols) if required_cols else filtered_df
         template_p20 = self.template_wb["P20_Usage Overview"]
 
         # by benefit table variables 
@@ -519,6 +565,9 @@ class PresentationConvert():
         "paid_per_claim"]].dropna()
 
         merged_df = prev_df.merge(curr_df, on="benefit", how="outer", suffixes=('_prev', '_curr')).fillna(0)
+        merged_df['paid_amount_curr'] = pd.to_numeric(merged_df.get('paid_amount_curr'), errors='coerce').fillna(0)
+        merged_df.sort_values('paid_amount_curr', ascending=False, inplace=True)
+        merged_df.reset_index(drop=True, inplace=True)
 
         template_p24 = self.template_wb["P24_Usage_ClinicByBnf"]
 
@@ -666,20 +715,543 @@ class PresentationConvert():
                     template_p26.cell(row=row_idx, column=col).value = val
 
 
+    def P17_ClaimPattern(self):
+        class_benefit_df = self._get_dataframe("mcr_p22_class_benefit", "P17_ClaimPattern")
+        if class_benefit_df is None or class_benefit_df.empty:
+            return
+
+        template_p17 = self.template_wb["P17_ClaimPattern"]
+
+        clinic_panel_df = self._get_dataframe("mcr_p25_class_panel_benefit", "P17_clinic_panel_source")
+        policy_info_df = self._get_dataframe("mcr_policy_info", "P17_policy_info")
+        policy_factor_cache = {}
+
+        def _get_policy_factor(policy, year):
+            if policy_info_df is None or policy_info_df.empty or policy is None or year is None:
+                return {}
+            key = (str(policy), str(year))
+            if key in policy_factor_cache:
+                return policy_factor_cache[key]
+            work = policy_info_df.copy()
+            if 'policy_number' not in work.columns or 'year' not in work.columns:
+                policy_factor_cache[key] = {}
+                return {}
+            mask = (
+                work['policy_number'].astype(str) == str(policy)
+            ) & (
+                work['year'].astype(str) == str(year)
+            )
+            subset = work.loc[mask].copy()
+            if subset.empty:
+                policy_factor_cache[key] = {}
+                return {}
+            subset['data_month'] = pd.to_numeric(subset.get('data_month'), errors='coerce')
+            subset['ibnr'] = pd.to_numeric(subset.get('ibnr'), errors='coerce')
+            row = subset.iloc[0]
+            factor = {
+                'data_month': row.get('data_month'),
+                'ibnr': row.get('ibnr')
+            }
+            policy_factor_cache[key] = factor
+            return factor
+
+        def _apply_incidence_adjustment(value, policy, year):
+            if value is None or pd.isna(value):
+                return value
+            factors = _get_policy_factor(policy, year)
+            data_month = factors.get('data_month') if factors else None
+            ibnr_val = factors.get('ibnr') if factors else None
+            try:
+                value_float = float(value)
+            except (TypeError, ValueError):
+                return value
+            try:
+                data_month = float(data_month)
+            except (TypeError, ValueError):
+                data_month = None
+            try:
+                ibnr_val = float(ibnr_val) if ibnr_val is not None else 0.0
+            except (TypeError, ValueError):
+                ibnr_val = 0.0
+            if not data_month or data_month <= 0:
+                return value_float
+            return value_float * 12 / data_month * (1 + ibnr_val)
+
+        def _write_factor_cells():
+            template_p17.cell(row=29, column=2).value = None
+            template_p17.cell(row=30, column=2).value = None
+            candidates = [
+                (self.current_policy_num, self.current_year),
+                (self.previous_policy_num, self.previous_year)
+            ]
+            for policy, year in candidates:
+                factors = _get_policy_factor(policy, year)
+                if factors:
+                    template_p17.cell(row=29, column=2).value = factors.get('data_month')
+                    template_p17.cell(row=30, column=2).value = factors.get('ibnr')
+                    break
+
+        metric_candidates = {
+            "member": ["member_count", "no_of_members", "no_of_insured"],
+            "incidence": ["incidence_rate_case", "incidence_rate"],
+            "incurred": ["incurred_per_case", "incurred_per_claim", "incurred_amount_per_case"],
+            "paid": ["paid_per_case", "paid_per_claim", "paid_amount_per_case"]
+        }
+
+        numeric_columns = set()
+        for cols in metric_candidates.values():
+            numeric_columns.update(cols)
+        numeric_columns.update(["paid_amount", "claim_paid", "paid", "no_of_claim_id", "no_of_cases"])
+        numeric_columns = list(numeric_columns)
+
+        def _coerce_numeric(frame):
+            if frame is None or frame.empty:
+                return frame
+            work = frame.copy()
+            for col in numeric_columns:
+                if col in work.columns:
+                    work[col] = pd.to_numeric(work[col], errors='coerce')
+            return work
+
+        def _benefit_subset(source_df, benefit_key, include_context=False):
+            if source_df is None or source_df.empty or 'benefit_type' not in source_df.columns:
+                return (pd.DataFrame(), (None, None)) if include_context else pd.DataFrame()
+            work = source_df.copy()
+            work['benefit_type'] = work['benefit_type'].astype(str).str.strip().str.lower()
+            for col in ('policy_number', 'year'):
+                if col in work.columns:
+                    work[col] = work[col].astype(str)
+
+            def _match(policy, year):
+                if policy is None or year is None:
+                    return work.iloc[0:0].copy()
+                mask = (
+                    (work['benefit_type'] == benefit_key) &
+                    (work['policy_number'] == str(policy)) &
+                    (work['year'] == str(year))
+                )
+                return work.loc[mask].copy()
+
+            selected_policy = None
+            selected_year = None
+            subset = _match(self.current_policy_num, self.current_year)
+            if not subset.empty:
+                selected_policy = self.current_policy_num
+                selected_year = self.current_year
+            else:
+                subset = _match(self.previous_policy_num, self.previous_year)
+                if not subset.empty:
+                    selected_policy = self.previous_policy_num
+                    selected_year = self.previous_year
+            if include_context:
+                return subset, (selected_policy, selected_year)
+            return subset
+
+        def _clinic_panel_subset(include_context=False):
+            if clinic_panel_df is None or clinic_panel_df.empty:
+                return (pd.DataFrame(), (None, None)) if include_context else pd.DataFrame()
+            work = clinic_panel_df.copy()
+            for col in ('policy_number', 'year'):
+                if col in work.columns:
+                    work[col] = work[col].astype(str)
+            if 'panel' in work.columns:
+                work['panel_key'] = work['panel'].astype(str).str.strip().str.lower()
+            else:
+                work['panel_key'] = ''
+            if 'benefit_type' in work.columns:
+                work['benefit_type_key'] = work['benefit_type'].astype(str).str.strip().str.lower()
+            else:
+                work['benefit_type_key'] = ''
+            if 'class' in work.columns:
+                work['class'] = work['class'].astype(str).str.strip()
+
+            def _match(policy, year):
+                if policy is None or year is None:
+                    return work.iloc[0:0].copy()
+                mask = (
+                    (work['policy_number'] == str(policy)) &
+                    (work['year'] == str(year)) &
+                    (work['panel_key'] == 'non-panel') &
+                    (work['benefit_type_key'] == 'clinic')
+                )
+                return work.loc[mask].copy()
+
+            selected_policy = None
+            selected_year = None
+            subset = _match(self.current_policy_num, self.current_year)
+            if not subset.empty:
+                selected_policy = self.current_policy_num
+                selected_year = self.current_year
+            else:
+                subset = _match(self.previous_policy_num, self.previous_year)
+                if not subset.empty:
+                    selected_policy = self.previous_policy_num
+                    selected_year = self.previous_year
+            if include_context:
+                return subset, (selected_policy, selected_year)
+            return subset
+
+        def _build_clinic_avg_lookup(subset):
+            lookup = {}
+            if subset is None or subset.empty or 'class' not in subset.columns:
+                return lookup
+            work = subset.copy()
+            work['class_key'] = work['class'].astype(str).str.strip().str.lower()
+            for _, row in work.iterrows():
+                key = row['class_key']
+                incurred_val = row.get('incurred_per_case')
+                paid_val = row.get('paid_per_case')
+                if pd.isna(incurred_val) and pd.isna(paid_val):
+                    continue
+                lookup[key] = (incurred_val, paid_val)
+            return lookup
+
+        def _compute_clinic_overall(subset):
+            if subset is None or subset.empty:
+                return None
+            work = subset.copy()
+            work['incurred_per_case'] = pd.to_numeric(work.get('incurred_per_case'), errors='coerce')
+            work['paid_per_case'] = pd.to_numeric(work.get('paid_per_case'), errors='coerce')
+            count_series = None
+            if 'no_of_claim_id' in work.columns:
+                count_series = pd.to_numeric(work.get('no_of_claim_id'), errors='coerce')
+            elif 'no_of_cases' in work.columns:
+                count_series = pd.to_numeric(work.get('no_of_cases'), errors='coerce')
+            if count_series is None:
+                incurred_avg = work['incurred_per_case'].mean(skipna=True)
+                paid_avg = work['paid_per_case'].mean(skipna=True)
+                if pd.isna(incurred_avg) and pd.isna(paid_avg):
+                    return None
+                return (incurred_avg, paid_avg)
+            total_available = count_series.sum(min_count=1)
+            if total_available is None or total_available == 0 or pd.isna(total_available):
+                incurred_avg = work['incurred_per_case'].mean(skipna=True)
+                paid_avg = work['paid_per_case'].mean(skipna=True)
+                if pd.isna(incurred_avg) and pd.isna(paid_avg):
+                    return None
+                return (incurred_avg, paid_avg)
+            weights = count_series.fillna(0)
+            total_weight = weights.sum()
+            if not total_weight:
+                return None
+            incurred_avg = float((work['incurred_per_case'] * weights).sum(min_count=1) / total_weight) if 'incurred_per_case' in work.columns else None
+            paid_avg = float((work['paid_per_case'] * weights).sum(min_count=1) / total_weight) if 'paid_per_case' in work.columns else None
+            if pd.isna(incurred_avg) and pd.isna(paid_avg):
+                return None
+            return (incurred_avg, paid_avg)
+
+        def _pick_value(row, candidates):
+            for col in candidates:
+                if col in row.index:
+                    value = row[col]
+                    if pd.isna(value):
+                        continue
+                    return value
+            return None
+
+        def _clear_section(start_col):
+            for row in range(6, 26):
+                for col in range(start_col, start_col + 5):
+                    template_p17.cell(row=row, column=col).value = None
+
+        clinic_panel_info = _clinic_panel_subset(include_context=True)
+        clinic_panel_subset = clinic_panel_info[0] if clinic_panel_info else pd.DataFrame()
+        if clinic_panel_subset is not None and not clinic_panel_subset.empty:
+            clinic_panel_subset = _coerce_numeric(clinic_panel_subset)
+        clinic_avg_lookup = _build_clinic_avg_lookup(clinic_panel_subset)
+        clinic_overall_avg = _compute_clinic_overall(clinic_panel_subset)
+
+        def _write_section(subset_info, start_col, avg_override_lookup=None):
+            subset, context = subset_info
+            policy_used, year_used = context
+            if subset is None or subset.empty or 'class' not in subset.columns:
+                _clear_section(start_col)
+                return
+            work = subset.dropna(subset=['class']).copy()
+            work['class'] = work['class'].astype(str).str.strip()
+            work = work[work['class'] != ""]
+            work = work.drop_duplicates(subset=['class'], keep='first')
+            work = _coerce_numeric(work)
+            _clear_section(start_col)
+
+            row_pointer = 6
+            max_rows = 20
+            for _, row in work.iterrows():
+                if row_pointer >= 6 + max_rows:
+                    break
+                template_p17.cell(row=row_pointer, column=start_col).value = row['class']
+                template_p17.cell(row=row_pointer, column=start_col + 1).value = _pick_value(row, metric_candidates['member'])
+                incidence_value = _pick_value(row, metric_candidates['incidence'])
+                template_p17.cell(row=row_pointer, column=start_col + 2).value = _apply_incidence_adjustment(incidence_value, policy_used, year_used)
+                class_key = str(row['class']).strip().lower()
+                incurred_override = paid_override = None
+                if avg_override_lookup:
+                    override_vals = avg_override_lookup.get(class_key)
+                    if override_vals is not None:
+                        incurred_override, paid_override = override_vals
+                incurred_value = incurred_override if (incurred_override is not None and not pd.isna(incurred_override)) else _pick_value(row, metric_candidates['incurred'])
+                paid_value = paid_override if (paid_override is not None and not pd.isna(paid_override)) else _pick_value(row, metric_candidates['paid'])
+                template_p17.cell(row=row_pointer, column=start_col + 3).value = incurred_value
+                template_p17.cell(row=row_pointer, column=start_col + 4).value = paid_value
+                row_pointer += 1
+
+        hospital_subset = _benefit_subset(class_benefit_df, 'hospital', include_context=True)
+        clinic_subset = _benefit_subset(class_benefit_df, 'clinic', include_context=True)
+        _write_section(hospital_subset, 1)
+        _write_section(clinic_subset, 6, avg_override_lookup=clinic_avg_lookup)
+
+        benefit_totals_df = self._get_dataframe("mcr_p20_benefit", "P17_ClaimPattern_totals")
+        if benefit_totals_df is not None and not benefit_totals_df.empty:
+            hospital_total_info = _benefit_subset(benefit_totals_df, 'hospital', include_context=True)
+            clinic_total_info = _benefit_subset(benefit_totals_df, 'clinic', include_context=True)
+
+            hospital_total = _coerce_numeric(hospital_total_info[0]) if hospital_total_info else None
+            clinic_total = _coerce_numeric(clinic_total_info[0]) if clinic_total_info else None
+            hospital_context = hospital_total_info[1] if hospital_total_info else (None, None)
+            clinic_context = clinic_total_info[1] if clinic_total_info else (None, None)
+
+            def _set_if_empty(row_idx, col_idx, value):
+                cell = template_p17.cell(row=row_idx, column=col_idx)
+                if cell.value in (None, ""):
+                    cell.value = value
+
+            def _write_totals(row_data, start_col, label_col, label_text, context, avg_override=None):
+                if row_data is None or row_data.empty:
+                    return
+                row = row_data.iloc[0]
+                _set_if_empty(26, label_col, label_text)
+                template_p17.cell(row=26, column=start_col).value = _pick_value(row, metric_candidates['member'])
+                incidence_val = _pick_value(row, metric_candidates['incidence'])
+                policy_used, year_used = context
+                adjusted_incidence = _apply_incidence_adjustment(incidence_val, policy_used, year_used)
+                template_p17.cell(row=26, column=start_col + 1).value = adjusted_incidence
+                incurred_value = _pick_value(row, metric_candidates['incurred'])
+                paid_value = _pick_value(row, metric_candidates['paid'])
+                if avg_override is not None:
+                    override_incurred, override_paid = avg_override
+                    if override_incurred is not None and not pd.isna(override_incurred):
+                        incurred_value = override_incurred
+                    if override_paid is not None and not pd.isna(override_paid):
+                        paid_value = override_paid
+                template_p17.cell(row=26, column=start_col + 2).value = incurred_value
+                template_p17.cell(row=26, column=start_col + 3).value = paid_value
+
+            _write_totals(hospital_total, 2, 1, "Hospital Overall", hospital_context)
+            clinic_avg_override = clinic_overall_avg if clinic_overall_avg is not None else None
+            _write_totals(clinic_total, 7, 6, "Clinic Overall", clinic_context, avg_override=clinic_avg_override)
+
+        dep_type_df = self._get_dataframe("mcr_p20_benefit_dep_type", "P17_ClaimPattern_dep")
+        if dep_type_df is None or dep_type_df.empty:
+            return
+
+        required_cols = {'policy_number', 'year', 'dep_type'}
+        if not required_cols.issubset(dep_type_df.columns):
+            return
+
+        dep_columns_prev = {'employee': 2, 'spouse': 3, 'child': 4}
+        dep_columns_curr = {'employee': 5, 'spouse': 6, 'child': 7}
+        dep_paid_candidates = ["paid_amount", "claim_paid", "paid"]
+
+        dep_aliases = {
+            'employee': 'employee',
+            'emp': 'employee',
+            'ee': 'employee',
+            'self': 'employee',
+            'staff': 'employee',
+            'member': 'employee',
+            'spouse': 'spouse',
+            'sp': 'spouse',
+            'wife': 'spouse',
+            'husband': 'spouse',
+            'partner': 'spouse',
+            'child': 'child',
+            'children': 'child',
+            'ch': 'child',
+            'kid': 'child',
+            'son': 'child',
+            'daughter': 'child'
+        }
+
+        dep_work = _coerce_numeric(dep_type_df)
+        for col in ('policy_number', 'year', 'benefit_type', 'dep_type'):
+            if col not in dep_work.columns:
+                if col in ('benefit_type', 'dep_type'):
+                    return
+                continue
+            dep_work[col] = dep_work[col].astype(str).str.strip()
+
+        dep_work['benefit_type_key'] = dep_work.get('benefit_type', "").astype(str).str.strip().str.lower()
+        dep_work['dep_type_key'] = dep_work['dep_type'].astype(str).str.strip().str.lower()
+        dep_work['dep_type_key'] = dep_work['dep_type_key'].map(lambda x: dep_aliases.get(x, x))
+
+        def _subset_dep(policy, year, benefit_key=None):
+            if policy is None or year is None:
+                return pd.DataFrame()
+            mask = (
+                (dep_work['policy_number'] == str(policy)) &
+                (dep_work['year'] == str(year))
+            )
+            if benefit_key:
+                mask &= (dep_work['benefit_type_key'] == benefit_key)
+            return dep_work.loc[mask].copy()
+
+        def _aggregate_dep_values(subset, candidates):
+            if subset is None or subset.empty:
+                return {}
+            value_col = next((col for col in candidates if col in subset.columns), None)
+            if value_col is None:
+                return {}
+            working = subset.copy()
+            working['_value'] = pd.to_numeric(working[value_col], errors='coerce')
+            grouped = working.groupby('dep_type_key')['_value'].sum(min_count=1)
+            result = {}
+            for dep_key, total in grouped.items():
+                if dep_key not in dep_columns_prev or pd.isna(total):
+                    continue
+                result[dep_key] = float(total)
+            return result
+
+        def _dep_values(policy, year, benefit_key, value_candidates, allow_fallback=False):
+            subset = _subset_dep(policy, year, benefit_key)
+            if subset.empty and allow_fallback:
+                subset = _subset_dep(policy, year, None)
+            return _aggregate_dep_values(subset, value_candidates)
+
+        dep_value_cols = list(dep_columns_prev.values()) + list(dep_columns_curr.values())
+
+        def _populate_dep_row(row_idx, prev_vals, curr_vals):
+            for col in dep_value_cols:
+                template_p17.cell(row=row_idx, column=col).value = None
+            for dep_key, col in dep_columns_prev.items():
+                template_p17.cell(row=row_idx, column=col).value = prev_vals.get(dep_key)
+            for dep_key, col in dep_columns_curr.items():
+                template_p17.cell(row=row_idx, column=col).value = curr_vals.get(dep_key)
+
+        member_prev = _dep_values(self.previous_policy_num, self.previous_year, 'total', metric_candidates['member'], allow_fallback=True)
+        member_curr = _dep_values(self.current_policy_num, self.current_year, 'total', metric_candidates['member'], allow_fallback=True)
+        _populate_dep_row(43, member_prev, member_curr)
+
+        benefit_rows = [
+            ('total', 45),
+            ('hospital', 46),
+            ('clinic', 47),
+            ('dental', 48),
+            ('maternity', 49),
+            ('optical', 50)
+        ]
+
+        for benefit_key, row_idx in benefit_rows:
+            allow_fallback = (benefit_key == 'total')
+            prev_vals = _dep_values(self.previous_policy_num, self.previous_year, benefit_key, dep_paid_candidates, allow_fallback=allow_fallback)
+            curr_vals = _dep_values(self.current_policy_num, self.current_year, benefit_key, dep_paid_candidates, allow_fallback=allow_fallback)
+            _populate_dep_row(row_idx, prev_vals, curr_vals)
+
+        freq_df = self._get_dataframe("mcr_p30_op_freqclaimant", "P17_freq_claimant")
+        if freq_df is not None and not freq_df.empty:
+            rename_map = {}
+            for col in freq_df.columns:
+                key = str(col).strip().lower().replace(" ", "_")
+                if key == "policy_number":
+                    rename_map[col] = "policy_number"
+                elif key == "year":
+                    rename_map[col] = "year"
+                elif key in {"class", "plan"}:
+                    rename_map[col] = "class"
+                elif key in {"dep_type", "dep", "dep_type_group"}:
+                    rename_map[col] = "dep_type"
+                elif key in {"no_of_cases", "cases"}:
+                    rename_map[col] = "no_of_cases"
+                elif key in {"no_of_claimants", "no_of_claimant", "claimants"}:
+                    rename_map[col] = "no_of_claimants"
+                elif key in {"member_count", "members", "member"}:
+                    rename_map[col] = "member_count"
+            work = freq_df.rename(columns=rename_map).copy()
+
+            required_cols = {"policy_number", "year", "class", "dep_type", "no_of_cases", "no_of_claimants", "member_count"}
+            if required_cols.issubset(work.columns):
+                for col in ("policy_number", "year", "class", "dep_type"):
+                    work[col] = work[col].astype(str).str.strip()
+                numeric_cols = ["no_of_cases", "no_of_claimants", "member_count"]
+                for col in numeric_cols:
+                    work[col] = pd.to_numeric(work[col], errors="coerce")
+
+                current_mask = (work["policy_number"] == str(self.current_policy_num)) & (work["year"] == str(self.current_year))
+                subset = work.loc[current_mask].copy()
+                if subset.empty:
+                    prev_mask = (work["policy_number"] == str(self.previous_policy_num)) & (work["year"] == str(self.previous_year))
+                    subset = work.loc[prev_mask].copy()
+
+                headers = [
+                    "Plan",
+                    "Dep Type",
+                    "No. of Claims",
+                    "No. of Claimants",
+                    "times/EE",
+                    "Member",
+                    "% of Member",
+                ]
+                for idx, header in enumerate(headers, start=1):
+                    template_p17.cell(row=71, column=idx).value = header
+
+                for row_idx in range(72, 103):
+                    for col_idx in range(1, 8):
+                        template_p17.cell(row=row_idx, column=col_idx).value = None
+
+                if not subset.empty:
+                    subset["no_of_claimants"] = subset["no_of_claimants"].replace({0: np.nan})
+                    subset["member_count"] = subset["member_count"].replace({0: np.nan})
+                    subset["times_per_ee"] = subset["no_of_cases"] / subset["no_of_claimants"]
+                    subset["pct_members"] = subset["no_of_claimants"] / subset["member_count"]
+                    subset.replace([np.inf, -np.inf], np.nan, inplace=True)
+                    subset = subset.dropna(subset=["class", "dep_type", "no_of_claimants"]).copy()
+
+                    dep_order = {"EE": 0, "SP": 1, "CH": 2}
+                    subset["dep_type_key"] = subset["dep_type"].astype(str).str.upper()
+                    subset["dep_sort"] = subset["dep_type_key"].map(dep_order)
+                    subset = subset.sort_values(by=["class", "dep_sort", "dep_type_key"])
+
+                    write_cols = [
+                        "class",
+                        "dep_type",
+                        "no_of_cases",
+                        "no_of_claimants",
+                        "times_per_ee",
+                        "member_count",
+                        "pct_members",
+                    ]
+                    row_pointer = 72
+                    for _, row in subset.iterrows():
+                        if row_pointer > 102:
+                            break
+                        for offset, col_name in enumerate(write_cols, start=0):
+                            template_p17.cell(row=row_pointer, column=1 + offset).value = row.get(col_name)
+                        row_pointer += 1
+
+        _write_factor_cells()
+
+
     def P18_TopHospDiag(self):
         df = self._get_dataframe("mcr_p18_top_hosp_diag", "P18_TopHospDiag")
         if df is None:
             return
         # Filter data for previous and current years separately
+        required_cols = [
+            'diagnosis', 'incurred_amount', 'paid_amount',
+            'no_of_claim_id', 'no_of_claimants'
+        ]
+
         prev_df = df.loc[
             (df["policy_number"] == self.previous_policy_num) & 
             (df["year"] == self.previous_year)
-        ].dropna()
-        
+        ].copy()
+
         curr_df = df.loc[
             (df["policy_number"] == self.current_policy_num) & 
             (df["year"] == self.current_year)
-        ].dropna()
+        ].copy()
+
+        prev_df = prev_df.dropna(subset=required_cols)
+        curr_df = curr_df.dropna(subset=required_cols)
 
         # Get top 10 by paid amount
         top_prev = prev_df.nlargest(10, 'paid_amount').reset_index(drop=True)
@@ -759,15 +1331,22 @@ class PresentationConvert():
         if df is None:
             return
         # Filter data for previous and current years separately
+        required_cols = [
+            'diagnosis', 'incurred_amount', 'paid_amount',
+            'no_of_claim_id', 'no_of_claimants'
+        ]
+
         prev_df = df.loc[
             (df["policy_number"] == self.previous_policy_num) & 
             (df["year"] == self.previous_year)
-        ].dropna()
-        
+        ].copy()
         curr_df = df.loc[
             (df["policy_number"] == self.current_policy_num) & 
             (df["year"] == self.current_year)
-        ].dropna()
+        ].copy()
+
+        prev_df = prev_df.dropna(subset=required_cols)
+        curr_df = curr_df.dropna(subset=required_cols)
 
         # Get top 10 by paid amount
         top_prev = prev_df.nlargest(10, 'paid_amount').reset_index(drop=True)
@@ -839,10 +1418,57 @@ class PresentationConvert():
             output_file.close()
 
     def load_loss_ratio_dataframe(self, loss_ratio_df, policy_number, year, period, loss_ratio_grouping_optical=True):
-        subset = self._filter_loss_ratio_records(loss_ratio_df, policy_number, year)
+        normalized_df = self._normalize_loss_ratio_dates(loss_ratio_df)
+        subset = self._filter_loss_ratio_records(normalized_df, policy_number, year)
         self._assign_loss_ratio_subset(subset, period, loss_ratio_grouping_optical)
-        self._append_loss_ratio_records(loss_ratio_df, policy_number)
-        self._update_loss_ratio_history(loss_ratio_df, policy_number)
+        self._append_loss_ratio_records(normalized_df, policy_number)
+        self._update_loss_ratio_history(normalized_df, policy_number)
+
+    def _format_date_yyyy_mm_dd(self, value):
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return None
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return None
+        if isinstance(value, (pd.Timestamp, datetime, date)):
+            parsed = pd.to_datetime(value, errors='coerce')
+        else:
+            text = str(value).strip()
+            if not text:
+                return None
+            parsed = None
+            for fmt in DATE_PARSE_FORMATS:
+                try:
+                    parsed = datetime.strptime(text, fmt)
+                    break
+                except ValueError:
+                    continue
+            if parsed is None:
+                parsed = pd.to_datetime(text, errors='coerce', dayfirst=False)
+                if pd.isna(parsed):
+                    parsed = pd.to_datetime(text, errors='coerce', dayfirst=True)
+        parsed_ts = pd.to_datetime(parsed, errors='coerce')
+        if parsed_ts is None or pd.isna(parsed_ts):
+            return None
+        return parsed_ts.strftime('%Y-%m-%d')
+
+    def _normalize_loss_ratio_dates(self, df):
+        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+            return df
+        date_columns = [
+            col for col in (
+                'policy_start_date', 'policy_end_date', 'data_as_of',
+                'policy_effective_date', 'policy_expiry_date'
+            )
+            if col in df.columns
+        ]
+        if not date_columns:
+            return df
+        work = df.copy(deep=True)
+        for col in date_columns:
+            work[col] = work[col].apply(self._format_date_yyyy_mm_dd)
+        return work
 
     def _normalize_policy_number(self, value):
         if value is None or (isinstance(value, float) and pd.isna(value)):
@@ -1083,6 +1709,44 @@ class PresentationConvert():
                 return df
         return None
 
+    def _get_member_count_lookup(self):
+        df = self._get_dataframe("mcr_p20_policy", "policy headcount lookup")
+        if df is None or 'member_count' not in df.columns or 'policy_number' not in df.columns:
+            return {}
+
+        work = df.copy(deep=True)
+        work['member_count'] = pd.to_numeric(work['member_count'], errors='coerce')
+        year_col = next((col for col in ['year', 'policy_year', 'policy_year_start', 'policy_year_end'] if col in work.columns), None)
+        if year_col is None:
+            return {}
+
+        work['year_numeric'] = pd.to_numeric(work[year_col], errors='coerce')
+        work['policy_number'] = work['policy_number'].astype(str)
+        work['policy_number_norm'] = work['policy_number'].apply(self._normalize_policy_number)
+
+        mask = pd.Series(False, index=work.index)
+        for policy in [self.current_policy_num, self.previous_policy_num]:
+            if policy is None:
+                continue
+            policy_str = str(policy).strip()
+            if policy_str:
+                mask |= work['policy_number'] == policy_str
+            normalized = self._normalize_policy_number(policy)
+            if normalized:
+                mask |= work['policy_number_norm'] == normalized
+
+        if not mask.any():
+            return {}
+
+        work = work.loc[mask].copy()
+        work.dropna(subset=['year_numeric', 'member_count'], inplace=True)
+        if work.empty:
+            return {}
+
+        work['year_numeric'] = work['year_numeric'].astype(int)
+        grouped = work.groupby('year_numeric')['member_count'].sum()
+        return grouped.to_dict()
+
     def _populate_loss_ratio_history_table(self, worksheet):
         history_df = self._get_loss_ratio_history_dataframe()
         rows = []
@@ -1097,6 +1761,39 @@ class PresentationConvert():
                 )
             ordered = ordered.tail(3)
             rows = ordered.to_dict('records')
+
+        member_counts = self._get_member_count_lookup()
+        if member_counts and rows:
+            def _safe_divide(numerator, denominator):
+                try:
+                    if numerator is None or denominator is None:
+                        return None
+                    if pd.isna(numerator) or pd.isna(denominator):
+                        return None
+                    denominator = float(denominator)
+                    if denominator == 0:
+                        return None
+                    return float(numerator) / denominator
+                except (TypeError, ValueError, ZeroDivisionError):
+                    return None
+
+            updated_rows = []
+            for row in rows:
+                year_numeric = pd.to_numeric(row.get('year'), errors='coerce')
+                if pd.isna(year_numeric):
+                    updated_rows.append(row)
+                    continue
+                member_value = member_counts.get(int(year_numeric))
+                if member_value is None or pd.isna(member_value):
+                    updated_rows.append(row)
+                    continue
+                new_row = dict(row)
+                new_row['headcount'] = member_value
+                new_row['premium_per_head'] = _safe_divide(new_row.get('premium_annualized'), member_value)
+                new_row['claim_per_head'] = _safe_divide(new_row.get('claim_annualized'), member_value)
+                updated_rows.append(new_row)
+            rows = updated_rows
+
         start_row = 5
         col_map = [
             ('year', 10),
@@ -1350,6 +2047,7 @@ class PresentationConvert():
         self.claim_info()
         self.p16_LR_by_benefits()
         gated_steps = [
+            (self.P17_ClaimPattern, "mcr_p22_class_benefit"),
             (self.P20_overall, "mcr_p20_policy"),
             (self.P20_benefittype, "mcr_p20_benefit"),
             (self.P20_network, "mcr_p20_network"),
