@@ -43,6 +43,7 @@ class MCRMerger:
         "no_of_cases",
         "no_of_claim_id",
         "no_of_claimants",
+        "member_count",
     ]
 
     NUMERIC_COLS = [
@@ -57,6 +58,10 @@ class MCRMerger:
         "paid_per_claimant",
         "no_of_claim_id",
         "claim_frequency",
+        "member_count",
+        "incidence_rate_case",
+        "incidence_rate_claim",
+        "incidence_rate_claimant",
     ]
 
     def __init__(self):
@@ -206,7 +211,7 @@ class MCRMerger:
         if not required_ids.issubset(typed.columns):
             return None
 
-        base_cols = ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claimants', 'no_of_claim_id']
+        base_cols = ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claimants', 'no_of_claim_id', 'member_count']
         prepared_cols: List[str] = []
         for col in base_cols:
             if col not in typed.columns:
@@ -215,11 +220,11 @@ class MCRMerger:
                 typed[col] = pd.to_numeric(typed[col], errors='coerce').fillna(0)
             prepared_cols.append(col)
 
-        grouped = typed.groupby(['policy_number', 'year', 'benefit_type'], dropna=False)[prepared_cols].sum().reset_index()
+        grouped = typed.groupby(['policy_number', 'year', 'benefit_type'], dropna=False)[prepared_cols].sum(min_count=1).reset_index()
         if grouped.empty:
             return None
 
-        totals = grouped.groupby(['policy_number', 'year'], dropna=False)[prepared_cols].sum().reset_index()
+        totals = grouped.groupby(['policy_number', 'year'], dropna=False)[prepared_cols].sum(min_count=1).reset_index()
         totals['benefit_type'] = 'Total'
         combined = pd.concat([grouped, totals], ignore_index=True)
 
@@ -239,7 +244,8 @@ class MCRMerger:
             'policy_number', 'year', 'benefit_type',
             'incurred_amount', 'paid_amount', 'usage_ratio',
             'no_of_cases', 'incurred_per_case', 'paid_per_case',
-            'no_of_claimants', 'no_of_claim_id',
+            'no_of_claimants', 'no_of_claim_id', 'member_count',
+            'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
         ]
         for col in needed:
             if col not in combined.columns:
@@ -273,14 +279,15 @@ class MCRMerger:
             if not pd.api.types.is_numeric_dtype(df[c]):
                 other_desc.append(c)
         base_cols = [c for c in [
-            "incurred_amount", "paid_amount", "no_of_cases", "no_of_claim_id", "no_of_claimants"
+            "incurred_amount", "paid_amount", "no_of_cases", "no_of_claim_id", "no_of_claimants", "member_count"
         ] if c in cols]
         ratio_cols = [c for c in [
             "usage_ratio",
             "incurred_per_case", "paid_per_case",
             "incurred_per_claimant", "paid_per_claimant",
             "incurred_per_claim", "paid_per_claim",
-            "claim_frequency"
+            "claim_frequency",
+            "incidence_rate_case", "incidence_rate_claim", "incidence_rate_claimant"
         ] if c in cols]
         # Remaining columns
         ordered = id_cols + dim_cols + other_desc + base_cols + ratio_cols
@@ -476,11 +483,11 @@ class MCRMerger:
         """
         if df is None or df.empty:
             return df
-        cols = [c for c in numeric_cols if c in df.columns]
+        cols = [c for c in numeric_cols if c in df.columns and c != 'member_count']
         keys_present = [k for k in keys if k in df.columns]
         if not cols or not keys_present:
             return df.drop_duplicates().reset_index(drop=True)
-        g = df.groupby(keys_present, dropna=False)[cols].sum().reset_index()
+        g = df.groupby(keys_present, dropna=False)[cols].sum(min_count=1).reset_index()
         return g
 
     @staticmethod
@@ -569,6 +576,7 @@ class MCRMerger:
             "incurred_per_claimant", "paid_per_claimant",
             "incurred_per_claim", "paid_per_claim",
             "claim_frequency",
+            "incidence_rate_case", "incidence_rate_claim", "incidence_rate_claimant",
         ]:
             d = _collapse_dupe(d, tgt)
         # Prepare numeric base series safely (handles duplicate columns)
@@ -577,6 +585,7 @@ class MCRMerger:
         n_cases = MCRMerger._get_numeric_series(d, "no_of_cases")
         n_claimants = MCRMerger._get_numeric_series(d, "no_of_claimants")
         n_claims = MCRMerger._get_numeric_series(d, "no_of_claim_id")
+        member_count = MCRMerger._get_numeric_series(d, "member_count")
 
         # Core ratios
         if paid is not None and inc is not None:
@@ -606,6 +615,13 @@ class MCRMerger:
         # Frequency
         if n_claims is not None and n_claimants is not None:
             d["claim_frequency"] = n_claims / n_claimants.replace(0, pd.NA)
+        # Incidence rates (recompute if inputs exist)
+        if n_cases is not None and member_count is not None:
+            d["incidence_rate_case"] = n_cases / member_count.replace(0, pd.NA)
+        if n_claims is not None and member_count is not None:
+            d["incidence_rate_claim"] = n_claims / member_count.replace(0, pd.NA)
+        if n_claimants is not None and member_count is not None:
+            d["incidence_rate_claimant"] = n_claimants / member_count.replace(0, pd.NA)
         # Remove duplicate alias columns if present
         drop_dupes = [
             "incurred_amount_per_case", "paid_amount_per_case",
@@ -749,11 +765,97 @@ class MCRMerger:
             'P.24_OP_Benefit',
             'P.24w_Wellness',
             'P.26_OP_Panel_Benefit',
+            'P.26b_IP_Panel_Benefit',
+            'P.27_TimeSeries',
+            'P.27a_TimeSeries_IP',
+            'P.27b_TimeSeries_OP',
+            'P.28_Hospital',
+            'P.28_Provider',
+            'P.28a_Provider_Benefit',
+            'P.28_Physician',
+            'P.28a_Physician_Benefit',
+            'P.28_Procedures',
+            'P.28a_Procedures_Diag',
+            'P.28b_Procedures_Network',
+            'P.29_SP_Speciality',
+            'P.29_SP_Spec_Diag',
             'P.18_TopHosDiag',
             'P.18b_TopClinDiag',
+            'P.18b_TopNetClinDiag',
             'P.18b_IP_DayProc',
             'P.20_Benefit_DepType',
         }
+
+        def _strip_class_if_present(df_in: pd.DataFrame) -> pd.DataFrame:
+            if df_in is None or df_in.empty or 'class' not in df_in.columns:
+                return df_in
+            return df_in.drop(columns=['class'], errors='ignore')
+
+        def _build_member_census(
+            picks: List[Tuple[str, str, str]],
+            merged_policy: str,
+            merged_class: str,
+        ) -> Optional[pd.DataFrame]:
+            src = all_sheets.get('P.22_Class_DepType')
+            if src is None or src.empty or 'member_count' not in src.columns:
+                return None
+            base_cols = [c for c in ['policy_number', 'year', 'dep_type', 'class', 'member_count'] if c in src.columns]
+            if not {'policy_number', 'year', 'member_count'}.issubset(base_cols):
+                return None
+
+            census = self._filter_rows(src[base_cols].copy(), picks)
+            census['member_count'] = pd.to_numeric(census['member_count'], errors='coerce')
+            census = census.dropna(subset=['member_count'])
+            if census.empty:
+                return None
+
+            # Deduplicate before merging class/policy to avoid double counting
+            dedupe_keys = [c for c in ['policy_number', 'year', 'dep_type', 'class'] if c in census.columns]
+            if dedupe_keys:
+                census = census.drop_duplicates(subset=dedupe_keys, keep='last')
+
+            # Align to merged identifiers so downstream joins match merged class/policy
+            if 'policy_number' in census.columns:
+                census['policy_number'] = merged_policy
+            if 'class' in census.columns:
+                census['class'] = merged_class
+
+            group_keys = [c for c in ['policy_number', 'year', 'dep_type', 'class'] if c in census.columns]
+            census = census.groupby(group_keys, dropna=False)['member_count'].sum(min_count=1).reset_index()
+            return census.reset_index(drop=True) if not census.empty else None
+
+        def _merge_member_census(df_in: pd.DataFrame, census: Optional[pd.DataFrame]) -> pd.DataFrame:
+            if df_in is None or df_in.empty or census is None or census.empty:
+                return df_in
+
+            df_base = df_in.drop(columns=['member_count'], errors='ignore')
+
+            def _try_join(keys: List[str]) -> Optional[pd.DataFrame]:
+                join_keys = [k for k in keys if k in df_base.columns and k in census.columns]
+                if len(join_keys) < 2:  # need at least policy_number and year
+                    return None
+                if not {'policy_number', 'year'}.issubset(join_keys):
+                    return None
+                if 'dep_type' in join_keys and 'class' in join_keys:
+                    view = census[join_keys + ['member_count']].drop_duplicates(subset=join_keys, keep='last')
+                else:
+                    view = census.groupby(join_keys, dropna=False)['member_count'].sum(min_count=1).reset_index()
+                return df_base.merge(view, on=join_keys, how='left')
+
+            candidates = [
+                ['policy_number', 'year', 'class', 'dep_type'],
+                ['policy_number', 'year', 'dep_type', 'class'],
+                ['policy_number', 'year', 'class'],
+                ['policy_number', 'year', 'dep_type'],
+                ['policy_number', 'year'],
+            ]
+
+            merged_df = None
+            for cand in candidates:
+                merged_df = _try_join(cand)
+                if merged_df is not None:
+                    break
+            return merged_df if merged_df is not None else df_in
 
         for grp in groups:
             merged_policy = str(grp.get("merged_policy_number", "MERGED"))
@@ -761,6 +863,7 @@ class MCRMerger:
             merged_class = str(grp.get("merged_class", "Merged"))
             items = grp.get("source_items", [])
             picks = [(str(i["policy_number"]), str(i["year"]), str(i.get("class", "ALL"))) for i in items]
+            member_census = _build_member_census(picks, merged_policy, merged_class)
 
             # For generality, iterate all sheets and perform merging with sensible group keys
             for sn, df in all_sheets.items():
@@ -784,7 +887,7 @@ class MCRMerger:
                         by_cols = ['year']
                     cols = [c for c in self.BASE_COLS if c in s.columns]
                     if cols:
-                        agg21 = s.groupby(by=by_cols, dropna=False)[cols].sum().reset_index()
+                        agg21 = s.groupby(by=by_cols, dropna=False)[cols].sum(min_count=1).reset_index()
                         agg21['policy_number'] = merged_policy
                         if 'year' not in agg21.columns and merged_year:
                             agg21['year'] = merged_year
@@ -849,8 +952,12 @@ class MCRMerger:
                     if gk != 'year' and gk not in final_keys:
                         final_keys.append(gk)
 
-                # numeric columns to sum
-                numeric_cols = [c for c in sel.columns if pd.api.types.is_numeric_dtype(sel[c])]
+                # numeric columns to sum (include optional member_count and incidence rates when present)
+                numeric_cols = [
+                    c for c in sel.columns
+                    if pd.api.types.is_numeric_dtype(sel[c])
+                    and c not in {'member_count', 'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant'}
+                ]
                 if not numeric_cols:
                     # nothing numeric to aggregate; simply take unique groupings and attach merged ids
                     subset_keys = final_keys if final_keys else None
@@ -863,12 +970,13 @@ class MCRMerger:
                     out[sn].append(uniq)
                     continue
 
-                agg = sel.groupby(by=final_keys, dropna=False)[numeric_cols].sum().reset_index()
+                agg = sel.groupby(by=final_keys, dropna=False)[numeric_cols].sum(min_count=1).reset_index()
                 # assign merged identifiers and class on aggregated rows
                 agg['policy_number'] = merged_policy
                 agg['class'] = merged_class
 
-                # recompute ratios and per-case/claimant metrics
+                # attach census-based member_count then recompute ratios
+                agg = _merge_member_census(agg, member_census)
                 agg = self._recalc_ratios(agg)
                 # reorder identifiers first when present
                 for col in ["class", "year", "policy_number"]:
@@ -896,6 +1004,10 @@ class MCRMerger:
                         result[sn] = pd.concat([result[sn], remainder], ignore_index=True)
                     else:
                         result[sn] = remainder.reset_index(drop=True)
+            else:
+                # Non-class sheets: add untouched remainder for completeness
+                if sn not in result and sn not in NON_CLASS_DERIVED_SHEETS:
+                    result[sn] = df.copy()
         # Normalize class-level base sheets first to prevent duplicates inflating totals
         norm_specs = {
             'P.21_Class': ['policy_number', 'year', 'class'],
@@ -913,7 +1025,40 @@ class MCRMerger:
         for sn, keys in norm_specs.items():
             if sn in result:
                 result[sn] = self._sum_by_keys(result[sn], keys, self.BASE_COLS)
+                result[sn] = _merge_member_census(result[sn], member_census)
                 result[sn] = self._recalc_ratios(result[sn])
+
+        # Remove class column from non-class derived sheets
+        for sn in list(result.keys()):
+            if sn in NON_CLASS_DERIVED_SHEETS:
+                result[sn] = _strip_class_if_present(result[sn])
+
+        # Ensure member_count/incidence columns exist on key class pages
+        if 'P.21_Class' in result:
+            needed_p21 = [
+                'policy_number', 'year', 'class',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                'no_of_claimants', 'no_of_claim_id', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p21:
+                if col not in result['P.21_Class'].columns:
+                    result['P.21_Class'][col] = pd.NA
+            result['P.21_Class'] = result['P.21_Class'][[c for c in needed_p21 if c in result['P.21_Class'].columns]]
+
+        if 'P.30_OP_FreqClaimant' in result:
+            needed_p30 = [
+                'policy_number', 'year', 'class', 'dep_type',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p30:
+                if col not in result['P.30_OP_FreqClaimant'].columns:
+                    result['P.30_OP_FreqClaimant'][col] = pd.NA
+            result['P.30_OP_FreqClaimant'] = result['P.30_OP_FreqClaimant'][[c for c in needed_p30 if c in result['P.30_OP_FreqClaimant'].columns]]
 
         # Post-process panel-benefit class sheet for ordering and zero filtering
         p25_sheet = result.get('P.25_Class_Panel_BenefitType')
@@ -923,8 +1068,10 @@ class MCRMerger:
             for col in metrics:
                 if col in p25.columns:
                     p25[col] = pd.to_numeric(p25[col], errors='coerce').fillna(0)
+            p25 = _merge_member_census(p25, member_census)
             p25 = self._recalc_ratios(p25)
             p25 = self._drop_all_zero(p25, metrics)
+            p25 = _merge_member_census(p25, member_census)
             p25 = self._recalc_ratios(p25)
             p25 = self._apply_order(
                 p25,
@@ -932,6 +1079,16 @@ class MCRMerger:
                 ["Hospital", "Clinic", "Dental", "Optical", "Maternity", "Total"],
                 prefix_keys=['policy_number', 'year', 'class', 'panel'],
             )
+            needed_p25 = [
+                'policy_number', 'year', 'class', 'panel', 'benefit_type',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p25:
+                if col not in p25.columns:
+                    p25[col] = pd.NA
+            p25 = p25[needed_p25]
             result['P.25_Class_Panel_BenefitType'] = p25
 
         # Clean up class-level day procedure, benefit, and inpatient sheets before deriving policy-level results
@@ -945,11 +1102,14 @@ class MCRMerger:
             p22 = self._recalc_ratios(p22)
             p22 = self._drop_all_zero(p22, metrics)
             p22 = self._apply_order(p22, 'benefit_type', ["Hospital", "Clinic", "Dental", "Optical", "Maternity", "Total"], prefix_keys=['policy_number', 'year', 'class'])
+            p22 = _merge_member_census(p22, member_census)
+            p22 = self._recalc_ratios(p22)
             needed_p22 = [
                 'policy_number', 'year', 'class', 'benefit_type',
                 'incurred_amount', 'paid_amount', 'usage_ratio',
                 'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                'no_of_claimants', 'no_of_claim_id',
+                'no_of_claimants', 'no_of_claim_id', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_p22:
                 if col not in p22.columns:
@@ -982,6 +1142,7 @@ class MCRMerger:
                     p22_dep[col] = 0.0
             p22_dep = self._recalc_ratios(p22_dep)
             p22_dep = self._drop_all_zero(p22_dep, ['incurred_amount', 'paid_amount', 'no_of_cases'])
+            p22_dep = _merge_member_census(p22_dep, member_census)
             p22_dep = self._recalc_ratios(p22_dep)
             p22_dep = self._apply_order(
                 p22_dep,
@@ -998,7 +1159,8 @@ class MCRMerger:
                 'policy_number', 'year', 'dep_type', 'class', 'benefit_type',
                 'incurred_amount', 'paid_amount', 'usage_ratio',
                 'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                'no_of_claimants', 'no_of_claim_id',
+                'no_of_claimants', 'no_of_claim_id', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_p22_dep:
                 if col not in p22_dep.columns:
@@ -1012,7 +1174,8 @@ class MCRMerger:
             dep_summary = dep_summary.groupby(
                 ['policy_number', 'year', 'dep_type', 'benefit_type'],
                 dropna=False
-            )[dep_base_cols].sum().reset_index()
+            )[dep_base_cols].sum(min_count=1).reset_index()
+            dep_summary = _merge_member_census(dep_summary, member_census)
             dep_summary = self._recalc_ratios(dep_summary)
             dep_summary = self._drop_all_zero(dep_summary, ['incurred_amount', 'paid_amount', 'no_of_cases'])
             dep_summary = self._recalc_ratios(dep_summary)
@@ -1031,7 +1194,8 @@ class MCRMerger:
                 'policy_number', 'year', 'dep_type', 'benefit_type',
                 'incurred_amount', 'paid_amount', 'usage_ratio',
                 'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                'no_of_claimants', 'no_of_claim_id',
+                'no_of_claimants', 'no_of_claim_id', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_p20_dep:
                 if col not in dep_summary.columns:
@@ -1059,6 +1223,7 @@ class MCRMerger:
                 if col in p23a.columns:
                     p23a[col] = pd.to_numeric(p23a[col], errors='coerce').fillna(0)
             p23a = p23a.fillna(0)
+            p23a = _merge_member_census(p23a, member_census)
             p23a = self._recalc_ratios(p23a)
             drop_cols_p23a = [c for c in ['incurred_amount', 'paid_amount', 'no_of_cases'] if c in p23a.columns]
             p23a = self._drop_all_zero(p23a, drop_cols_p23a)
@@ -1070,10 +1235,11 @@ class MCRMerger:
                 'policy_number', 'year', 'class', 'benefit',
                 'incurred_amount', 'paid_amount', 'usage_ratio',
                 'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                'no_of_claim_id', 'no_of_claimants',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
                 'incurred_per_claim', 'paid_per_claim',
                 'incurred_per_claimant', 'paid_per_claimant',
                 'claim_frequency',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_p23a:
                 if col not in p23a.columns:
@@ -1089,13 +1255,15 @@ class MCRMerger:
                         day_class_clean[col] = pd.to_numeric(day_class_clean[col], errors='coerce').fillna(0)
                     else:
                         day_class_clean[col] = 0.0
+                day_class_clean = _merge_member_census(day_class_clean, member_census)
                 day_class_clean = self._recalc_ratios(day_class_clean)
                 day_class_clean = self._drop_all_zero(day_class_clean, ['incurred_amount', 'paid_amount', 'no_of_cases'])
                 day_class_clean = self._recalc_ratios(day_class_clean)
                 needed_day_class = [
                     'policy_number', 'year', 'class', 'day_procedure_flag',
                     'incurred_amount', 'paid_amount', 'usage_ratio',
-                    'no_of_cases', 'no_of_claim_id',
+                    'no_of_cases', 'no_of_claim_id', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                 ]
                 for col in needed_day_class:
                     if col not in day_class_clean.columns:
@@ -1111,6 +1279,8 @@ class MCRMerger:
         if p20_benefit is None:
             p20_benefit = self._build_p20_benefit_page(all_sheets.get('P.20_BenefitType'))
         if p20_benefit is not None:
+            p20_benefit = _merge_member_census(p20_benefit, member_census)
+            p20_benefit = self._recalc_ratios(p20_benefit)
             result['P.20_BenefitType'] = p20_benefit
 
         # Build P.20_Day_Prod by collapsing class-level page
@@ -1127,13 +1297,16 @@ class MCRMerger:
                     day_df[col] = 0.0
             group_keys = [c for c in ['policy_number', 'year', 'day_procedure_flag'] if c in day_df.columns]
             if len(group_keys) >= 2:
-                day_grouped = day_df.groupby(group_keys, dropna=False)[day_base_cols].sum().reset_index()
+                day_grouped = day_df.groupby(group_keys, dropna=False)[day_base_cols].sum(min_count=1).reset_index()
+                day_grouped = _merge_member_census(day_grouped, member_census)
                 day_grouped = self._recalc_ratios(day_grouped)
                 day_grouped = self._drop_all_zero(day_grouped, ['incurred_amount', 'paid_amount', 'no_of_cases'])
+                day_grouped = self._recalc_ratios(day_grouped)
                 needed_dp = [
                     'policy_number', 'year', 'day_procedure_flag',
                     'incurred_amount', 'paid_amount', 'usage_ratio',
-                    'no_of_cases', 'no_of_claim_id',
+                    'no_of_cases', 'no_of_claim_id', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                 ]
                 for col in needed_dp:
                     if col not in day_grouped.columns:
@@ -1146,16 +1319,21 @@ class MCRMerger:
             id_cols = [c for c in ['policy_number', 'year'] if c in p21_sheet.columns]
             value_cols = [c for c in ['incurred_amount', 'paid_amount', 'no_of_claimants'] if c in p21_sheet.columns]
             if len(id_cols) == 2 and {'incurred_amount', 'paid_amount'}.issubset(set(value_cols)):
-                p20_policy = p21_sheet.groupby(id_cols, dropna=False)[value_cols].sum().reset_index()
-                for col in ['incurred_amount', 'paid_amount', 'no_of_claimants']:
+                p20_policy = p21_sheet.groupby(id_cols, dropna=False)[value_cols].sum(min_count=1).reset_index()
+                for col in value_cols:
+                    p20_policy[col] = pd.to_numeric(p20_policy[col], errors='coerce')
+                p20_policy = _merge_member_census(p20_policy, member_census)
+                p20_policy = self._recalc_ratios(p20_policy)
+                needed_policy = [
+                    'policy_number', 'year',
+                    'incurred_amount', 'paid_amount', 'usage_ratio',
+                    'no_of_claimants', 'member_count',
+                    'incidence_rate_claimant',
+                ]
+                for col in needed_policy:
                     if col not in p20_policy.columns:
                         p20_policy[col] = pd.NA
-                    else:
-                        p20_policy[col] = pd.to_numeric(p20_policy[col], errors='coerce')
-                denom = p20_policy['incurred_amount'].replace(0, pd.NA)
-                p20_policy['usage_ratio'] = p20_policy['paid_amount'] / denom
-                p20_policy = p20_policy[['policy_number', 'year', 'incurred_amount', 'paid_amount', 'usage_ratio', 'no_of_claimants']]
-                result['P.20_Policy'] = p20_policy
+                result['P.20_Policy'] = p20_policy[needed_policy]
         if 'P.20_Policy' not in result:
             legacy_p20 = all_sheets.get('P.20_Policy')
             if legacy_p20 is not None and not legacy_p20.empty:
@@ -1194,9 +1372,15 @@ class MCRMerger:
 
             # P.20_Network from typed only (across benefit types)
             if {'policy_number','year','panel'}.issubset(p25_typed.columns):
-                p20_net = p25_typed.groupby(['policy_number','year','panel'], dropna=False)[['incurred_amount', 'paid_amount']].sum().reset_index()
+                p20_net = p25_typed.groupby(['policy_number','year','panel'], dropna=False)[required_net_cols].sum(min_count=1).reset_index()
+                p20_net = _merge_member_census(p20_net, member_census)
                 p20_net = self._recalc_ratios(p20_net)
-                needed_net = ['policy_number', 'year', 'panel', 'incurred_amount', 'paid_amount', 'usage_ratio']
+                needed_net = [
+                    'policy_number', 'year', 'panel',
+                    'incurred_amount', 'paid_amount', 'usage_ratio',
+                    'no_of_cases', 'no_of_claim_id', 'no_of_claimants', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+                ]
                 for col in needed_net:
                     if col not in p20_net.columns:
                         p20_net[col] = pd.NA
@@ -1205,20 +1389,23 @@ class MCRMerger:
             # P.20_Network_BenefitType typed + totals computed from typed
             if {'policy_number','year','panel','benefit_type'}.issubset(p25_typed.columns):
                 agg_cols = ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claimants', 'no_of_claim_id']
-                p20_nbt_typed = p25_typed.groupby(['policy_number','year','panel','benefit_type'], dropna=False)[agg_cols].sum().reset_index()
+                p20_nbt_typed = p25_typed.groupby(['policy_number','year','panel','benefit_type'], dropna=False)[agg_cols].sum(min_count=1).reset_index()
                 p20_nbt_typed = self._coalesce_missing_benefit_type(p20_nbt_typed, agg_cols, extra_group_cols=['panel'])
+                p20_nbt_typed = _merge_member_census(p20_nbt_typed, member_census)
                 p20_nbt_typed = self._recalc_ratios(p20_nbt_typed)
-                p20_nbt_tot = p20_nbt_typed.groupby(['policy_number','year','panel'], dropna=False)[agg_cols].sum().reset_index()
+                p20_nbt_tot = p20_nbt_typed.groupby(['policy_number','year','panel'], dropna=False)[agg_cols].sum(min_count=1).reset_index()
                 p20_nbt_tot['benefit_type'] = 'Total'
+                p20_nbt_tot = _merge_member_census(p20_nbt_tot, member_census)
                 p20_nbt_tot = self._recalc_ratios(p20_nbt_tot)
                 p20_nbt = pd.concat([p20_nbt_typed, p20_nbt_tot], ignore_index=True)
                 p20_nbt = self._ensure_benefit_type_rows(p20_nbt, agg_cols, ["Hospital", "Clinic", "Dental", "Optical", "Maternity", "Total"], extra_group_cols=['panel'])
+                p20_nbt = _merge_member_census(p20_nbt, member_census)
                 p20_nbt = self._recalc_ratios(p20_nbt)
                 # drop benefit types where both panel and non-panel contributions are zero
                 if {'policy_number', 'year', 'benefit_type'}.issubset(p20_nbt.columns):
                     zero_keys = (
                         p20_nbt.groupby(['policy_number', 'year', 'benefit_type'], dropna=False)[['incurred_amount', 'paid_amount']]
-                        .sum()
+                        .sum(min_count=1)
                         .reset_index()
                     )
                     zero_keys = zero_keys[
@@ -1234,7 +1421,8 @@ class MCRMerger:
                     'policy_number', 'year', 'panel', 'benefit_type',
                     'incurred_amount', 'paid_amount', 'usage_ratio',
                     'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                    'no_of_claimants', 'no_of_claim_id',
+                    'no_of_claimants', 'no_of_claim_id', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                 ]
                 for col in needed_nbt:
                     if col not in p20_nbt.columns:
@@ -1252,19 +1440,22 @@ class MCRMerger:
                         tmask = ~nbt_src['benefit_type'].astype(str).str.strip().str.casefold().isin({"total", "all", "overall"})
                     nbt_typed = nbt_src[tmask].copy()
                     if {'policy_number','year','panel','benefit_type'}.issubset(set(nbt_typed.columns)):
-                        nbt_typed = nbt_typed.groupby(['policy_number','year','panel','benefit_type'], dropna=False)[n_cols_all].sum().reset_index()
+                        nbt_typed = nbt_typed.groupby(['policy_number','year','panel','benefit_type'], dropna=False)[n_cols_all].sum(min_count=1).reset_index()
                         nbt_typed = self._coalesce_missing_benefit_type(nbt_typed, n_cols_all, extra_group_cols=['panel'])
+                        nbt_typed = _merge_member_census(nbt_typed, member_census)
                         nbt_typed = self._recalc_ratios(nbt_typed)
-                        nbt_tot = nbt_typed.groupby(['policy_number','year','panel'], dropna=False)[n_cols_all].sum().reset_index()
+                        nbt_tot = nbt_typed.groupby(['policy_number','year','panel'], dropna=False)[n_cols_all].sum(min_count=1).reset_index()
                         nbt_tot['benefit_type'] = 'Total'
+                        nbt_tot = _merge_member_census(nbt_tot, member_census)
                         nbt_tot = self._recalc_ratios(nbt_tot)
                         nbt = pd.concat([nbt_typed, nbt_tot], ignore_index=True)
                         nbt = self._ensure_benefit_type_rows(nbt, n_cols_all, ["Hospital", "Clinic", "Dental", "Optical", "Maternity", "Total"], extra_group_cols=['panel'])
+                        nbt = _merge_member_census(nbt, member_census)
                         nbt = self._recalc_ratios(nbt)
                         if {'policy_number', 'year', 'benefit_type'}.issubset(nbt.columns):
                             zero_keys = (
                                 nbt.groupby(['policy_number', 'year', 'benefit_type'], dropna=False)[['incurred_amount', 'paid_amount']]
-                                .sum()
+                                .sum(min_count=1)
                                 .reset_index()
                             )
                             zero_keys = zero_keys[
@@ -1280,16 +1471,23 @@ class MCRMerger:
                             'policy_number', 'year', 'panel', 'benefit_type',
                             'incurred_amount', 'paid_amount', 'usage_ratio',
                             'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                            'no_of_claimants', 'no_of_claim_id',
+                            'no_of_claimants', 'no_of_claim_id', 'member_count',
+                            'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                         ]
                         for col in needed_nbt:
                             if col not in nbt.columns:
                                 nbt[col] = pd.NA
                         result['P.20_Network_BenefitType'] = nbt[needed_nbt]
                     if {'policy_number','year','panel'}.issubset(set(nbt_src.columns)):
-                        p20net = nbt_src[tmask].groupby(['policy_number','year','panel'], dropna=False)[['incurred_amount', 'paid_amount']].sum().reset_index()
+                        p20net = nbt_src[tmask].groupby(['policy_number','year','panel'], dropna=False)[n_cols_all].sum(min_count=1).reset_index()
+                        p20net = _merge_member_census(p20net, member_census)
                         p20net = self._recalc_ratios(p20net)
-                        needed_net = ['policy_number', 'year', 'panel', 'incurred_amount', 'paid_amount', 'usage_ratio']
+                        needed_net = [
+                            'policy_number', 'year', 'panel',
+                            'incurred_amount', 'paid_amount', 'usage_ratio',
+                            'no_of_cases', 'no_of_claim_id', 'no_of_claimants', 'member_count',
+                            'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+                        ]
                         for col in needed_net:
                             if col not in p20net.columns:
                                 p20net[col] = pd.NA
@@ -1300,7 +1498,7 @@ class MCRMerger:
         if p23a is not None and not p23a.empty:
             p23af = self._filter_out_totals(p23a, ["benefit"]) if 'benefit' in p23a.columns else p23a
             # Work with numeric base columns only
-            ip_cols = [c for c in self.BASE_COLS if c in p23af.columns]
+            ip_cols = [c for c in self.BASE_COLS if c in p23af.columns and c != 'member_count']
             if not ip_cols or 'benefit' not in p23af.columns:
                 pass
             else:
@@ -1331,7 +1529,7 @@ class MCRMerger:
                 if len(groupers) < 3:
                     pass
                 else:
-                    p23 = work.groupby(groupers, dropna=False)[ip_cols].sum().reset_index()
+                    p23 = work.groupby(groupers, dropna=False)[ip_cols].sum(min_count=1).reset_index()
                     p23.columns = [c.strip() if isinstance(c, str) else c for c in p23.columns]
 
                     for col in ['incurred_amount', 'paid_amount', 'no_of_cases']:
@@ -1349,6 +1547,7 @@ class MCRMerger:
                     if p23.empty:
                         result.pop('P.23_IP_Benefit', None)
                     else:
+                        p23 = _merge_member_census(p23, member_census)
                         p23 = self._recalc_ratios(p23)
                         order = self._get_ip_benefit_order()
                         if order:
@@ -1361,10 +1560,11 @@ class MCRMerger:
                             'policy_number', 'year', 'benefit',
                             'incurred_amount', 'paid_amount', 'usage_ratio',
                             'no_of_cases', 'incurred_per_case', 'paid_per_case',
-                            'no_of_claim_id', 'no_of_claimants',
+                            'no_of_claim_id', 'no_of_claimants', 'member_count',
                             'incurred_per_claim', 'paid_per_claim',
                             'incurred_per_claimant', 'paid_per_claimant',
                             'claim_frequency',
+                            'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                         ]
                         for col in needed_p23:
                             if col not in p23.columns:
@@ -1383,16 +1583,18 @@ class MCRMerger:
             work = self._recalc_ratios(work)
             zero_cols = [c for c in ['incurred_amount', 'paid_amount', 'no_of_cases'] if c in work.columns]
             work = self._drop_all_zero(work, zero_cols)
+            work = _merge_member_census(work, member_census)
             work = self._recalc_ratios(work)
             order_bt = ["Hospital", "Clinic", "Dental", "Optical", "Maternity", "Total"]
             work = self._apply_order(work, 'benefit', order_bt, prefix_keys=['policy_number', 'year', 'class', 'common_diagnosis_flag'])
             needed_class = [
                 'policy_number', 'year', 'class', 'common_diagnosis_flag', 'benefit',
                 'incurred_amount', 'paid_amount', 'usage_ratio',
-                'no_of_claim_id', 'no_of_claimants',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
                 'incurred_per_claim', 'paid_per_claim',
                 'incurred_per_claimant', 'paid_per_claimant',
                 'claim_frequency',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_class:
                 if col not in work.columns:
@@ -1402,7 +1604,8 @@ class MCRMerger:
             group_keys = [c for c in ['policy_number', 'year', 'common_diagnosis_flag', 'benefit'] if c in work.columns]
             agg_cols = [c for c in ['incurred_amount', 'paid_amount', 'no_of_cases', 'no_of_claim_id', 'no_of_claimants'] if c in work.columns]
             if group_keys and agg_cols:
-                agg = work.groupby(group_keys, dropna=False)[agg_cols].sum().reset_index()
+                agg = work.groupby(group_keys, dropna=False)[agg_cols].sum(min_count=1).reset_index()
+                agg = _merge_member_census(agg, member_census)
                 agg = self._recalc_ratios(agg)
                 zero_cols_agg = [c for c in ['incurred_amount', 'paid_amount', 'no_of_cases'] if c in agg.columns]
                 agg = self._drop_all_zero(agg, zero_cols_agg)
@@ -1411,10 +1614,11 @@ class MCRMerger:
                 needed_agg = [
                     'policy_number', 'year', 'common_diagnosis_flag', 'benefit',
                     'incurred_amount', 'paid_amount', 'usage_ratio',
-                    'no_of_claim_id', 'no_of_claimants',
+                    'no_of_claim_id', 'no_of_claimants', 'member_count',
                     'incurred_per_claim', 'paid_per_claim',
                     'incurred_per_claimant', 'paid_per_claimant',
                     'claim_frequency',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
                 ]
                 for col in needed_agg:
                     if col not in agg.columns:
@@ -1427,17 +1631,31 @@ class MCRMerger:
             p24a_cls = p24a_class_sheet.copy()
             if 'no_of_cases' in p24a_cls.columns:
                 p24a_cls['no_of_cases'] = pd.to_numeric(p24a_cls['no_of_cases'], errors='coerce').fillna(0)
+            p24a_cls = _merge_member_census(p24a_cls, member_census)
+            p24a_cls = self._recalc_ratios(p24a_cls)
             p24a_cls = self._sort_with_desc(p24a_cls, ['policy_number', 'year', 'class'], 'no_of_cases')
+            needed_p24a = [
+                'policy_number', 'year', 'class', 'benefit',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p24a:
+                if col not in p24a_cls.columns:
+                    p24a_cls[col] = pd.NA
+            p24a_cls = p24a_cls[needed_p24a]
             result['P.24a_Class_OP_Benefit'] = p24a_cls
 
         # From P.24a_Class_OP_Benefit -> P.24_OP_Benefit (drop class)
         p24a = result.get('P.24a_Class_OP_Benefit', None)
         if p24a is not None and not p24a.empty:
             p24af = self._filter_out_totals(p24a, ["benefit"]) if 'benefit' in p24a.columns else p24a
-            op_cols = [c for c in self.BASE_COLS if c in p24af.columns]
+            op_cols = [c for c in self.BASE_COLS if c in p24af.columns and c != 'member_count']
             groupers = [c for c in ['policy_number','year','benefit'] if c in p24af.columns]
             if op_cols and len(groupers) >= 2:
                 p24 = p24af.groupby(groupers, dropna=False)[op_cols].sum().reset_index()
+                p24 = _merge_member_census(p24, member_census)
                 p24 = self._recalc_ratios(p24)
                 if 'benefit' in p24.columns and 'benefit' in p24af.columns:
                     ben_order = p24af['benefit'].astype(str).dropna().unique().tolist()
@@ -1445,31 +1663,71 @@ class MCRMerger:
                 if 'no_of_cases' in p24.columns:
                     p24['no_of_cases'] = pd.to_numeric(p24['no_of_cases'], errors='coerce').fillna(0)
                 p24 = self._sort_with_desc(p24, ['policy_number', 'year'], 'no_of_cases')
+                needed_p24 = [
+                    'policy_number', 'year', 'benefit',
+                    'incurred_amount', 'paid_amount', 'usage_ratio',
+                    'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                    'no_of_claim_id', 'no_of_claimants', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+                ]
+                for col in needed_p24:
+                    if col not in p24.columns:
+                        p24[col] = pd.NA
+                p24 = p24[needed_p24]
                 result['P.24_OP_Benefit'] = p24
 
         # From P.24wc_Class_Wellness -> P.24w_Wellness (drop class)
         p24wc = result.get('P.24wc_Class_Wellness', None)
         if p24wc is not None and not p24wc.empty:
             p24wcf = self._filter_out_totals(p24wc, ["benefit"]) if 'benefit' in p24wc.columns else p24wc
-            wl_cols = [c for c in self.BASE_COLS if c in p24wcf.columns]
+            wl_cols = [c for c in self.BASE_COLS if c in p24wcf.columns and c != 'member_count']
             groupers = [c for c in ['policy_number','year','benefit'] if c in p24wcf.columns]
             if wl_cols and len(groupers) >= 2:
                 p24w = p24wcf.groupby(groupers, dropna=False)[wl_cols].sum().reset_index()
+                p24w = _merge_member_census(p24w, member_census)
                 p24w = self._recalc_ratios(p24w)
                 if 'benefit' in p24w.columns and 'benefit' in p24wcf.columns:
                     ben_order = p24wcf['benefit'].astype(str).dropna().unique().tolist()
                     p24w = self._apply_order(p24w, 'benefit', ben_order)
+                needed_p24w = [
+                    'policy_number', 'year', 'benefit',
+                    'incurred_amount', 'paid_amount', 'usage_ratio',
+                    'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                    'no_of_claim_id', 'no_of_claimants', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+                ]
+                for col in needed_p24w:
+                    if col not in p24w.columns:
+                        p24w[col] = pd.NA
+                p24w = p24w[needed_p24w]
                 result['P.24w_Wellness'] = p24w
+
+        if 'P.24wc_Class_Wellness' in result and result['P.24wc_Class_Wellness'] is not None and not result['P.24wc_Class_Wellness'].empty:
+            p24wc_cls = result['P.24wc_Class_Wellness']
+            p24wc_cls = _merge_member_census(p24wc_cls, member_census)
+            p24wc_cls = self._recalc_ratios(p24wc_cls)
+            needed_p24wc = [
+                'policy_number', 'year', 'class', 'benefit',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p24wc:
+                if col not in p24wc_cls.columns:
+                    p24wc_cls[col] = pd.NA
+            result['P.24wc_Class_Wellness'] = p24wc_cls[needed_p24wc]
 
         # From P.26a_OP_Class_Panel_Benefit -> P.26_OP_Panel_Benefit (drop class)
         p26a = result.get('P.26a_OP_Class_Panel_Benefit', None)
         if p26a is not None and not p26a.empty:
             p26af = self._filter_out_totals(p26a, ["benefit"]) if 'benefit' in p26a.columns else p26a
             # BASE_COLS already includes 'no_of_claim_id'; avoid duplicates
-            c_cols = [c for c in self.BASE_COLS if c in p26af.columns]
+            c_cols = [c for c in self.BASE_COLS if c in p26af.columns and c != 'member_count']
             groupers = [c for c in ['policy_number','year','panel','benefit'] if c in p26af.columns]
             if c_cols and len(groupers) >= 3:
                 p26 = p26af.groupby(groupers, dropna=False)[c_cols].sum().reset_index()
+                p26 = _merge_member_census(p26, member_census)
                 p26 = self._recalc_ratios(p26)
                 if 'benefit' in p26.columns and 'benefit' in p26af.columns:
                     ben_order = p26af['benefit'].astype(str).dropna().unique().tolist()
@@ -1477,6 +1735,17 @@ class MCRMerger:
                 if 'paid_amount' in p26.columns:
                     p26['paid_amount'] = pd.to_numeric(p26['paid_amount'], errors='coerce').fillna(0)
                 p26 = self._sort_with_desc(p26, ['policy_number', 'year', 'panel'], 'paid_amount')
+                needed_p26 = [
+                    'policy_number', 'year', 'panel', 'benefit',
+                    'incurred_amount', 'paid_amount', 'usage_ratio',
+                    'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                    'no_of_claim_id', 'no_of_claimants', 'member_count',
+                    'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+                ]
+                for col in needed_p26:
+                    if col not in p26.columns:
+                        p26[col] = pd.NA
+                p26 = p26[needed_p26]
                 result['P.26_OP_Panel_Benefit'] = p26
 
         p26a_sheet = result.get('P.26a_OP_Class_Panel_Benefit')
@@ -1484,12 +1753,26 @@ class MCRMerger:
             p26a_sorted = p26a_sheet.copy()
             if 'paid_amount' in p26a_sorted.columns:
                 p26a_sorted['paid_amount'] = pd.to_numeric(p26a_sorted['paid_amount'], errors='coerce').fillna(0)
+            p26a_sorted = _merge_member_census(p26a_sorted, member_census)
+            p26a_sorted = self._recalc_ratios(p26a_sorted)
             p26a_sorted = self._sort_with_desc(p26a_sorted, ['policy_number', 'year', 'class', 'panel'], 'paid_amount')
+            needed_p26a = [
+                'policy_number', 'year', 'class', 'panel', 'benefit',
+                'incurred_amount', 'paid_amount', 'usage_ratio',
+                'no_of_cases', 'incurred_per_case', 'paid_per_case',
+                'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
+            ]
+            for col in needed_p26a:
+                if col not in p26a_sorted.columns:
+                    p26a_sorted[col] = pd.NA
+            p26a_sorted = p26a_sorted[needed_p26a]
             result['P.26a_OP_Class_Panel_Benefit'] = p26a_sorted
 
         def _build_top_diag_from_class(
             source: Optional[pd.DataFrame],
             index_cols: List[str],
+            with_class: bool = False,
         ) -> Optional[pd.DataFrame]:
             if source is None or source.empty or not index_cols:
                 return None
@@ -1517,13 +1800,15 @@ class MCRMerger:
                 work['no_of_cases'] = 0.0
 
             agg_cols = ['incurred_amount', 'paid_amount', 'no_of_claim_id', 'no_of_claimants', 'no_of_cases']
-            agg = work.groupby(index_cols, dropna=False)[agg_cols].sum().reset_index()
+            agg = work.groupby(index_cols, dropna=False)[agg_cols].sum(min_count=1).reset_index()
             for col in ['incurred_amount', 'paid_amount', 'no_of_cases']:
                 agg[col] = pd.to_numeric(agg[col], errors='coerce').fillna(0)
+            agg = _merge_member_census(agg, member_census)
+            agg = self._recalc_ratios(agg)
             zero_mask = (
-                agg['incurred_amount'].eq(0)
-                & agg['paid_amount'].eq(0)
-                & agg['no_of_cases'].eq(0)
+                agg['incurred_amount'].fillna(0).eq(0)
+                & agg['paid_amount'].fillna(0).eq(0)
+                & agg['no_of_cases'].fillna(0).eq(0)
             )
             agg = agg.loc[~zero_mask].reset_index(drop=True)
             if agg.empty:
@@ -1537,52 +1822,81 @@ class MCRMerger:
             ).reset_index(drop=True)
             needed_cols = index_cols + [
                 'incurred_amount', 'paid_amount',
-                'no_of_cases', 'no_of_claim_id', 'no_of_claimants'
+                'no_of_cases', 'no_of_claim_id', 'no_of_claimants', 'member_count',
+                'usage_ratio', 'incurred_per_case', 'paid_per_case',
+                'incurred_per_claim', 'paid_per_claim',
+                'incurred_per_claimant', 'paid_per_claimant',
+                'claim_frequency',
+                'incidence_rate_case', 'incidence_rate_claim', 'incidence_rate_claimant',
             ]
             for col in needed_cols:
                 if col not in agg.columns:
                     agg[col] = pd.NA
-            return agg[needed_cols]
+            agg = agg[needed_cols]
+            if not with_class and 'class' in agg.columns:
+                agg = agg.drop(columns=['class'], errors='ignore')
+            return agg
 
         p18a_prepared = _build_top_diag_from_class(
             result.get('P.18a_Class_TopHosDiag'),
-            ['policy_number', 'year', 'diagnosis'],
+            ['policy_number', 'year', 'class', 'diagnosis'],
+            with_class=True,
         )
         if p18a_prepared is None:
             p18a_prepared = _build_top_diag_from_class(
                 all_sheets.get('P.18a_Class_TopHosDiag'),
-                ['policy_number', 'year', 'diagnosis'],
+                ['policy_number', 'year', 'class', 'diagnosis'],
+                with_class=True,
             )
         if p18a_prepared is not None:
             result['P.18a_Class_TopHosDiag'] = p18a_prepared.copy()
-            result['P.18_TopHosDiag'] = p18a_prepared.copy()
+            result['P.18_TopHosDiag'] = p18a_prepared.drop(columns=['class'], errors='ignore').copy()
 
         p18b_prepared = _build_top_diag_from_class(
             result.get('P.18b_Class_TopClinDiag'),
-            ['policy_number', 'year', 'diagnosis'],
+            ['policy_number', 'year', 'class', 'diagnosis'],
+            with_class=True,
         )
         if p18b_prepared is None:
             p18b_prepared = _build_top_diag_from_class(
                 all_sheets.get('P.18b_Class_TopClinDiag'),
-                ['policy_number', 'year', 'diagnosis'],
+                ['policy_number', 'year', 'class', 'diagnosis'],
+                with_class=True,
             )
         if p18b_prepared is not None:
             result['P.18b_Class_TopClinDiag'] = p18b_prepared.copy()
-            result['P.18b_TopClinDiag'] = p18b_prepared.copy()
+            result['P.18b_TopClinDiag'] = p18b_prepared.drop(columns=['class'], errors='ignore').copy()
 
         p18b_dp_indexes = ['policy_number', 'year', 'day_procedure_flag', 'diagnosis']
         p18b_dp_prepared = _build_top_diag_from_class(
             result.get('P.18b_Class_IP_DayProc'),
-            p18b_dp_indexes,
+            ['policy_number', 'year', 'class', 'day_procedure_flag', 'diagnosis'],
+            with_class=True,
         )
         if p18b_dp_prepared is None:
             p18b_dp_prepared = _build_top_diag_from_class(
                 all_sheets.get('P.18b_Class_IP_DayProc'),
-                p18b_dp_indexes,
+                ['policy_number', 'year', 'class', 'day_procedure_flag', 'diagnosis'],
+                with_class=True,
             )
         if p18b_dp_prepared is not None:
             result['P.18b_Class_IP_DayProc'] = p18b_dp_prepared.copy()
-            result['P.18b_IP_DayProc'] = p18b_dp_prepared.copy()
+            result['P.18b_IP_DayProc'] = p18b_dp_prepared.drop(columns=['class'], errors='ignore').copy()
+
+        # Final pass: merge census and recompute incidence rates wherever counts exist
+        for sn, df in list(result.items()):
+            if df is None or df.empty:
+                continue
+            merged_df = _merge_member_census(df, member_census)
+            merged_df = self._recalc_ratios(merged_df)
+            # Ensure incidence columns exist when their base counts are present
+            if 'no_of_cases' in merged_df.columns and 'incidence_rate_case' not in merged_df.columns:
+                merged_df['incidence_rate_case'] = pd.NA
+            if 'no_of_claim_id' in merged_df.columns and 'incidence_rate_claim' not in merged_df.columns:
+                merged_df['incidence_rate_claim'] = pd.NA
+            if 'no_of_claimants' in merged_df.columns and 'incidence_rate_claimant' not in merged_df.columns:
+                merged_df['incidence_rate_claimant'] = pd.NA
+            result[sn] = merged_df
         # Final de-duplication across all sheets to avoid duplicated unselected class records
         for sn in list(result.keys()):
             try:
