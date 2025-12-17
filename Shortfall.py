@@ -279,26 +279,26 @@ class Shortfall():
 
           aia_combined = self.__aia_usage_combine(aia_101, aia_102, aia_105)
           try:
-                aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="%d/%m/%Y")
+                aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%d/%m/%Y")
                 aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%d/%m/%Y")
           except:
               try:
-                  aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="%Y-%m-%d")
+                  aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y-%m-%d")
                   aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format='%Y-%m-%d')
               except:
                   try:
-                      aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="%m/%d/%Y")
+                      aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%m/%d/%Y")
                       aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%m/%d/%Y")
                   except:
                       try:
-                          aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="%Y%m%d")
+                          aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y%m%d")
                           aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%Y%m%d")
                       except:
                           try:
-                              aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="%Y-%m-%d %H:%M:%S")
+                              aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y-%m-%d %H:%M:%S")
                               aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%Y-%m-%d %H:%M:%S")
                           except:
-                              aia_combined['polict_start_date'] = pd.to_datetime(aia_combined['polict_start_date'], format="ISO8601")
+                              aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="ISO8601")
                               aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="ISO8601")
           self.df = pd.concat([self.df, aia_combined], axis=0, ignore_index=True)
       else:
