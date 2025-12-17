@@ -467,7 +467,16 @@ class MemberCensus():
                 try:
                     temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d")
                 except:
-                    temp_df['age'] = pd.to_datetime(temp_df['age'], format="%m/%d/%Y")
+                    try:
+                        temp_df['age'] = pd.to_datetime(temp_df['age'], format="%m/%d/%Y")
+                    except:
+                        try:
+                            temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
+                        except:
+                            try:
+                                temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d %H:%M:%S")
+                            except:
+                                temp_df['age'] = pd.to_datetime(temp_df['age'], format="ISO8601")
             ref_date = pd.to_datetime(provided_ts) if provided_ts is not None and not pd.isna(provided_ts) else pd.to_datetime(datetime.datetime.now())
             temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
