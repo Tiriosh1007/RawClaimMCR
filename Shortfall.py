@@ -201,7 +201,7 @@ class Shortfall():
       return
     df105 = pd.read_csv(csv_105, dtype=self.col_setup_dtype)
     if csv_101:
-      df105 = df105.loc[df105['benefit'].str.contains("Hospitalization and Surgical Benefits|Supplementary Major Medical|Top-up|SMM|Hosp|IP|inpatient", case=False) == False]
+      df105 = df105.loc[df105['benefit'].str.contains("Hospitalization and Surgical Benefits|Supplementary Major Medical|Top-up|SMM|Hosp|IP|inpatient|Major Medical|Supplementary Medical", case=False) == False]
     if csv_102:
       df105 = df105.loc[df105['benefit_type'].str.contains("OUTPATIENT|CLINICAL|OP", case=False) == False]
 
@@ -239,6 +239,10 @@ class Shortfall():
     ).str.lower()
 
     combined = combined.loc[(combined['benefit'].str.contains('Total|Summary', case=False) == False)]
+
+    combined['no_of_claims'] = combined['no_of_claims'].fillna(0).astype(int)
+    combined['incurred_amount'] = combined['incurred_amount'].fillna(0).astype(float)
+    combined['paid_amount'] = combined['paid_amount'].fillna(0).astype(float)
 
     # 6) Write out and store
     return combined

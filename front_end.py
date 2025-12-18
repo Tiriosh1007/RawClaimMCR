@@ -267,7 +267,8 @@ if st.session_state.raw_claim == True:
         password_l.append("")
       elif 'CRD and Breakdown' in uploaded_file.name:
         insurer_l.append('Sunlife')
-        policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
+        policy_sd_l.append("".join(['20',uploaded_file.name.split('_')[-1].split('-')[0]]))
+        policy_dd_l.append("".join(['20',uploaded_file.name.split('_')[-1].split('-')[1][:6]]))
         # password_l.append("sunlight")
       elif'ClaimUsageReport' in uploaded_file.name:
         insurer_l.append('Bolttech')
@@ -726,6 +727,8 @@ if st.session_state.member_census == True:
       return "Bupa"
     if "_mem_" in name:
       return "AXA"
+    if "census_as at" in name:
+      return "Sunlife"
     return None
 
   uploaded_files = st.file_uploader("Upload member census excel .xlsx files", accept_multiple_files=True)
@@ -755,7 +758,7 @@ if st.session_state.member_census == True:
   st.write("""
   Please input the configurations:
 
-  1. Insurers: Bupa/ AIA/ AXA/ Blue Cross.
+  1. Insurers: Bupa/ AIA/ AXA/ HSBC/ Sunlife.
 
   2. Policy start date: In yyyymmdd form (required for every uploaded file). Ie 1 Jul 2023 => 20230701.
 
@@ -784,7 +787,7 @@ if st.session_state.member_census == True:
   with chart_input_col_4:
     width = st.number_input("Graph width", value=800)
   with chart_input_col_5:
-    height = st.number_input("Graph height", value=600)
+    height = st.number_input("Graph height", value=800)
   
   if st.button("Confirm"):
     normalized_config = new_file_config.copy()
@@ -1076,7 +1079,7 @@ if st.session_state.member_mcr_combine == True:
       policy_editor = st.data_editor(
         policy_editor_df,
         hide_index=True,
-        width='stretch',
+        width='content',
         key='member_mcr_policy_editor',
         column_config={
           'matched_member_policy': st.column_config.SelectboxColumn(

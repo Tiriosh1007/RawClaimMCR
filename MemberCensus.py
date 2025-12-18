@@ -38,7 +38,25 @@ class MemberCensus():
         # self.age_lbs = ['{} - <{}'.format(i, i+10) for i in self.age_range]
         # self.age_lbs = self.age_range[0:-1]
         self.dep_type = ['EE','SP', 'CH']
-        
+    
+    def date_conversion(self, date_series):
+        try:
+            date_series = pd.to_datetime(date_series, format="%d/%m/%Y")
+        except:
+            try:
+                date_series = pd.to_datetime(date_series, format="%Y-%m-%d")
+            except:
+                try:
+                    date_series = pd.to_datetime(date_series, format="%m/%d/%Y")
+                except:
+                    try:
+                        date_series = pd.to_datetime(date_series, format="%Y%m%d")
+                    except:
+                        try:
+                            date_series = pd.to_datetime(date_series, format="%Y-%m-%d %H:%M:%S")
+                        except:
+                            date_series = pd.to_datetime(date_series, format="ISO8601")
+        return date_series
     
     def col_mapping_setting(self):
         self.bupa_cols = [
@@ -341,6 +359,61 @@ class MemberCensus():
         }
 
 
+        self.sunlife_cols = [
+            'group_policy_number',
+            'company_code',
+            'last_name',
+            'first_name',
+            'gender',
+            'date_of_birth',
+            'role',
+            'employee_code',
+            'dependent_number',
+            'effective_date',
+            'plan',
+            'email',
+            'employment_date',
+            'nationality',
+            'bank_code',
+            'account_number',
+            'payee_name',
+
+        ]
+        self.sunlife_cols_dtype = {
+            'group_policy_number': str,
+            'company_code': str,
+            'last_name': str,
+            'first_name': str,
+            'gender': str,
+            'date_of_birth': str,
+            'role': str,
+            'employee_code': str,
+            'dependent_number': str,
+            'effective_date': str,
+            'plan': str,
+            'email': str,
+            'employment_date': str,
+            'nationality': str,
+            'bank_code': str,
+            'account_number': str,
+            'payee_name': str,
+        }
+        self.sunlife_cols_mapping = {
+            'group_policy_number': 'policy_number',
+            # 'insurer'
+            'employee_code': 'member_id',
+            'role': 'dep_type',
+            'plan': 'class',
+            'first_name': 'name',
+            'gender': 'gender',
+            'date_of_birth': 'age',
+            'effective_date': 'policy_start_date',
+            # 'staff_id',
+            'email': 'working_email',
+            'company_code': 'suboffice',
+
+        }
+
 
     def get_member_df(self, fp, insurer, policy_start_date_input=None):
         print("Handling file: ", os.path.basename(fp))
@@ -371,20 +444,6 @@ class MemberCensus():
             if provided_ts is not None and not pd.isna(provided_ts):
                 df['policy_start_date'] = provided_ts
             return df
-
-        # if password is not None:
-        #     import msoffcrypto
-        #     import io
-        #     unlocked = io.BytesIO()
-        #     with open(fp, "rb") as file:
-        #         excel_file = msoffcrypto.OfficeFile(file)
-        #         excel_file.load_key(password = password)
-        #         excel_file.decrypt(unlocked)
-        #         from openpyxl import load_workbook
-        #         wb = load_workbook(filename = unlocked)
-        #     temp_df = pd.read_excel(unlocked, dtype=self.bupa_cols_dtype)
-        # else:
-        
         
         if insurer == 'Bupa':
             temp_df = pd.read_excel(fp, dtype=self.bupa_cols_dtype, engine="openpyxl")
@@ -461,26 +520,45 @@ class MemberCensus():
                 temp_df['policy_start_date'] = datetime.datetime.now()
             temp_df.rename(columns=self.aia_cols_mapping, inplace=True)
             temp_df.dropna(subset=['member_id'], inplace=True)
-            try:
-                temp_df['age'] = pd.to_datetime(temp_df['age'], format="%d/%m/%Y")
-            except:
-                try:
-                    temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d")
-                except:
-                    try:
-                        temp_df['age'] = pd.to_datetime(temp_df['age'], format="%m/%d/%Y")
-                    except:
-                        try:
-                            temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
-                        except:
-                            try:
-                                temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d %H:%M:%S")
-                            except:
-                                temp_df['age'] = pd.to_datetime(temp_df['age'], format="ISO8601")
+            temp_df['age'] = self.date_conversion(temp_df['age'])
+            # try:
+            #     temp_df['age'] = pd.to_datetime(temp_df['age'], format="%d/%m/%Y")
+            # except:
+            #     try:
+            #         temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d")
+            #     except:
+            #         try:
+            #             temp_df['age'] = pd.to_datetime(temp_df['age'], format="%m/%d/%Y")
+            #         except:
+            #             try:
+            #                 temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
+            #             except:
+            #                 try:
+            #                     temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y-%m-%d %H:%M:%S")
+            #                 except:
+            #                     temp_df['age'] = pd.to_datetime(temp_df['age'], format="ISO8601")
             ref_date = pd.to_datetime(provided_ts) if provided_ts is not None and not pd.isna(provided_ts) else pd.to_datetime(datetime.datetime.now())
             temp_df['age'] = (ref_date - temp_df['age']).dt.days / 365.25
             temp_df['age'] = temp_df['age'].astype('int')
             
+            for col in self.cols:
+                if col not in temp_df.columns:
+                    temp_df[col] = None
+            
+            temp_df = temp_df[self.cols]
+
+        elif insurer == 'Sunlife':
+            temp_df = pd.read_excel(fp, dtype=self.sunlife_cols_dtype)
+            temp_df['first_name'] = temp_df['last_name'].fillna('') + ' ' + temp_df['first_name'].fillna('')
+            temp_df.rename(columns=self.sunlife_cols_mapping, inplace=True)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            # temp_df = _apply_policy_start(temp_df, "%Y%m%d")
+            temp_df['policy_start_date'] = policy_start_date_input
+            temp_df['policy_start_date'] = self.date_conversion(temp_df['policy_start_date'])
+            temp_df['age'] = self.date_conversion(temp_df['age'])
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
             for col in self.cols:
                 if col not in temp_df.columns:
                     temp_df[col] = None
@@ -497,6 +575,9 @@ class MemberCensus():
         dep_mapping = {'Employee': 'EE',
                        'Spouse': 'SP',
                        'Child': 'CH',
+                       'employee': 'EE',
+                       'spouse': 'SP',
+                       'child': 'CH',
                        'E': 'EE',
                        'S': 'SP',
                        'C': 'CH',

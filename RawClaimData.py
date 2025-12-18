@@ -89,6 +89,24 @@ class RawClaimData():
     self.ibnr = pd.read_csv('ibnr_ref.csv', dtype={'data_month': int, 'ibnr': float})
     self.provider_grouping_path = 'provider_mapping.csv'
 
+  def date_conversion(self, date_series):
+        try:
+            date_series = pd.to_datetime(date_series, format="%d/%m/%Y")
+        except:
+            try:
+                date_series = pd.to_datetime(date_series, format="%Y-%m-%d")
+            except:
+                try:
+                    date_series = pd.to_datetime(date_series, format="%m/%d/%Y")
+                except:
+                    try:
+                        date_series = pd.to_datetime(date_series, format="%Y%m%d")
+                    except:
+                        try:
+                            date_series = pd.to_datetime(date_series, format="%Y-%m-%d %H:%M:%S")
+                        except:
+                            date_series = pd.to_datetime(date_series, format="ISO8601")
+        return date_series
 
 
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, policy_data_date=None, client_name=None, region='HK', col_mapper=None):
@@ -1384,12 +1402,12 @@ class RawClaimData():
     t_df['policy_id'] = f"{t_df['policy_number'].values[0]}_{_start_date:%Y%m}"
     t_df['benefit_type'].replace({'HS': 'Hospital', 'OPCC': 'Clinic', 'UNCOVERED': 'not_covered'}, inplace=True)
     t_df['panel'].replace({'panel': 'Panel', 'reimbursement': 'Non-Panel'}, inplace=True)
-    t_df['dep_type'].replace({0: 'EE', 1: 'SP', 2: 'CH'}, inplace=True)
+    t_df['dep_type'].replace({0: 'EE', 1: 'SP', 2: 'CH', 3: 'CH', 4: 'CH', 5: 'CH', 6: 'CH', 7: 'CH'}, inplace=True)
     t_df['region'] = region
     t_df['suboffice'] = '00'
     for col in date_cols:
       if col in t_df.columns.tolist():
-        t_df[col] = pd.to_datetime(t_df[col])
+        t_df[col] = self.date_conversion(t_df[col])
       else:
         t_df[col] = np.nan
   

@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from io import BytesIO
+import re
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import numpy as np
@@ -459,6 +460,19 @@ class MCRMemberCensusCombiner:
     def _normalise_key(value: object) -> str:
         return str(value).strip().lower() if value is not None else ""
 
+    @staticmethod
+    def _normalize_class_token(value: object) -> str:
+        """Normalize class-like tokens so numeric classes don't mismatch ('5' vs '5.0')."""
+        if value is None:
+            return ""
+        s = str(value).strip()
+        if s.lower() in {"nan", "none", ""}:
+            return ""
+        # Collapse integer-like floats
+        if re.fullmatch(r"-?\d+\.0+", s):
+            s = s.split(".")[0]
+        return s
+
     def _best_match_raw(self, needle: str, haystack: Iterable[str]) -> Tuple[Optional[str], float]:
         """Return the raw best fuzzy match (without score thresholding)."""
 
@@ -512,7 +526,7 @@ class MCRMemberCensusCombiner:
         class_mapping["member_class"] = class_mapping["member_class"].astype(str).str.strip()
         class_mapping["member_class_id"] = class_mapping["member_class_id"].astype(str).str.strip()
         class_mapping["mcr_policy"] = class_mapping["mcr_policy"].astype(str).str.strip()
-        class_mapping["mcr_class"] = class_mapping["mcr_class"].astype(str).str.strip()
+        class_mapping["mcr_class"] = class_mapping["mcr_class"].apply(self._normalize_class_token)
         class_mapping["mcr_class_id"] = class_mapping["mcr_class_id"].astype(str).str.strip()
 
         class_id_map = {
@@ -524,19 +538,25 @@ class MCRMemberCensusCombiner:
             member_class_id = str(row.get("member_class_id"))
             mapped = class_id_map.get(member_class_id)
             if mapped:
-                return mapped[0], mapped[1]
+                mapped_class = self._normalize_class_token(mapped[0])
+                mapped_id = mapped[1]
+                if mapped_class not in {"", "nan", "none"}:
+                    return mapped_class, mapped_id
             key = (str(row["policy_number_raw"]), str(row["class_raw"]))
             fallback = class_id_map.get(f"{key[0]}_{key[1]}")
             if fallback:
-                return fallback[0], fallback[1]
-            return str(row["class_raw"]), None
+                fallback_class = self._normalize_class_token(fallback[0])
+                fallback_id = fallback[1]
+                if fallback_class not in {"", "nan", "none"}:
+                    return fallback_class, fallback_id
+            return self._normalize_class_token(row["class_raw"]), None
 
         mapped_classes = members.apply(_map_class, axis=1, result_type="expand")
         mapped_classes.columns = ["class", "mcr_class_id"]
         members["class"] = mapped_classes["class"]
         members["mcr_class_id"] = mapped_classes["mcr_class_id"]
-        members["class"] = members["class"].replace({"nan": np.nan}).astype(str).str.strip()
-        members.loc[members["class"].isin(["", "nan", "None"]), "class"] = np.nan
+        members["class"] = members["class"].apply(self._normalize_class_token)
+        members.loc[members["class"].isin(["", "nan", "none"]), "class"] = np.nan
         members["mcr_class_id"] = members["mcr_class_id"].astype(str).replace({"nan": np.nan, "None": np.nan}).str.strip()
 
         members["dep_type"] = members["dep_type_raw"].astype(str).str.upper().str.strip()
@@ -570,8 +590,11 @@ class MCRMemberCensusCombiner:
         # Clean class and dep values for grouping
         for col in ["policy_number", "class", "dep_type", "year"]:
             if col in work.columns:
-                work[col] = work[col].astype(str).replace({"nan": np.nan, "None": np.nan})
-                work[col] = work[col].str.strip()
+                if col == "class":
+                    work[col] = work[col].apply(self._normalize_class_token)
+                else:
+                    work[col] = work[col].astype(str).replace({"nan": np.nan, "None": np.nan})
+                    work[col] = work[col].str.strip()
 
         aggregates: Dict[str, pd.DataFrame] = {}
 
@@ -640,8 +663,11 @@ class MCRMemberCensusCombiner:
             if col == "year":
                 df[col] = df[col].astype(str).str.extract(r"(\d{4})", expand=False)
             else:
-                df[col] = df[col].astype(str).str.strip()
-                df.loc[df[col].isin(["nan", "None", ""]), col] = np.nan
+                if col == "class":
+                    df[col] = df[col].apply(self._normalize_class_token)
+                else:
+                    df[col] = df[col].astype(str).str.strip()
+                df.loc[df[col].isin(["nan", "none", "", None]), col] = np.nan
 
         if {"class", "dep_type"}.issubset(identifier_cols):
             lookup_key = "policy_year_class_dep"
@@ -673,10 +699,13 @@ class MCRMemberCensusCombiner:
         else:
             grouped_lookup = lookup.copy()
 
-        df = df.merge(grouped_lookup, on=merge_cols, how="left")
-
-        if "class" in merge_cols:
-            df = self._insert_missing_class_rows(df, grouped_lookup, merge_cols)
+        merged = df.merge(grouped_lookup, on=merge_cols, how="outer")
+        # Preserve original column ordering, appending any new columns (e.g., member_count)
+        ordered_cols = [c for c in df.columns if c in merged.columns]
+        for c in merged.columns:
+            if c not in ordered_cols:
+                ordered_cols.append(c)
+        df = merged[ordered_cols]
 
         member_counts = pd.to_numeric(df[self.MEMBER_COUNT_COL], errors="coerce")
         zero_mask = member_counts.fillna(0) == 0
