@@ -1538,7 +1538,7 @@ class RawClaimData():
 
   def preprocessing(self, policy_id=None, rejected_claim=True, aso=True, smm=True, diagnosis=False, provider_grouping=False, common_diagnosis=True, group_optical=False, research_mode=False, age_band=False):
 
-    self.df['data_month'] = (((self.df['policy_data_date'] - self.df['policy_start_date']).dt.days / 30.5).round() + 1).astype(int)
+    self.df['data_month'] = (((self.df['policy_data_date'] - self.df['policy_start_date']).dt.days / 30.5).astype(int) + 1).astype(int)
     print(self.df.data_month.unique())
     self.df = pd.merge(left=self.df, right=self.ibnr, how='left', left_on='data_month', right_on='data_month')
     # self.df['factoring'] = self.df['year'] == self.policy_start_date.year
