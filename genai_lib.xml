@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <model_library>
-    <model name="gemini-2.5-flash">google/gemini-2.5-flash</model>
-
-    <model name="gemini-2.5-flash-lite">google/gemini-2.5-flash-lite</model>
-
-    <model name="gemini-2.5-pro">google/gemini-2.5-pro</model>
+    <model name="gemini-3-flash-preview">google/gemini-3-flash-preview</model>
 
     <model name="gemini-3-pro-preview">google/gemini-3-pro-preview</model>
-
-    <model name="gpt5">openai/gpt-5</model>
 
 </model_library>
