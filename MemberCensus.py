@@ -413,6 +413,53 @@ class MemberCensus():
             'company_code': 'suboffice',
 
         }
+        self.bluecross_cols = [
+            'Policy No.',
+            'Policy Year', 
+            'Insured No.', 
+            'Dependant Code', 
+            'Insured Name', 
+            'Sex', 
+            'Date of Birth', 
+            'Bank A/C No.', 
+            'Special Code', 
+            'Insured Start Date', 
+            'Insured End Date', 
+            'Level Code', 
+            'Relationship', 
+            'Staff No.', 
+            'E-Mail',
+        ]
+        self.bluecross_cols_dtype = {
+            'Policy No.': str,
+            'Policy Year': str,
+            'Insured No.': str,
+            'Dependant Code': str,
+            'Insured Name': str,
+            'Sex': str,
+            'Date of Birth': str,
+            'Bank A/C No.': str,
+            'Special Code': str,
+            'Insured Start Date': str,
+            'Insured End Date': str,
+            'Level Code': str,
+            'Relationship': str,
+            'Staff No.': str,
+            'E-Mail': str,
+        }
+        self.bluecross_cols_mapping = {
+            'Policy No.': 'policy_number',
+            # 'insurer'
+            'Insured No.': 'member_id',
+            'Relationship': 'dep_type',
+            'Level Code': 'class',
+            'Insured Name': 'name',
+            'Sex': 'gender',
+            'Date of Birth': 'age',
+            'Insured Start Date': 'policy_start_date',
+            # 'staff_id',
+            'E-Mail': 'working_email',
+        }
 
 
     def get_member_df(self, fp, insurer, policy_start_date_input=None):
@@ -565,8 +612,31 @@ class MemberCensus():
             
             temp_df = temp_df[self.cols]
 
+        elif insurer == 'BlueCross':
+            temp_df = pd.read_excel(fp, dtype=self.bluecross_cols_dtype)
+            temp_df.rename(columns=self.bluecross_cols_mapping, inplace=True)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            temp_df = _apply_policy_start(temp_df, "%Y%m%d")
+
+            temp_df['age'] = pd.to_datetime(temp_df['age'], format="%Y%m%d")
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
+
+            temp_df['class'] = temp_df['class'].str.split(" ").str[-1]
+
+            temp_df.drop_duplicates(subset=['member_id', 'name', 'class'], keep='last', inplace=True)
+
+            for col in self.cols:
+                if col not in temp_df.columns:
+                    temp_df[col] = None
+            
+            temp_df = temp_df[self.cols]
+
         self.member_df = pd.concat([self.member_df, temp_df], axis=0)
         return self.member_df
+
+
         
             
     def member_df_processing(self):

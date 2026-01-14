@@ -240,7 +240,7 @@ if st.session_state.raw_claim == True:
         insurer_l.append('AXA')
         policy_sd_l.append(uploaded_file.name.split('_')[3])
         policy_dd_l.append(''.join([uploaded_file.name.split('_')[4].split(' - ')[0][:6], '01']))
-        password_l.append("".join(['axa', str(dt.date.today().year)]))
+        password_l.append("".join(['axa', uploaded_file.name.split('_')[4].split(' - ')[0][:4]]))
       elif 'HSD' in uploaded_file.name or 'GMD' in uploaded_file.name:
         insurer_l.append('AIA')
         __d = uploaded_file.name.split('(')[-1].split("-")[0]
@@ -249,6 +249,11 @@ if st.session_state.raw_claim == True:
         __d = uploaded_file.name.split('(')[-1].split("-")[1].split(")")[0]
         __d = "".join([__d[-4:], __d[0:2], '01'])
         policy_dd_l.append(__d)
+        password_l.append("")
+      elif 'Claim Raw Data +' in uploaded_file.name:
+        insurer_l.append('Manulife')
+        policy_sd_l.append("")
+        policy_dd_l.append("")
         password_l.append("")
       elif 'Claims Raw' in uploaded_file.name:
         insurer_l.append('Bupa')
@@ -265,15 +270,27 @@ if st.session_state.raw_claim == True:
         policy_sd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[0],'01']))
         policy_dd_l.append("".join([uploaded_file.name.split('_')[-1].split('-')[1][0:6],'01']))
         password_l.append("")
-      elif 'CRD and Breakdown' in uploaded_file.name:
+      elif 'CRD' in uploaded_file.name:
         insurer_l.append('Sunlife')
         policy_sd_l.append("".join(['20',uploaded_file.name.split('_')[-1].split('-')[0]]))
         policy_dd_l.append("".join(['20',uploaded_file.name.split('_')[-1].split('-')[1][:6]]))
+        password_l.append("")
         # password_l.append("sunlight")
       elif'ClaimUsageReport' in uploaded_file.name:
         insurer_l.append('Bolttech')
         policy_sd_l.append(uploaded_file.name.split('_')[-2])
+        policy_dd_l.append("")
         password_l.append("")
+      elif 'Claim data' in uploaded_file.name:
+        insurer_l.append('HSBC')
+        policy_sd_l.append("".join([uploaded_file.name.split('_')[1].split('-')[0]]))
+        policy_dd_l.append("".join([uploaded_file.name.split('_')[1].split('-')[-1]]))
+        password_l.append("")
+      else:
+        insurer_l.append('')
+        policy_sd_l.append('')
+        policy_dd_l.append('')
+        password_l.append('')
 
       import tempfile
       import os
@@ -641,6 +658,8 @@ if st.session_state.shortfall == True:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
       elif full_file_list[n0].split("/")[-1].split("_")[0] == 'AIA':
         sf_.add_shortfall(full_file_list[n0], insurer='AIA')
+      elif full_file_list[n0].split("/")[-1].split("_")[-2] == 'BlueCross':
+        sf_.add_shortfall(full_file_list[n0], insurer='BlueCross')
       else:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
     sf_.aia_identify()
@@ -1079,7 +1098,7 @@ if st.session_state.member_mcr_combine == True:
       policy_editor = st.data_editor(
         policy_editor_df,
         hide_index=True,
-        width='content',
+        width=900,
         key='member_mcr_policy_editor',
         column_config={
           'matched_member_policy': st.column_config.SelectboxColumn(
@@ -1559,7 +1578,7 @@ if st.session_state.mcr_merge == True:
     st.info("Upload MCR files to list selectable policy-year-classes.")
   else:
     st.write("### Available items")
-    st.dataframe(cat, width='stretch')
+    st.dataframe(cat, width=1000)
 
     # Build selection labels depending on all-years mode, excluding already-grouped items
     apply_all_years = st.session_state.get('mcr_apply_all_years', False)
@@ -1668,7 +1687,7 @@ if st.session_state.mcr_merge == True:
           "Policies": uniq_policies,
           "Classes": uniq_classes,
         })
-      st.dataframe(pd.DataFrame(summary_rows), width='stretch')
+      st.dataframe(pd.DataFrame(summary_rows), width=1000)
 
       # Details expanders with optional removal per group
       for idx, grp in enumerate(st.session_state.mcr_merge_groups):
@@ -1844,6 +1863,9 @@ if st.session_state.ocr == True:
       file_name_to_csv = f"AIA_102_{csv_report.policy_id.iloc[0]}.csv"
     elif "Loss Ratio" in prompt_data_options[data_selection]:
       file_name_to_csv = f"{uploaded_file.name[:-4]}.csv"
+    elif "BlueCross Usage" in prompt_data_options[data_selection]:
+      file_name_to_csv = f"{uploaded_file.name[:-4]}_BlueCross_Usage.csv"
+
     # elif "BlueCross Usage" in prompt_data_options[data_selection]:
     #   file_name_to_csv = "BlueCross_Usage_Report.csv"
       # BlueCross = BlueCrossUsageReportConvert(csv_data)

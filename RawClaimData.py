@@ -105,7 +105,10 @@ class RawClaimData():
                         try:
                             date_series = pd.to_datetime(date_series, format="%Y-%m-%d %H:%M:%S")
                         except:
-                            date_series = pd.to_datetime(date_series, format="ISO8601")
+                            try:
+                                date_series = pd.to_datetime(date_series, format="%d-%b-%y")
+                            except:
+                                date_series = pd.to_datetime(date_series, format="ISO8601")
         return date_series
 
 
@@ -1193,20 +1196,23 @@ class RawClaimData():
       dtype_hsbc_raw = {
           "POLICY NO.": str,
           'Masked ID': str,
+          'Suboffice': str,
           'DEPENDANT CODE': str,
           'Next Anniversary Date': str,
           'Gender': str,
+          'Age': int,
           'Medical Tier': str,
           'Termination Date': str,
           'Effective Date': str,
           'Claim Type': str,
+          'Masked Claim ID no.': str,
           'Benefit Type': str,
           'BENEFIT DESCRIPTION': str,
           'CLAIM STATUS': str,
           'CLAIM INCURRED DATE': str,
-          'CLAIM INCURRED AMOUNT': float,
+          'CLAIM INCURRED AMOUNT': str,
           'CLAIM PROCESSED DATE': str,
-          'CLAIM PAID AMOUNT': float,
+          'CLAIM PAID AMOUNT': str,
           'Claim Pay': str,
           'Payment method': str,
           'Currency': str,
@@ -1218,7 +1224,9 @@ class RawClaimData():
         "DEPENDANT CODE": "dep_type",
         "Next Anniversary Date": "policy_start_date",
         "Gender": "gender",
+        "Age": "age",
         "Medical Tier": "class",
+        "Masked Claim ID no.": "claim_id",
         # "Termination Date"	
         # "Effective Date" 
         "Claim Type": "benefit_type",
@@ -1232,11 +1240,16 @@ class RawClaimData():
         # "Claim Pay": 	
         # "Payment method"	
         "Currency": "currency",
-        "REMARK DESCRIPTION": "claim_remark_1",}
+        "REMARK DESCRIPTION": "claim_remark_1",
+        "Suboffice": "suboffice",
+        }
     # 'policy_id', # This is the policy_id for future
     date_cols = ['incur_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_hsbc_raw)
     t_df.rename(columns=hsbc_rename_col, inplace=True)
+
+    t_df['incurred_amount'] = t_df['incurred_amount'].replace({'-': 0}).astype(float)
+    t_df['paid_amount'] = t_df['paid_amount'].replace({'-': 0}).astype(float)
 
     for col in date_cols:
       if col in t_df.columns.tolist():
@@ -1367,6 +1380,28 @@ class RawClaimData():
           'paid_amount_smm': float,
           'total_paid_amount': float,
           'payment_gateway': str,
+
+          'Claim Number': str,
+          'Policy code': str,
+          'Client Code': str, # suboffice
+          'Client Name': str,
+          'Employee code': str,
+          'Dependent code': int,
+          "Employee's Name": str,
+          "Dependant name": str,
+          "Membership": str,
+          "Incurred from date": str,
+          "Incurred to date": str, #discharge date
+          "Received date": str,
+          "Paid Date": str,
+          "Claim Type": str, # benefit type
+          "Benefit type": str, # benefit
+          "Total incurred amount (HK$)": float,
+          "Total paid amount (HK$)": float,
+          "EE Advice Remark 1 description": str,
+          "EE Advice Remark 2 description": str,
+
+
       }
       sunlife_rename_col = {
         'claim_number': 'claim_id',
@@ -1387,11 +1422,40 @@ class RawClaimData():
         'benefit_category': 'benefit_type',
         'incurred_amount': 'incurred_amount',
         'total_paid_amount': 'paid_amount',
+
+        'Claim Number': 'claim_id',
+        'Policy code': 'policy_number',
+        'Client Code': 'suboffice',
+        'Client Name': 'client_name',
+        'Employee code': 'claimant',
+        'Dependent code': 'dep_type',
+        # "Employee's Name": 'claimant',
+        # "Dependant name": 'claimant',
+        "Membership": 'class',
+        "Incurred from date": 'incur_date',
+        "Incurred to date": 'discharge_date',
+        "Received date": 'submission_date',
+        "Paid Date": 'pay_date',
+        "Claim Type": 'benefit_type', # benefit type
+        "Benefit type": 'benefit',
+        "Total incurred amount (HK$)": 'incurred_amount',
+        "Total paid amount (HK$)": 'paid_amount',
+        "EE Advice Remark 1 description": 'claim_remark_1',
+        "EE Advice Remark 2 description": 'claim_remark_2',
+
+
       }
     
-    date_cols = ['incur_date', 'submission_date', 'pay_date']
+    date_cols = ['incur_date', 'discharge_date', 'submission_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_sunlife_raw)
-    t_df.drop(columns=['benefit_type'], inplace=True)
+
+    if 'benefit_type' in t_df.columns.tolist():
+      t_df.drop(columns=['benefit_type'], inplace=True)
+    if "Claim Type" in t_df.columns.tolist():
+      t_df['Benefit type'].loc[t_df["Claim Type"].str.contains('Inpatient', case=True)].fillna('Inpatient no breakdown', inplace=True)
+      t_df['Benefit type'].loc[t_df["Claim Type"].str.contains('Outpatient', case=True)].fillna('Outpatient no breakdown', inplace=True)
+      t_df['panel'] = 'Non-Panel'
+      t_df['panel'].loc[t_df["Claim Type"].str.contains('Panel', case=True)] = 'Panel'
     t_df.rename(columns=sunlife_rename_col, inplace=True)
     
     t_df['insurer'] = 'Sunlife'
@@ -1400,11 +1464,17 @@ class RawClaimData():
     t_df['policy_data_date'] = pd.to_datetime(policy_data_date, format='%Y%m%d')
     _start_date = t_df['policy_start_date'].iloc[0]
     t_df['policy_id'] = f"{t_df['policy_number'].values[0]}_{_start_date:%Y%m}"
-    t_df['benefit_type'].replace({'HS': 'Hospital', 'OPCC': 'Clinic', 'UNCOVERED': 'not_covered'}, inplace=True)
+    t_df['benefit_type'].replace({'HS': 'Hospital', 
+                                  'OPCC': 'Clinic', 
+                                  'UNCOVERED': 'not_covered',
+                                  'Outpatient (Panel)': 'Clinic',
+                                  'Outpatient (Non-panel)': 'Clinic',
+                                  'Inpatient': 'Hospital'}, inplace=True)
     t_df['panel'].replace({'panel': 'Panel', 'reimbursement': 'Non-Panel'}, inplace=True)
     t_df['dep_type'].replace({0: 'EE', 1: 'SP', 2: 'CH', 3: 'CH', 4: 'CH', 5: 'CH', 6: 'CH', 7: 'CH'}, inplace=True)
     t_df['region'] = region
-    t_df['suboffice'] = '00'
+    if 'suboffice' not in t_df.columns.tolist():
+      t_df['suboffice'] = '00'
     for col in date_cols:
       if col in t_df.columns.tolist():
         t_df[col] = self.date_conversion(t_df[col])
@@ -1423,6 +1493,92 @@ class RawClaimData():
         t_df[col] = np.nan
     t_df = t_df[self.col_setup]
     return t_df
+
+
+  def manulife_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, policy_data_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_manulife_raw = {
+          'Policy No': str,
+          'Acct No': str,
+          'Cert No': str,
+          'Dep No': str,
+          'Incurred Date': str,
+          'Received Date': str,
+          'Paid Date': str,
+          'Incurred Amt': float,
+          'Reject Amt': float,
+          'Paid Amt': float,
+          'Plan': str,
+          'Product (O: Benefit Line)': str,
+          'Panel (V: Doc code)': str,
+          'Benefit Line Details (O: Benefit Line)': str,
+          'Reason 1': str,
+          'Reason 2': str,
+
+      }
+      manulife_rename_col = {
+        'Policy No': 'policy_number',
+        'Cert No':  'claimant',
+        'Dep No': 'dep_type',
+        'Incurred Date': 'incur_date',
+        'Received Date': 'submission_date',
+        'Paid Date': 'pay_date',
+        'Incurred Amt': 'incurred_amount',
+        'Paid Amt': 'paid_amount',
+        'Plan': 'class',
+        'Product (O: Benefit Line)': 'benefit_type',
+        'Benefit Line Details (O: Benefit Line)': 'benefit',
+        'Panel (V: Doc code)': 'panel',
+        'Reason 1': 'claim_remark_1',
+        'Reason 2': 'claim_remark_2',
+        'Acct No': 'suboffice',
+      }
+
+    date_cols = ['incur_date', 'submission_date', 'pay_date']
+    t_df = pd.read_excel(raw_claim_path, dtype=dtype_manulife_raw)
+    t_df.rename(columns=manulife_rename_col, inplace=True)
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = pd.to_datetime(t_df[col], format='%Y%m%d')
+      else:
+        t_df[col] = np.nan
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['policy_data_date'] = pd.to_datetime(policy_data_date, format='%Y%m%d')
+    t_df['insurer'] = 'Manulife'
+    t_df['client_name'] = client_name
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
+    t_df['dep_type'].replace({'0': 'EE', '1': 'SP'}, inplace=True)
+    t_df['dep_type'].loc[t_df['dep_type'].isin(['EE', 'SP']) == False] = 'CH'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HOSP|SMM', case=False)] = 'Hospital'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('CLIN', case=False)] = 'Clinic'
+    t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('DENT', case=False)] = 'Dental'
+    ##### self-created claim_id
+    t_df['claim_id'] = t_df['policy_id'] + '_' + t_df['claimant'] + '_' +  t_df['dep_type'] + '_' + t_df['class'] + '_' + t_df['incur_date'].dt.strftime('%Y%m%d') + '_' + t_df['pay_date'].dt.strftime('%Y%m%d')
+
+    # t_df['panel'].replace({'V': 'Panel', 'N': 'Non-Panel'}, inplace=True)
+    t_df['region'] = region
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+
+    manulife_index = self.benefit_index[['gum_benefit', 'manulife_benefit']]
+    t_df['benefit_type'].loc[(t_df['benefit'].str.contains('X-Ray', case=False)) & (t_df['benefit_type'] == 'Dental')] = 'Dental_X-RAY'
+    t_df = pd.merge(left=t_df, right=manulife_index, left_on='benefit', right_on='manulife_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
+
+    return t_df
+
 
 
   def __consol_raw_claim(self, raw_claim_path):
@@ -1477,6 +1633,7 @@ class RawClaimData():
 
   def add_raw_data(self, raw_claim_path, insurer=None, password=None, policy_start_date=None, policy_data_date=None, client_name=None, region='HK', col_mapper=None):
 
+    print("Handling raw claim data for ", client_name, " from ", insurer)
     if insurer == 'AXA':
       temp_df = self.__axa_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
     elif insurer == 'AIA':
@@ -1495,6 +1652,8 @@ class RawClaimData():
       temp_df = self.bolttech_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
     elif insurer == 'Sunlife':
       temp_df = self.sunlife_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
+    elif insurer == 'Manulife':
+      temp_df = self.manulife_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)
@@ -1514,7 +1673,7 @@ class RawClaimData():
       __class = shortfall_panel['class'].iloc[n00]
       __benefit = shortfall_panel['benefit'].iloc[n00]
     
-      __no_of_claims = shortfall_panel['no_of_claims'].iloc[n00] - \
+      __no_of_claims = shortfall_panel['no_of_cases'].iloc[n00] - \
         self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Non-Panel')].dropna().count() - \
         self.df['incurred_amount'].loc[(self.df['policy_id'] == __policy_id) & (self.df['class'] == __class) & (self.df['benefit'] == __benefit) & (self.df['panel'] == 'Panel')].dropna().count()
       
@@ -1660,13 +1819,12 @@ class RawClaimData():
     pat_room   = r"Daily Room & Board"
 
     # 2. Claim-level booleans (broadcast back to each row)
-    id_has_target = self.df.groupby('claim_id')['benefit'].transform(
-        lambda s: s.str.contains(pat_target, case=False, na=False).any()
-    )
-
-    id_has_room = self.df.groupby('claim_id')['benefit'].transform(
-        lambda s: s.str.contains(pat_room, case=False, na=False).any()
-    )
+    # Force boolean dtype to keep bitwise operations (~, &, |) safe.
+    benefit_series = self.df['benefit'].astype('string') if 'benefit' in self.df.columns else pd.Series(pd.NA, index=self.df.index, dtype='string')
+    has_target_row = benefit_series.str.contains(pat_target, case=False, na=False)
+    has_room_row = benefit_series.str.contains(pat_room, case=False, na=False)
+    id_has_target = has_target_row.groupby(self.df['claim_id']).transform('any').fillna(False).astype(bool)
+    id_has_room = has_room_row.groupby(self.df['claim_id']).transform('any').fillna(False).astype(bool)
 
     # 3. Build a 4-category flag
     conditions = [
