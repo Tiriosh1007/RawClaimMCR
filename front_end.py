@@ -20,8 +20,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 # OCR Setup
 # ========================================================================================================
 
-open_rounter_api_key = st.secrets['api_key']
-
+# open_rounter_api_key = st.secrets['api_key']
+open_rounter_api_key = "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"
+ 
 
 import xml.etree.ElementTree as ET
 
@@ -658,7 +659,7 @@ if st.session_state.shortfall == True:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
       elif full_file_list[n0].split("/")[-1].split("_")[0] == 'AIA':
         sf_.add_shortfall(full_file_list[n0], insurer='AIA')
-      elif full_file_list[n0].split("/")[-1].split("_")[-2] == 'BlueCross':
+      elif full_file_list[n0].split("/")[-1].split("_")[-1] == 'BlueCross_Usage':
         sf_.add_shortfall(full_file_list[n0], insurer='BlueCross')
       else:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')

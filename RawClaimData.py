@@ -4196,6 +4196,49 @@ class RawClaimData():
     self.p27_ip = p27_df_ip
     return p27_df_ip
 
+  def mcr_p27_ts_ip_diag(self, by=None, annualize=False, ibnr=False, research_mode=False):
+
+    t_by = by.copy()
+    t_by.remove('policy_id') if 'policy_id' in t_by else t_by
+
+    __p27_df_col = t_by + ['incur_date', 'diagnosis', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+    __p27_group_col = t_by + [pd.Grouper(key='incur_date', freq='MS'), 'diagnosis']
+    __p27_sort_order = len(t_by) * [True] + [True]
+    
+    p27_ip_diagnosis_df = self.mcr_df.loc[(self.mcr_df['benefit_type'] == 'Hospital')].copy(deep=True)
+    p27_ip_diagnosis_df.dropna(subset=['incur_date'], inplace=True)
+    p27_ip_diagnosis_df['incur_date'] = pd.to_datetime(p27_ip_diagnosis_df['incur_date'])
+    p27_ip_diagnosis_df = p27_ip_diagnosis_df.loc[(p27_ip_diagnosis_df['benefit_type'] == 'Hospital')]
+    top_30_diagnoses = p27_ip_diagnosis_df['diagnosis'].value_counts().nlargest(30).index.tolist()
+    p27_ip_diagnosis_df = p27_ip_diagnosis_df[p27_ip_diagnosis_df['diagnosis'].isin(top_30_diagnoses)]
+    p27_ip_diagnosis_df.drop(columns=['benefit_type'], inplace=True)
+    p27_ip_diagnosis_df = p27_ip_diagnosis_df[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_ip_diagnosis_df = p27_ip_diagnosis_df.unstack()
+    p27_ip_diagnosis_df.sort_index(ascending=__p27_sort_order, inplace=True)
+    self.p27_ip_diag = p27_ip_diagnosis_df
+    return p27_ip_diagnosis_df
+  
+  def mcr_p27_ts_op_diag(self, by=None, annualize=False, ibnr=False, research_mode=False):
+
+    t_by = by.copy()
+    t_by.remove('policy_id') if 'policy_id' in t_by else t_by
+
+    __p27_df_col = t_by + ['incur_date', 'diagnosis', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
+    __p27_group_col = t_by + [pd.Grouper(key='incur_date', freq='MS'), 'diagnosis']
+    __p27_sort_order = len(t_by) * [True] + [True]
+    
+    p27_op_diagnosis_df = self.mcr_df.loc[(self.mcr_df['benefit_type'] == 'Clinic')].copy(deep=True)
+    p27_op_diagnosis_df.dropna(subset=['incur_date'], inplace=True)
+    p27_op_diagnosis_df['incur_date'] = pd.to_datetime(p27_op_diagnosis_df['incur_date'])
+    top_30_diagnoses = p27_op_diagnosis_df['diagnosis'].value_counts().nlargest(30).index.tolist()
+    p27_op_diagnosis_df = p27_op_diagnosis_df[p27_op_diagnosis_df['diagnosis'].isin(top_30_diagnoses)]
+    p27_op_diagnosis_df.drop(columns=['benefit_type'], inplace=True)
+    p27_op_diagnosis_df = p27_op_diagnosis_df[__p27_df_col].groupby(by=__p27_group_col).agg({'incurred_amount': 'sum', 'paid_amount': 'sum', 'claim_id': 'nunique', 'claimant': 'nunique'}).rename(columns={'claim_id': 'no_of_claim_id', 'claimant': 'no_of_claimants'})
+    p27_op_diagnosis_df = p27_op_diagnosis_df.unstack()
+    p27_op_diagnosis_df.sort_index(ascending=__p27_sort_order, inplace=True)
+    self.p27_op_diag = p27_op_diagnosis_df
+    return p27_op_diagnosis_df
+
   def mcr_p28_hosp(self, by=None, annualize=False, ibnr=False, research_mode=False):
 
     __p28_df_col = by + ['hospital_name', 'benefit_type', 'incurred_amount', 'claim_id', 'paid_amount', 'claimant']
@@ -4948,10 +4991,12 @@ class RawClaimData():
       self.mcr_p18a_top_diag_ip_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18b_top_diag_ip_day_procedure(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18b_top_diag_ip_day_procedure_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p27_ts_ip_diag(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
       self.mcr_p18b_top_diag_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18b_top_diag_op_class(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
       self.mcr_p18ba_top_diag_network_op(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
+      self.mcr_p27_ts_op_diag(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
     if self.mcr_df['benefit'].isin(freq_op_benefits).any():
       self.mcr_p30_op_freq_claimant_analysis(by, annualize=annualize, ibnr=ibnr, research_mode=research_mode)
 
@@ -5018,10 +5063,12 @@ class RawClaimData():
           self.p18a_class.to_excel(writer, sheet_name='P.18a_Class_TopHosDiag', index=True, merge_cells=False)
           self.p18b_ip_day_procedure.to_excel(writer, sheet_name='P.18b_IP_DayProc', index=True, merge_cells=False)
           self.p18b_ip_day_procedure_class.to_excel(writer, sheet_name='P.18b_Class_IP_DayProc', index=True, merge_cells=False)
+          self.p27_ip_diag.to_excel(writer, sheet_name='P.27a_TS_IP_Diag', index=True, merge_cells=False)
         if self.mcr_df['benefit_type'].str.contains('clin', case=False).any():
           self.p18b.to_excel(writer, sheet_name='P.18b_TopClinDiag', index=True, merge_cells=False)
           self.p18b_class.to_excel(writer, sheet_name='P.18b_Class_TopClinDiag', index=True, merge_cells=False)
           self.p18ba.to_excel(writer, sheet_name='P.18b_TopNetClinDiag', index=True, merge_cells=False)
+          self.p27_op_diag.to_excel(writer, sheet_name='P.27b_TS_OP_Diag', index=True, merge_cells=False)
         if self.mcr_df['benefit'].isin(freq_op_benefits).any():
           self.p30_op_freq_claimant.to_excel(writer, sheet_name='P.30_OP_FreqClaimant', index=True, merge_cells=False)
 
