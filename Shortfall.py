@@ -213,6 +213,7 @@ class Shortfall():
     dfs.append(df105)
 
     combined = pd.concat(dfs, ignore_index=True)
+    combined.rename(columns={'no_of_claims': 'no_of_cases'}, inplace=True)
 
     panel_map = {
       'non-network':       'Non-Panel',
