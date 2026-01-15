@@ -20,8 +20,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 # OCR Setup
 # ========================================================================================================
 
-# open_rounter_api_key = st.secrets['api_key']
-open_rounter_api_key = "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"
+open_rounter_api_key = st.secrets['api_key']
  
 
 import xml.etree.ElementTree as ET
