@@ -946,6 +946,7 @@ class RawClaimData():
     t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
     t_df['claim_status'] = np.nan
     t_df['claim_status'].loc[t_df['claim_remark_1'].isna() == False] = 'R'
+    
     t_df['panel'].replace({'E': 'Panel', 'I': 'Non-Panel', 'O': 'Non-Panel'}, inplace=True)
     t_df['region'] = region
     t_df['class'] = t_df['level_code'].str.split(' ').str[-1].str[0]
@@ -953,6 +954,7 @@ class RawClaimData():
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('HS', case=True)] = 'Hospital'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('OP', case=True)] = 'Clinic'
     t_df['benefit_type'].loc[t_df['benefit_type'].str.contains('DENT', case=True)] = 'Dental'
+    t_df['claim_id'] = t_df.claimant + '_' + t_df.incur_date.dt.strftime('%Y%m%d') + '_' + t_df.benefit_type
     t_df['suboffice'] = "00"
     t_df['dep_type'].fillna('EE', inplace=True)
     t_df['dep_type'].loc[t_df['dep_type'].str.contains('H|W', case=False)] = 'SP'
