@@ -1620,7 +1620,7 @@ class RawClaimData():
         'PROCESSING_DATE': 'submission_date',
         'CLMNO': 'claim_id',
         'BENEFIT_CODE': 'benefit_type',
-        'SUB_BENEFIT_DESCRIPTION': 'benefit',
+        'SUB_BENEFIT_CODE': 'benefit',
         'PANEL_CODE': 'provider',
         'INC_AMT': 'incurred_amount',
         'ADJ_AMT': 'paid_amount',
@@ -1629,6 +1629,12 @@ class RawClaimData():
       }
     date_cols = ['incur_date', 'discharge_date', 'submission_date', 'pay_date']
     t_df = pd.read_excel(raw_claim_path, dtype=dtype_liberty_raw)
+    smm_df = t_df.loc[t_df['ADJ_SMM'] > 0].copy()
+    smm_df['SUB_BENEFIT_CODE'] = 'SMM'
+    smm_df['INC_AMT'] = 0
+    smm_df['ADJ_AMT'] = smm_df['ADJ_SMM']
+    t_df = pd.concat([t_df, smm_df], ignore_index=True)
+
     t_df.rename(columns=liberty_rename_col, inplace=True)
     for col in date_cols:
       if col in t_df.columns.tolist():
@@ -1817,7 +1823,7 @@ class RawClaimData():
       
 
     if smm == True:
-      self.df.benefit.fillna('no_benefit', inplace=True)
+      self.df.benefit.fillna('missing_benefit_code', inplace=True)
       self.df.incurred_amount.loc[self.df.benefit == 'Top-up/SMM'] = 0
       self.df.incurred_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('secondary claim', case=False)]
       self.df.incurred_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)] = self.df.paid_amount.loc[self.df.benefit.str.contains('daily cash benefit', case=False)]

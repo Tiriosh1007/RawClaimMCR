@@ -7,6 +7,8 @@ import seaborn as sns
 import datetime as dt
 import hashlib
 from datetime import timedelta
+import re
+from datetime import datetime
 import warnings
 # import ollama
 # from openai import OpenAI
@@ -288,8 +290,9 @@ if st.session_state.raw_claim == True:
         password_l.append("")
       elif '_Data_' in uploaded_file.name:
         insurer_l.append('Liberty')
-        policy_sd_l.append("")
-        policy_dd_l.append("")
+        date_matches = re.findall(r'(\d{1,2}\s[A-Z]{3}\s\d{2})', uploaded_file.name)
+        policy_sd_l.append(datetime.strptime(date_matches[0], "%d %b %y").strftime("%Y%m%d"))
+        policy_dd_l.append(datetime.strptime(date_matches[1], "%d %b %y").strftime("%Y%m%d"))
         password_l.append("")
       else:
         insurer_l.append('')
@@ -323,7 +326,7 @@ if st.session_state.raw_claim == True:
   st.write("""
   Please input the configurations:
 
-  1. Insurers: Bupa/ AIA/ AXA/ Blue Cross/ AXA Single. If it is consolidated raw claim please leave blank.
+  1. Insurers: Bupa/ AIA/ AXA/ Blue Cross/ AXA Single/ HSBC/ Manulife/ Sunlife/ Bolttech/ Liberty. If it is consolidated raw claim please leave blank.
 
   2. Password: If no password please leave blank.
 
