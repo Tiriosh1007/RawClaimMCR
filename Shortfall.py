@@ -51,6 +51,30 @@ class Shortfall():
     self.benefit_index = pd.read_excel('benefit_indexing.xlsx')
     self.aia_file_list = []
 
+  def date_conversion(self, date_series):
+        try:
+            date_series = pd.to_datetime(date_series, format="%d/%m/%Y")
+        except:
+            try:
+                date_series = pd.to_datetime(date_series, format="%Y-%m-%d")
+            except:
+                try:
+                    date_series = pd.to_datetime(date_series, format="%m/%d/%Y")
+                except:
+                    try:
+                        date_series = pd.to_datetime(date_series, format="%Y%m%d")
+                    except:
+                        try:
+                            date_series = pd.to_datetime(date_series, format="%Y-%m-%d %H:%M:%S")
+                        except:
+                            try:
+                                date_series = pd.to_datetime(date_series, format="%d-%b-%y")
+                            except:
+                                try:
+                                  date_series = pd.to_datetime(date_series, format="%m/%d/%y")
+                                except:
+                                  date_series = pd.to_datetime(date_series, format="ISO8601")
+        return date_series
 
   def __bupa_shortfall(self, shortfall_fp):
 
@@ -423,28 +447,8 @@ class Shortfall():
           aia_102 = aia_fp_df['aia_102'].iloc[i] if pd.notna(aia_fp_df['aia_102'].iloc[i]) else None
 
           aia_combined = self.__aia_usage_combine(aia_101, aia_102, aia_105)
-          try:
-                aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%d/%m/%Y")
-                aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%d/%m/%Y")
-          except:
-              try:
-                  aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y-%m-%d")
-                  aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format='%Y-%m-%d')
-              except:
-                  try:
-                      aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%m/%d/%Y")
-                      aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%m/%d/%Y")
-                  except:
-                      try:
-                          aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y%m%d")
-                          aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%Y%m%d")
-                      except:
-                          try:
-                              aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="%Y-%m-%d %H:%M:%S")
-                              aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="%Y-%m-%d %H:%M:%S")
-                          except:
-                              aia_combined['policy_start_date'] = pd.to_datetime(aia_combined['policy_start_date'], format="ISO8601")
-                              aia_combined['policy_end_date'] = pd.to_datetime(aia_combined['policy_end_date'], format="ISO8601")
+          aia_combined['policy_start_date'] = self.date_conversion(aia_combined['policy_start_date'])
+          aia_combined['policy_end_date'] = self.date_conversion(aia_combined['policy_end_date'])
           self.df = pd.concat([self.df, aia_combined], axis=0, ignore_index=True)
       else:
         raise ValueError("No AIA 105 files found in the provided list.")
@@ -801,13 +805,17 @@ class Shortfall():
     self.mcr_p20_panel(by)
     self.mcr_p21_class(by)
     self.mcr_p22_class_benefit(by, benefit_type_order)
-    self.mcr_p23_ip_benefit(by)
-    self.mcr_p23a_class_ip_benefit(by)
-    self.mcr_p24_op_benefit(by)
-    self.mcr_p24a_op_class_benefit(by)
-    self.mcr_p24_dent_benefit(by)
+    if self.df['benefit_type'].isin(['Hospital']).any():
+      self.mcr_p23_ip_benefit(by)
+      self.mcr_p23a_class_ip_benefit(by)
+    if self.df['benefit_type'].isin(['Clinic']).any():
+      self.mcr_p24_op_benefit(by)
+      self.mcr_p24a_op_class_benefit(by)
+    if self.df['benefit_type'].isin(['Dental']).any():
+      self.mcr_p24_dent_benefit(by)
     self.mcr_p25_class_panel_benefit(by, benefit_type_order)
-    self.mcr_p26_op_panel(by)
+    if self.df['benefit_type'].isin(['Clinic']).any():
+      self.mcr_p26_op_panel(by)
     # self.mcr_p27_class_dep_op_benefit(by)
 
     if export == True:
@@ -821,13 +829,17 @@ class Shortfall():
         self.p20_panel.to_excel(writer, sheet_name='P.20_Network', index=True, merge_cells=False)
         self.p21.to_excel(writer, sheet_name='P.21_Class', index=True, merge_cells=False)
         self.p22.to_excel(writer, sheet_name='P.22_Class_BenefitType', index=True, merge_cells=False)
-        self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
-        self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
-        self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
-        self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
-        self.p24_dent_benefit.to_excel(writer, sheet_name='P.24b_DentalBenefit', index=True, merge_cells=False)
+        if self.df['benefit_type'].isin(['Hospital']).any():
+          self.p23.to_excel(writer, sheet_name='P.23_IP_Benefit', index=True, merge_cells=False)
+          self.p23a.to_excel(writer, sheet_name='P.23a_Class_IP_Benefit', index=True, merge_cells=False)
+        if self.df['benefit_type'].isin(['Clinic']).any():
+          self.p24.to_excel(writer, sheet_name='P.24_OP_Benefit', index=True, merge_cells=False)
+          self.p24a.to_excel(writer, sheet_name='P.24a_Class_OP_Benefit', index=True, merge_cells=False)
+        if self.df['benefit_type'].isin(['Dental']).any():
+          self.p24_dent_benefit.to_excel(writer, sheet_name='P.24b_DentalBenefit', index=True, merge_cells=False)
         self.p25.to_excel(writer, sheet_name='P.25_Class_Panel_BenefitType', index=True, merge_cells=False)
-        self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
+        if self.df['benefit_type'].isin(['Clinic']).any():
+          self.p26.to_excel(writer, sheet_name='P.26_OP_Panel_Benefit', index=True, merge_cells=False)
         # self.p27.to_excel(writer, sheet_name='P.27_Class_Dep_OP_Benefit', index=True, merge_cells=False)
         writer.close()
         # processed_data = output.getvalue()

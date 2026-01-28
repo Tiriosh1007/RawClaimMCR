@@ -286,6 +286,11 @@ if st.session_state.raw_claim == True:
         policy_sd_l.append("".join([uploaded_file.name.split('_')[1].split('-')[0]]))
         policy_dd_l.append("".join([uploaded_file.name.split('_')[1].split('-')[-1]]))
         password_l.append("")
+      elif '_Data_' in uploaded_file.name:
+        insurer_l.append('Liberty')
+        policy_sd_l.append("")
+        policy_dd_l.append("")
+        password_l.append("")
       else:
         insurer_l.append('')
         policy_sd_l.append('')
@@ -658,7 +663,7 @@ if st.session_state.shortfall == True:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
       elif full_file_list[n0].split("/")[-1].split("_")[0] == 'AIA':
         sf_.add_shortfall(full_file_list[n0], insurer='AIA')
-      elif full_file_list[n0].split("/")[-1].split("_")[-1] == 'BlueCross_Usage':
+      elif 'BlueCross_Usage' in full_file_list[n0]:
         sf_.add_shortfall(full_file_list[n0], insurer='BlueCross')
       else:
         sf_.add_shortfall(full_file_list[n0], insurer='Bupa')
@@ -2115,7 +2120,7 @@ if st.session_state.other_file_convert == True:
         # Preview & download
         if st.session_state.aia_parsed_once and st.session_state.aia_combined_df is not None:
             st.markdown("#### Preview (Master)")
-            st.dataframe(st.session_state.aia_combined_df, width='stretch')
+            st.dataframe(st.session_state.aia_combined_df)
 
             df_download = st.session_state.aia_combined_df.copy()
             if not st.session_state.aia_include_source_in_download and "source_file" in df_download.columns:
