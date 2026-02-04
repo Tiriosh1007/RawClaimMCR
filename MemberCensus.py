@@ -670,7 +670,7 @@ class MemberCensus():
             
             temp_df = temp_df[self.cols]
 
-        elif insurer == 'bolttech':
+        elif insurer == 'Bolttech':
             temp_df = pd.read_excel(fp, dtype=self.bolttech_cols_dtype)
             temp_df.rename(columns=self.bolttech_cols_mapping, inplace=True)
             # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
