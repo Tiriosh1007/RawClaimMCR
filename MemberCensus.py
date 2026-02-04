@@ -460,6 +460,43 @@ class MemberCensus():
             # 'staff_id',
             'E-Mail': 'working_email',
         }
+        self.bolttech_cols = [
+            'Policy No.',
+            'Subsidiary',
+            'Employee Name',
+            'Insured Name',
+            'Relationship',
+            'Gender',
+            'DOB',
+            'Member No.',
+            'Class',
+        ]
+        self.bolttech_cols_dtype = {
+            'Policy No.': str,
+            'Subsidiary': str,
+            'Employee Name': str,
+            'Insured Name': str,
+            'Relationship': str,
+            'Gender': str,
+            'DOB': str,
+            'Member No.': str,
+            'Class': str,
+        }
+        self.bolttech_cols_mapping = {
+            'Policy No.': 'policy_number',
+            # 'insurer'
+            'Member No.': 'member_id',
+            'Relationship': 'dep_type',
+            'Class': 'class',
+            'Insured Name': 'name',
+            'Gender': 'gender',
+            'DOB': 'age',
+            # 'policy_start_date',
+            # 'staff_id',
+            # 'working_email',
+            # 'client_name',
+            'subsidiary': 'suboffice',
+        }
 
 
     def get_member_df(self, fp, insurer, policy_start_date_input=None):
@@ -633,8 +670,25 @@ class MemberCensus():
             
             temp_df = temp_df[self.cols]
 
+        elif insurer == 'bolttech':
+            temp_df = pd.read_excel(fp, dtype=self.bolttech_cols_dtype)
+            temp_df.rename(columns=self.bolttech_cols_mapping, inplace=True)
+            # temp_df['policy_start_date'] = pd.to_datetime(temp_df['policy_start_date']).dt.year.astype(int)
+            temp_df['insurer'] = insurer
+            temp_df = _apply_policy_start(temp_df, "%Y%m%d")
+            temp_df['age'] = self.date_conversion(temp_df['age'], format="%Y%m%d")
+            temp_df['age'] = (temp_df["policy_start_date"] - temp_df['age']).dt.days / 365.25
+            temp_df['age'] = temp_df['age'].astype('int')
+            for col in self.cols:
+                if col not in temp_df.columns:
+                    temp_df[col] = None
+            
+            temp_df = temp_df[self.cols]
+
         self.member_df = pd.concat([self.member_df, temp_df], axis=0)
         return self.member_df
+
+        
 
 
         
