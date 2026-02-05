@@ -1332,7 +1332,7 @@ class RawClaimData():
     _start_date = t_df['policy_start_date'].iloc[0]
     t_df['policy_id'] = f"{t_df['policy_number'].values[0]}_{_start_date:%Y%m}"
     t_df['insurer'] = 'Bolttech'
-    t_df['benefit_type'].replace({'HOSP': 'Hospital', 'OUTP': 'Clinic', "MATN": 'Maternity'}, inplace=True)
+    t_df['benefit_type'].replace({'HOSP': 'Hospital', 'OUTP': 'Clinic', "DENT": 'Dental', "MATN": 'Maternity'}, inplace=True)
     t_df['panel'].replace({'Network': 'Panel', 'Non-Network': 'Non-Panel'}, inplace=True)
     t_df['incur_date'] = t_df['policy_start_date']
     t_df['pay_date'] = t_df['policy_start_date']
