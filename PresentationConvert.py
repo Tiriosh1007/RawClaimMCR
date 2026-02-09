@@ -913,10 +913,10 @@ class PresentationConvert():
             work['incurred_per_case'] = pd.to_numeric(work.get('incurred_per_case'), errors='coerce')
             work['paid_per_case'] = pd.to_numeric(work.get('paid_per_case'), errors='coerce')
             count_series = None
-            if 'no_of_claim_id' in work.columns:
-                count_series = pd.to_numeric(work.get('no_of_claim_id'), errors='coerce')
-            elif 'no_of_cases' in work.columns:
+            if 'no_of_cases' in work.columns:
                 count_series = pd.to_numeric(work.get('no_of_cases'), errors='coerce')
+            elif 'no_of_claim_id' in work.columns:
+                count_series = pd.to_numeric(work.get('no_of_claim_id'), errors='coerce')
             if count_series is None:
                 incurred_avg = work['incurred_per_case'].mean(skipna=True)
                 paid_avg = work['paid_per_case'].mean(skipna=True)
