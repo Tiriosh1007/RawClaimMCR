@@ -1675,6 +1675,96 @@ class RawClaimData():
     t_df = t_df[self.col_setup]
 
     return t_df
+  
+
+  def taiping_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, policy_data_date=None, client_name=None, region='HK', col_mapper=None):
+    if col_mapper == None:
+      dtype_taiping_raw = {
+        '保单号': str,
+        '承保年度': str,
+        '方案代碼': str,
+        '客戶類型': str,
+        '险别代码': str,
+        '责任代码': str,
+        '责任名称': str,
+        'Dummy No.': float,
+        '部門編碼': str,
+        '索賠人出險日期': str,
+        '住院日期': str,
+        '出院日期': str,
+        '币种': str,
+        '索賠金額(HKD)': float,
+        '已决赔款(HKD)': float,
+        'USAGE RATIO': str,
+        '狀態細分': str,
+        '最终核赔日期': str,
+        '收文日期': str,
+
+      }
+      taiping_rename_col = {
+        '保单号': 'policy_number',
+        '承保年度': 'policy_start_date',
+        '方案代碼': 'class',
+        '客戶類型': 'dep_type',
+        '险别代码': 'benefit_type',
+        '责任代码': 'benefit',
+        '责任名称': 'benefit_desc',
+        'Dummy No.': 'claimant',
+        '索賠人出險日期': 'incur_date',
+        '部門編碼': 'suboffice',
+        # '住院日期': 'admission_date',
+        '出院日期': 'discharge_date',
+        '币种': 'currency',
+        '索賠金額(HKD)': 'incurred_amount',
+        '已决赔款(HKD)': 'paid_amount',
+        # 'USAGE RATIO': 'usage_ratio',
+        '狀態細分': 'claim_status',
+        '最终核赔日期': 'pay_date',
+        '收文日期': 'submission_date',
+
+      }
+    date_cols = ['incur_date', 'pay_date', 'submission_date', 'discharge_date']
+    t_dfs = pd.read_excel(raw_claim_path, dtype=dtype_taiping_raw, sheet_name=None)
+    t_df = pd.concat(t_dfs, ignore_index=True)
+    t_df.rename(columns=taiping_rename_col, inplace=True)
+    for col in date_cols:
+      if col in t_df.columns.tolist():
+        t_df[col] = self.date_conversion(t_df[col])
+      else:
+        t_df[col] = np.nan
+    if policy_start_date != None:
+      t_df['policy_start_date'] = pd.to_datetime(policy_start_date, format='%Y%m%d')
+    else:
+      t_df['policy_start_date'] = t_df['incur_date'].sort_values().iloc[0]
+    t_df['policy_end_date'] = t_df['policy_start_date'] + pd.DateOffset(years=1)
+    t_df['policy_data_date'] = pd.to_datetime(policy_data_date, format='%Y%m%d')
+    t_df['insurer'] = 'Taiping'
+    t_df['client_name'] = client_name
+    _start_date = t_df['policy_start_date'].iloc[0]
+    t_df['policy_id'] = f'{t_df.policy_number.values[0]}_{_start_date:%Y%m}'
+    t_df['dep_type'].replace({'員工': 'EE', '配偶': 'SP', '子女': 'CH'}, inplace=True)
+    t_df.dropna(subset=['benefit'], inplace=True)
+    t_df['benefit_type'].replace({'HS': 'Hospital', 'MM': 'Hospital', 'OH': 'Clinic'}, inplace=True)
+    if "without Panel Data" in raw_claim_path:
+      t_df['panel'] = 'Non-Panel'
+    else:
+      t_df['panel'] = 'Panel'
+    t_df['claim_id'] = t_df['policy_id'] + '_' + t_df['claimant'].astype(str) + '_' +  t_df['dep_type'] + '_' + t_df['class'] + '_' + t_df['incur_date'].dt.strftime('%Y%m%d') + '_' + t_df['pay_date'].dt.strftime('%Y%m%d')
+    t_df['region'] = region
+    reject_code = ['D01', 'D01', 'D06', 'D09', 'D104', 'D19', 'D27', 'D34', 'D35', 'D36', 'D40',  'D46', 'D47', 'D48', 'D49', 'D50', 'D51', 'DS04', 'DS93', 'P']
+    t_df['claim_status'].loc[(t_df['claim_status'].str.contains('|'.join(reject_code), case=False)) & (t_df['paid_amount'] != 0)] = 'R'
+    if 'diagnosis' not in t_df.columns.tolist():
+      t_df['diagnosis'] = 'No diagnosis provided'
+    else:
+      t_df['diagnosis'].fillna('No diagnosis provided', inplace=True)
+    taiping_index = self.benefit_index[['gum_benefit', 'taiping_benefit']]
+    t_df = pd.merge(left=t_df, right=taiping_index, left_on='benefit', right_on='taiping_benefit', how='left')
+    t_df.benefit = t_df.gum_benefit
+    for col in self.col_setup:
+      if col not in t_df.columns.tolist():
+        t_df[col] = np.nan
+    t_df = t_df[self.col_setup]
+    return t_df
 
   
 
@@ -1753,6 +1843,8 @@ class RawClaimData():
       temp_df = self.manulife_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
     elif insurer == 'Liberty':
       temp_df = self.liberty_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
+    elif insurer == 'Taiping':
+      temp_df = self.taiping_raw_claim(raw_claim_path, password, policy_start_date, policy_data_date, client_name, region, col_mapper)
     else:
       # print('Please make sure that the colums of the DataFrame is aligned with the standard format')
       temp_df = self.__consol_raw_claim(raw_claim_path)

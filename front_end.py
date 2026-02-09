@@ -294,6 +294,12 @@ if st.session_state.raw_claim == True:
         policy_sd_l.append(datetime.strptime(date_matches[0], "%d %b %y").strftime("%Y%m%d"))
         policy_dd_l.append(datetime.strptime(date_matches[1], "%d %b %y").strftime("%Y%m%d"))
         password_l.append("")
+      elif 'Raw data' in uploaded_file.name:
+        insurer_l.append('Taiping')
+        date_matches = re.search(r'\((\d{4}-\d{2}-\d{2})\s*-\s*(\d{4}-\d{2}-\d{2})\)', uploaded_file.name)
+        policy_sd_l.append(datetime.strptime(date_matches.group(1), "%Y-%m-%d").strftime("%Y%m%d"))
+        policy_dd_l.append(datetime.strptime(date_matches.group(2), "%Y-%m-%d").strftime("%Y%m%d"))
+        password_l.append("")
       else:
         insurer_l.append('')
         policy_sd_l.append('')
