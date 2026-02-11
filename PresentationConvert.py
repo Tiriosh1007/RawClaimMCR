@@ -405,6 +405,29 @@ class PresentationConvert():
 
         input_p22.fillna(0, inplace=True)
 
+        benefit_order = []
+        benefit_source = self._get_dataframe("mcr_p20_benefit", "P22_by_class benefit order")
+        if benefit_source is not None and 'benefit_type' in benefit_source.columns:
+            for value in benefit_source['benefit_type']:
+                if pd.isna(value):
+                    continue
+                benefit = str(value).strip()
+                if not benefit or benefit.lower() == 'total':
+                    continue
+                if benefit not in benefit_order:
+                    benefit_order.append(benefit)
+        if not benefit_order:
+            for value in input_p22['benefit_type']:
+                if pd.isna(value):
+                    continue
+                benefit = str(value).strip()
+                if not benefit or benefit.lower() == 'total':
+                    continue
+                if benefit not in benefit_order:
+                    benefit_order.append(benefit)
+
+        benefit_row_offsets = {benefit: idx for idx, benefit in enumerate(benefit_order)}
+
         plan_num = self.plan_info
         P22_format_row_num = [13,20,27,34,45,52,59,66,77,84,91,98]
 
@@ -416,23 +439,35 @@ class PresentationConvert():
         current_row_dict = current_plan_row_df.set_index('plan')['start_row'].to_dict()
 
         for index, row in input_p22.iterrows():
-            if row.get('benefit_type') == 'Total':
+            benefit_type = row.get('benefit_type')
+            if pd.isna(benefit_type):
                 continue
-            class_id = row['class']
-            previous_start_row = previous_row_dict[class_id]
-            current_start_row = current_row_dict[class_id]
+            benefit_type = str(benefit_type).strip()
+            if not benefit_type or benefit_type.lower() == 'total':
+                continue
 
-            if row['year'] == self.previous_year:
-                row_target = previous_start_row + 1
+            class_id = row['class']
+            class_key = str(class_id) if not pd.isna(class_id) else None
+            if class_key is None:
+                continue
+
+            previous_start_row = previous_row_dict.get(class_key)
+            current_start_row = current_row_dict.get(class_key)
+
+            if benefit_type not in benefit_row_offsets:
+                benefit_row_offsets[benefit_type] = len(benefit_row_offsets)
+
+            row_offset = benefit_row_offsets[benefit_type]
+
+            if row['year'] == self.previous_year and previous_start_row is not None:
+                row_target = previous_start_row + 1 + row_offset
                 cols = [3, 4, 5]
-                previous_row_dict[class_id] = row_target
                 for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
                     template_p22.cell(row=row_target, column=col).value = val
 
-            elif row['year'] == self.current_year:
-                row_target = current_start_row + 1
+            elif row['year'] == self.current_year and current_start_row is not None:
+                row_target = current_start_row + 1 + row_offset
                 cols = [6, 7, 8]
-                current_row_dict[class_id] = row_target
                 for col, val in zip(cols, [row['incurred_amount'], row['paid_amount'], row['usage_ratio']]):
                     template_p22.cell(row=row_target, column=col).value = val
                         
