@@ -1233,6 +1233,7 @@ class RawClaimData():
         # "Effective Date" 
         "Claim Type": "benefit_type",
         "Benefit Type": "benefit_type",
+        " DESCRIPTION": "benefit",
         "BENEFIT DESCRIPTION": "benefit",
         "CLAIM STATUS": "claim_status",	
         "CLAIM INCURRED DATE": "incur_date",	
@@ -2818,6 +2819,7 @@ class RawClaimData():
       if benefit_type_order is not None:
         p22_class_benefit_df = p22_class_benefit_df.reindex(benefit_type_order, level='benefit_type')
 
+    
     self.p22_class_benefit = p22_class_benefit_df
     self.p22 = p22_class_benefit_df
     return p22_class_benefit_df
