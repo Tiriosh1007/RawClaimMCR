@@ -1909,7 +1909,7 @@ class RawClaimData():
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark_1 != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark_1.str.contains('|'.join(reject_claim_words), case=False) & ((self.df.paid_amount == 0) | (self.df.paid_amount.isna()))] = 'R'
       self.df.claim_status.loc[(self.df.insurer == 'AXA') & (self.df.claim_status == 'R') & (self.df.paid_amount != 0)] = 'PR'
-      self.df.claim_status.loc[(self.df.insurer == 'HSBC') & (~self.df.claim_status.str.contains('|'.join(['Approved', 'Adjusted']), case=False))] = 'R'
+      self.df.claim_status.loc[(self.df.insurer == 'HSBC') & (self.df.claim_status != "Approved")] = 'R'
       self.df.claim_status.loc[(self.df.insurer == "Sunlife") & (self.df.benefit_type == "not_covered")] = 'R'
       self.df = self.df.loc[(self.df.claim_status != 'R')]
       # self.df = self.df.loc[(self.df.claim_remark_1 == 'no_remark')]
