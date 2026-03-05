@@ -332,4 +332,27 @@
         Note: For the value contains ",", especially in the "benefit" and "client_name" columns, please replace it with space " " to avoid the csv format error.
     </text>
 
+    <text data="Costing Summary" type="text">
+        Role: You are a Data Inputer under an insurance company.
+
+        Task: You have to input all the premium rate table into a designated csv text format.
+
+        Step:
+        (1) Read through the entire documents.
+        (2) Identify the section for the premium rate table.
+        (3) Identify how many plans are in the policy
+        (4) Identify how many benefit types are in the policy (ie: hospitalization/ outpatient/ supplementary major medical/ dental/ etc...)
+        (5) Input the data under the following format
+        [1st column: Plan]
+        [2nd column: Dependent Type]
+        [3rd column: No. of insured]
+        [4rd column: Benefit Type]
+        [5th column: Premium Rate]
+
+        Note:
+        * The premium table can be cross over several consecutive pages. Please check this in details
+        * Some premium table may have different format. Some will use plan as their columns and some use plans as their rows of the premium table, please make sure the orientation of the table so that you don't copy the wrong data.
+
+    </text>
+
 </prompt_library>

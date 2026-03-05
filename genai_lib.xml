@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <model_library>
+
     <model name="gemini-3-flash-preview">google/gemini-3-flash-preview</model>
 
-    <model name="gemini-3-pro-preview">google/gemini-3-pro-preview</model>
+    <model name="gemini-3.1-pro-preview">google/gemini-3.1-pro-preview</model>
 
 </model_library>
