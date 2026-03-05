@@ -350,7 +350,8 @@
         [5th column: Premium Rate]
 
         Note:
-        * The premium table can be cross over several consecutive pages. Please check this in details
+        * Please start the csv parsing with line ```csv as an indicator, and then start data parsing on the new line. 
+        * The premium table can be cross over several consecutive pages. Please check this in details.
         * Some premium table may have different format. Some will use plan as their columns and some use plans as their rows of the premium table, please make sure the orientation of the table so that you don't copy the wrong data.
 
     </text>
