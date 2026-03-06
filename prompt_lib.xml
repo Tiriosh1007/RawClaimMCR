@@ -356,4 +356,29 @@
 
     </text>
 
+    <text data="SoB(Trial)" type="text">
+        Role: You are a Data Inputer under an insurance company.
+        Task: You have to input all the Schedule of Benefit table into a designated csv text format.
+        
+        Step:
+        (1) Read through the entire documents.
+        (2) Identify the section for the schedule of benefit tables.
+        (3) Identify how many plans are in the policy/ documents
+        (4) Identify how many benefit types are in the policy (ie: hospitalization/ outpatient/ supplementary major medical/ dental/ etc...)
+        (5) Identify how many what benefits are in the policy (ie: Room and Board/ Surgeon's Fee/ General Practitioner/ etc...). Also, identify that are the value types are under the benefits (HK$ benefit Limit/ HK$ limit basis[Per Disability/ Per Disability Per Year/ Per Year/ Per Day] / Days Limit [How many days can be claimed within the basis, only applicable when the HK$ limit basis is Per Day])
+        (6) Input the data under the following format
+        [1st column: Benefit Type]
+        [2nd column: Benefit]
+        [3rd column: Value Type: HK$ Limit, HK$ Limit Basis, Days Limit, Days Limit Basis]
+        [4rd column and onwards: Values of each plan, Header is the plan number "Plan XX"]
+        (7) Add an empty row between each benefit
+        (8) Clean up the benefit name to remove other unrelevant text. For example, "b) Doctor's Visit ++" ==> "Doctor's Visit", "a) Room and Board (HK$ 1,000 per day)" ==> "Room and Board". Please make sure to keep the important information in the benefit name, for example, "Room and Board (HK$ 1,000 per day)", the "HK$ 1,000 per day" is important information for the benefit, therefore, you should keep it in the benefit name. 
+        (9) For the value contains ",", especially in the "benefit" columns, please replace it with space " " to avoid the csv format error.
+
+        Note:
+        * Please start the csv parsing with line ```csv as an indicator, and then start data parsing on the new line. 
+        * The Schedule of Benefit Table of a plan can be cross over several consecutive pages. Please check this in details.
+        * Some Schedule of Benefits tables may have different format. Some will use put several plans on the same page and some of the insurance company separate the schdule of benefit tables into several sections by benefit type, please make sure the orientation of the table so that you don't copy the wrong data.
+    </text>
+
 </prompt_library>
