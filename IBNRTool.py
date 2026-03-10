@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, NamedStyle, Protection
 from dateutil.relativedelta import relativedelta
 
 class IBNRTool():
@@ -223,6 +223,24 @@ class IBNRTool():
 
         return historical_factors
 
+    def _ensure_named_styles(self, workbook):
+        existing_names = set()
+        for style in workbook.named_styles:
+            if isinstance(style, str):
+                existing_names.add(style)
+            else:
+                existing_names.add(style.name)
+
+        if 'num' not in existing_names:
+            num_style = NamedStyle(name='num')
+            num_style.number_format = '#,##0'
+            num_style.alignment = Alignment(horizontal='center', vertical='center')
+            num_style.font = Font(name='Univers', size=12)
+            num_style.border = Border()
+            num_style.fill = PatternFill(fill_type=None)
+            num_style.protection = Protection(locked=False, hidden=False)
+            workbook.add_named_style(num_style)
+
     def lag_month(self, row):
         if pd.isna(row['incur_date']) or pd.isna(row['pay_date']):
             return None
@@ -340,6 +358,7 @@ class IBNRTool():
         filtered_data.to_excel(writer, sheet_name=f'RawData_{pno}_{bnf}', index=False)
 
         wb = writer.book
+        self._ensure_named_styles(wb)
         ws = wb[sheet_name]
         last_row = ws.max_row
 
@@ -410,6 +429,9 @@ class IBNRTool():
                     row=excel_row,
                     column=loss_triangle.columns.get_loc(lag_month) + 2
                 )
+
+                if isinstance(cell.value, (int, float)) and not pd.isna(cell.value):
+                    cell.style = 'num'
 
                 if (policy_month, lag_month) in used_historical_cells:
                     cell.fill = historical_fill

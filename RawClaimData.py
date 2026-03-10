@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import io
+import numbers
 import msoffcrypto
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -110,6 +111,30 @@ class RawClaimData():
                             except:
                                 date_series = pd.to_datetime(date_series, format="ISO8601")
         return date_series
+
+  def _ensure_num_named_style(self, workbook, font_size=12):
+    existing_names = set()
+    for style in workbook.named_styles:
+      if isinstance(style, str):
+        existing_names.add(style)
+      else:
+        existing_names.add(style.name)
+
+    if 'num' not in existing_names:
+      num_style = NamedStyle(name='num')
+      num_style.number_format = '#,##0'
+      num_style.alignment = Alignment(horizontal='center', vertical='center')
+      num_style.font = Font(name='Univers', size=font_size)
+      num_style.border = Border()
+      num_style.fill = PatternFill(fill_type=None)
+      num_style.protection = Protection(locked=False, hidden=False)
+      workbook.add_named_style(num_style)
+
+  def _apply_num_style_to_sheet(self, worksheet, start_row=2, start_col=1):
+    for row in worksheet.iter_rows(min_row=start_row, min_col=start_col):
+      for cell in row:
+        if isinstance(cell.value, numbers.Number) and not pd.isna(cell.value):
+          cell.style = 'num'
 
 
   def __axa_raw_claim(self, raw_claim_path, password=None, policy_start_date=None, policy_data_date=None, client_name=None, region='HK', col_mapper=None):
@@ -1909,7 +1934,7 @@ class RawClaimData():
       self.df.claim_status.loc[(self.df.insurer == 'Bupa') & (self.df.claim_remark_1 != 'no_remark')] = 'R'
       self.df.claim_status.loc[self.df.claim_remark_1.str.contains('|'.join(reject_claim_words), case=False) & ((self.df.paid_amount == 0) | (self.df.paid_amount.isna()))] = 'R'
       self.df.claim_status.loc[(self.df.insurer == 'AXA') & (self.df.claim_status == 'R') & (self.df.paid_amount != 0)] = 'PR'
-      self.df.claim_status.loc[(self.df.insurer == 'HSBC') & (self.df.claim_status != "Approved")] = 'R'
+      self.df.claim_status.loc[(self.df.insurer == 'HSBC') & (self.df.claim_status != 'Approved')] = 'R'
       self.df.claim_status.loc[(self.df.insurer == "Sunlife") & (self.df.benefit_type == "not_covered")] = 'R'
       self.df = self.df.loc[(self.df.claim_status != 'R')]
       # self.df = self.df.loc[(self.df.claim_remark_1 == 'no_remark')]
@@ -5267,20 +5292,7 @@ class RawClaimData():
 
         # Embed custom NamedStyle 'num' into the workbook
         wb = writer.book
-        try:
-          existing_names = [ns if isinstance(ns, str) else ns.name for ns in wb.named_styles]
-        except Exception:
-          existing_names = []
-
-        if 'num' not in existing_names:
-          num_style = NamedStyle(name='num')
-          num_style.number_format = '#,##0'
-          num_style.alignment = Alignment(horizontal='center', vertical='center')
-          num_style.font = Font(name='Univers', size=14)
-          num_style.border = Border()  # No border
-          num_style.fill = PatternFill(fill_type=None)  # No shading
-          num_style.protection = Protection(locked=False, hidden=False)  # No protection
-          wb.add_named_style(num_style)
+        self._ensure_num_named_style(wb, font_size=14)
 
 
         # writer.add_named_style(per_format)
@@ -5622,6 +5634,11 @@ class RawClaimData():
         self.ip_usage.to_excel(writer_2, sheet_name='Claimant IP Usage', index=True, merge_cells=False)
         self.ip_usage_incurred.to_excel(writer_2, sheet_name='Claimant IP Usage Incurred', index=True, merge_cells=False)
         # self.ip_usage_for_cal.to_excel(writer_2, sheet_name='Claimant IP Usage for Calculation', index=True, merge_cells=False)
+        workbook = writer_2.book
+        self._ensure_num_named_style(workbook, font_size=12)
+        for sheet_name in ['Claimant Visits', 'Claimant Statistics', 'Claimant IP Usage', 'Claimant IP Usage Incurred']:
+          worksheet = workbook[sheet_name]
+          self._apply_num_style_to_sheet(worksheet, start_row=2, start_col=2)
       return output.getvalue()
 
   def fair_ibnr_estimation(self, months=9):
