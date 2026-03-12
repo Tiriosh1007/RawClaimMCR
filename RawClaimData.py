@@ -5056,7 +5056,7 @@ class RawClaimData():
   def mcr_p30_op_freq_claimant_analysis(self, by=None, annualize=False, ibnr=False, research_mode=False, min_cases=10):
 
     base_by = list(by) if isinstance(by, list) else ([] if by is None else [by])
-    freq_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+    freq_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)']
 
     cols_needed = base_by + ['class', 'dep_type', 'claimant', 'benefit']
     freq_df = self.mcr_df[cols_needed].copy(deep=True)
@@ -5139,7 +5139,7 @@ class RawClaimData():
     
 
     self.mcr_df = self.df.copy(deep=True)
-    freq_op_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+    freq_op_benefits = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)']
 
     if year_incurred == False:
       self.mcr_df['year'] = self.mcr_df.policy_start_date.dt.year
@@ -5346,8 +5346,8 @@ class RawClaimData():
     # return self.by_time
 
   def frequent_claimant_analysis(self, export=True, sub_policy=None):
-    freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)', 'Prescribed Medicine (PM)']
-    total_visit_col = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)']
+    freq_op_list = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)', 'Diagnostic: X-Ray & Lab Test (DX)', 'Prescribed Medicine (PM)']
+    total_visit_col = ['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)']
     self.df.policy_start_date = pd.to_datetime(self.df.policy_start_date)
     self.df['year'] = self.df.policy_start_date.dt.year
     self.df.claimant = self.df.policy_id.str.cat(self.df.claimant, sep='_')
@@ -5529,29 +5529,29 @@ class RawClaimData():
     __freq_df_non_panel = __freq_df_non_panel.set_index(['policy_number', 'year', 'suboffice', 'claimant', 'class', 'dep_type', 'age', 'gender'])
 
     # __freq_df.reset_index(inplace=True)
-    __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+    __freq_df = __freq_df[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
                             'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
                             'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_incurred', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
-                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (TCM)_incurred_per_claim', 
                             'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
-                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (TCM)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
-    __freq_df_panel = __freq_df_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+    __freq_df_panel = __freq_df_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
                             'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
                             'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_incurred', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
-                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (TCM)_incurred_per_claim', 
                             'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
-                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (TCM)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
-    __freq_df_non_panel = __freq_df_non_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (CMT)', 'Chiro (CT)', 'Physio (PT)',
+    __freq_df_non_panel = __freq_df_non_panel[['General Consultation (GP)', 'Specialist Consultation (SP)', 'Chinese Med (TCM)', 'Chiro (CT)', 'Physio (PT)',
                             'total_claims', 'total_paid', 'paid_per_claim', 'GP + SP', 'Physio + Chiro', 
                             'Diagnostic: X-Ray & Lab Test (DX)', 'Diagnostic: X-Ray & Lab Test (DX)_incurred', 'Diagnostic: X-Ray & Lab Test (DX)_paid', 'Diagnostic: X-Ray & Lab Test (DX)_paid_per_claim',
                             'Prescribed Medicine (PM)', 'Prescribed Medicine (PM)_incurred', 'Prescribed Medicine (PM)_paid', 'Prescribed Medicine (PM)_paid_per_claim',
-                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (CMT)_incurred_per_claim', 
+                            'General Consultation (GP)_incurred_per_claim', 'Specialist Consultation (SP)_incurred_per_claim', 'Chinese Med (TCM)_incurred_per_claim', 
                             'Chiro (CT)_incurred_per_claim', 'Physio (PT)_incurred_per_claim',
-                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (CMT)_paid_per_claim', 
+                            'General Consultation (GP)_paid_per_claim', 'Specialist Consultation (SP)_paid_per_claim', 'Chinese Med (TCM)_paid_per_claim', 
                             'Chiro (CT)_paid_per_claim', 'Physio (PT)_paid_per_claim']]
     __freq_df_panel.columns = [f'panel_{col}' for col in __freq_df_panel.columns.to_list()]
     __freq_df_non_panel.columns = [f'non_panel_{col}' for col in __freq_df_non_panel.columns.to_list()]
@@ -5674,7 +5674,7 @@ class RawClaimData():
   # this function should modify into incident rate
   ################################################################################################
 
-  def benefit_op_monthly(self, benefit=['GP', 'CMT', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
+  def benefit_op_monthly(self, benefit=['GP', 'TCM', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
     self.df['year'] = self.df.policy_start_date.dt.year
     __benefit_df = self.df[['benefit', 'incur_date', 'policy_id']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', pd.Grouper(key='incur_date', freq='m')]).count().rename(columns={'policy_id': 'no_of_claims'})
 
@@ -5717,7 +5717,7 @@ class RawClaimData():
 
     return fig
 
-  def benefit_op_yearly_bar(self, benefit=['GP', 'CMT', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
+  def benefit_op_yearly_bar(self, benefit=['GP', 'TCM', 'SP', 'PM', 'CT', 'PT', 'DX', 'Psy', 'Vac', 'Check']):
     self.df['year'] = self.df.policy_start_date.dt.year
     __benefit_df = self.df[['benefit', 'policy_id', 'year']].loc[self.df['benefit'].str.contains('|'.join(benefit), case=True)].groupby(['benefit', 'policy_id']).count().rename(columns={'year': 'no_of_claims'})
     __benefit_df  =__benefit_df.astype(int)
@@ -5893,12 +5893,12 @@ class RawClaimData():
 
   def gender_analysis_by_op(self):
     self.df['year'] = self.df.policy_start_date.dt.year
-    sex_panel = self.df[['year', 'gender', 'panel', 'incur_date']].loc[(self.df.benefit == 'General Consultation (GP)') | (self.df.benefit == 'Chinese Med (CMT)') | (self.df.benefit == 'Specialist Consultation (SP)')]
+    sex_panel = self.df[['year', 'gender', 'panel', 'incur_date']].loc[(self.df.benefit == 'General Consultation (GP)') | (self.df.benefit == 'Chinese Med (TCM)') | (self.df.benefit == 'Specialist Consultation (SP)')]
     sex_panel = sex_panel.groupby(by=['year', 'gender', 'panel']).count().rename(columns={'incur_date': 'no_of_claims'})
 
     __year_l = self.df.year.unique().tolist()
     __gender_l = self.df.gender.unique().tolist()
-    __benefit_l = ['General Consultation (GP)', 'Chinese Med (CMT)', 'Specialist Consultation (SP)']
+    __benefit_l = ['General Consultation (GP)', 'Chinese Med (TCM)', 'Specialist Consultation (SP)']
 
 
     pie_fig, pie_ax = plt.subplots(nrows=len(__year_l), ncols=len(__gender_l), figsize=(6*len(__year_l), 6*len(__gender_l)))
